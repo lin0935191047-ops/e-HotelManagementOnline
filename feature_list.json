@@ -1,0 +1,181 @@
+{
+  "project": "e-Hotel Management & Booking Online System",
+  "version": "1.0.0",
+  "features": [
+    {
+      "id": "FEAT-01",
+      "name": "Drizzle Schema & Mock Data Seeding",
+      "title": "Drizzle Schema & Mock Data Seeding",
+      "module": "Database & Seed",
+      "description": "Khởi tạo Drizzle ORM schema đầy đủ 10 thực thể theo SPEC.md và ARCHITECTURE.md trên PostgreSQL 16, tạo migrations và seed script cho 3 tài khoản nội bộ (admin, manager, sale), các hạng phòng mẫu, dịch vụ mẫu, mã khuyến mãi mẫu và tài khoản ngân hàng giả lập (ATM/Visa).",
+      "dependencies": [],
+      "verification": [
+        "deno check backend/src/main.ts hoặc deno task db:generate chạy thành công",
+        "deno task db:migrate và deno task db:seed tạo đầy đủ dữ liệu mẫu không lỗi",
+        "Unit test xác nhận tồn tại đủ 3 role và tài khoản thanh toán giả lập"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-02",
+      "name": "Authentication, 30-Min Session Timeout & Strict Disjoint RBAC",
+      "title": "Authentication, 30-Min Session Timeout & Strict Disjoint RBAC",
+      "module": "System Administration",
+      "description": "Đăng nhập cho nhân viên nội bộ qua Hono backend, tự động hết hạn phiên sau 30 phút không tương tác (lastActiveAt), middleware chặn truy cập chéo giữa ADMIN (/api/admin), MANAGER (/api/setup) và SALE (/api/operation).",
+      "dependencies": ["FEAT-01"],
+      "verification": [
+        "Test: Khách hàng truy cập trang đặt phòng không cần login (200 OK)",
+        "Test: ADMIN gọi API của /api/setup hoặc /api/operation bị trả về 403 Forbidden",
+        "Test: MANAGER gọi API của /api/admin hoặc /api/operation bị trả về 403 Forbidden",
+        "Test: SALE gọi API của /api/admin hoặc /api/setup bị trả về 403 Forbidden",
+        "Test: Phiên có lastActiveAt > 30 phút trước bị trả về 401 Unauthorized"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-03",
+      "name": "User Management (Admin Role)",
+      "title": "User Management (Admin Role)",
+      "module": "System Administration",
+      "description": "CRUD người dùng hệ thống (Thêm, danh sách, xem, sửa, xóa) và gán role (ADMIN, MANAGER, SALE) cho vai trò Admin trên cả API và giao diện React SPA.",
+      "dependencies": ["FEAT-02"],
+      "verification": [
+        "Test CRUD API /api/admin/users hoạt động đúng với role ADMIN",
+        "Validate không cho phép tạo trùng username",
+        "Giao diện React SPA hiển thị danh sách người dùng và form thêm/sửa chuẩn UX"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-04",
+      "name": "Setup Rooms with Booking Deletion Guard",
+      "title": "Setup Rooms with Booking Deletion Guard",
+      "module": "Setup Module",
+      "description": "Quản lý phòng vật lý (RoomID, Type, Size, Price, MaxAdults, MaxChildren, ExtraChildFee, Description, URL Pictures). Chặn xóa phòng nếu phòng đã từng được gán cho bất kỳ booking nào.",
+      "dependencies": ["FEAT-01"],
+      "verification": [
+        "Test tạo/sửa phòng với mảng URL hình ảnh",
+        "Test xóa phòng chưa có lịch sử -> 200 OK",
+        "Test xóa phòng đã có lịch sử gán phòng -> 400 Bad Request (ROOM_CANNOT_BE_DELETED)"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-05",
+      "name": "Setup Services & Promotion Management",
+      "title": "Setup Services & Promotion Management",
+      "module": "Setup Module",
+      "description": "CRUD dịch vụ khách sạn và CRUD chương trình khuyến mãi hỗ trợ cả PERCENTAGE và FIXED_AMOUNT kèm startDate, endDate và mã code.",
+      "dependencies": ["FEAT-01"],
+      "verification": [
+        "Test CRUD /api/setup/services kiểm tra đơn giá > 0",
+        "Test CRUD /api/setup/promotions kiểm tra endDate >= startDate và phần trăm <= 100"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-06",
+      "name": "Room Catalog & Inventory-based Availability Search",
+      "title": "Room Catalog & Inventory-based Availability Search",
+      "module": "Customer Booking",
+      "description": "Trang chủ hiển thị danh mục hạng phòng, xem chi tiết phòng, tìm kiếm số lượng phòng trống theo (fromDate, toDate, roomType) dựa trên tồn kho hạng phòng có khóa bi quan (Pessimistic Locking).",
+      "dependencies": ["FEAT-04"],
+      "verification": [
+        "Test tính toán AvailableQuota = TotalPhysicalRooms - OverlappingConfirmedOrCheckedInBookings",
+        "Giao diện hiển thị đúng số lượng phòng còn trống của từng hạng phòng"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-07",
+      "name": "Shopping Cart, Customer Form, Promotion & Payment Simulator",
+      "title": "Shopping Cart, Customer Form, Promotion & Payment Simulator",
+      "module": "Customer Booking",
+      "description": "Giỏ hàng thêm/xóa hạng phòng theo số lượng, form nhập thông tin khách, áp mã khuyến mãi, chọn trả 100% hoặc cọc 50%, thanh toán qua PaymentAccount giả lập bọc trong Database Transaction và sinh mã bookingNumber.",
+      "dependencies": ["FEAT-06", "FEAT-05"],
+      "verification": [
+        "Test áp dụng mã khuyến mãi PERCENTAGE và FIXED_AMOUNT hợp lệ trong hạn startDate-endDate",
+        "Test thanh toán thất bại khi số dư tài khoản giả lập < số tiền cần thanh toán (PAYMENT_FAILED)",
+        "Test thanh toán thành công: trừ đúng số dư (100% hoặc 50%), sinh bookingNumber và giảm tồn kho hạng phòng"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-08",
+      "name": "Check & Cancel Booking (24h Rule & 80/20 Refund)",
+      "title": "Check & Cancel Booking (24h Rule & 80/20 Refund)",
+      "module": "Customer Booking",
+      "description": "Tra cứu đặt phòng bằng bookingNumber. Cho phép hủy khi trạng thái là CONFIRMED và cách giờ nhận phòng >= 24 giờ. Sử dụng SELECT FOR UPDATE để tránh Double Refund, phạt 20%, hoàn 80% về PaymentAccount và trả lại tồn kho phòng.",
+      "dependencies": ["FEAT-07"],
+      "verification": [
+        "Test chặn hủy phòng nếu thời gian còn lại < 24 giờ hoặc đã CHECKED_IN (CANCELLATION_INVALID)",
+        "Test hủy hợp lệ: cập nhật cancellationFee = 20%, cộng lại 80% vào PaymentAccount.balance, trạng thái chuyển sang CANCELLED"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-09",
+      "name": "Booking Management & Check-in (Physical Room Assignment & Auto Child Surcharge)",
+      "title": "Booking Management & Check-in (Physical Room Assignment & Auto Child Surcharge)",
+      "module": "Operation Module",
+      "description": "Nhân viên Sale tìm kiếm booking, làm thủ tục Check-in: gán số phòng vật lý với khóa bi quan (chống gán trùng phòng), nhập danh sách từng khách lưu trú và tự động tính phụ thu trẻ em vượt định mức.",
+      "dependencies": ["FEAT-07", "FEAT-04"],
+      "verification": [
+        "Test gán số phòng vật lý chuyển trạng thái phòng sang OCCUPIED và booking sang CHECKED_IN",
+        "Test tự động tính extraChildrenFee khi số trẻ em trong phòng > Room.maxChildren"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-10",
+      "name": "Use Services & HTML Ticket Printing",
+      "title": "Use Services & HTML Ticket Printing",
+      "module": "Operation Module",
+      "description": "Đăng ký dịch vụ theo số phòng đang ở, lưu phiếu dịch vụ và mở giao diện HTML in phiếu dịch vụ chuẩn CSS @media print qua window.print().",
+      "dependencies": ["FEAT-09", "FEAT-05"],
+      "verification": [
+        "Test đăng ký dịch vụ chỉ cho phép phòng đang ở trạng thái OCCUPIED",
+        "Trang in phiếu dịch vụ hiển thị đầy đủ mã phiếu, số phòng, tên dịch vụ, số lượng, đơn giá, thành tiền và gọi window.print()"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-11",
+      "name": "Check-out, Invoice Calculation & HTML Invoice Printing",
+      "title": "Check-out, Invoice Calculation & HTML Invoice Printing",
+      "module": "Operation Module",
+      "description": "Tổng hợp tiền phòng, phụ thu trẻ em, tổng phí dịch vụ, khấu trừ số tiền đã trả trước (prepaidBookingValue), xuất hóa đơn quyết toán, giải phóng phòng về AVAILABLE và mở trang in HTML qua window.print().",
+      "dependencies": ["FEAT-09", "FEAT-10"],
+      "verification": [
+        "Test công thức remainingPayable = (netRoomFee + extraChildrenFee + totalServiceFee) - prepaidBookingValue",
+        "Test sau khi Check-out: phòng vật lý trở về AVAILABLE, booking chuyển sang CHECKED_OUT"
+      ],
+      "status": "not-started",
+      "evidence": null
+    },
+    {
+      "id": "FEAT-12",
+      "name": "Revenue Report & Excel/PDF Export",
+      "title": "Revenue Report & Excel/PDF Export",
+      "module": "Operation Module",
+      "description": "Báo cáo danh sách đặt phòng từ ngày đến ngày, tính tổng doanh thu = (Tổng hóa đơn đã Check-out + 20% phí phạt các đơn đã Hủy) trong kỳ, hỗ trợ xuất file .xlsx và .pdf.",
+      "dependencies": ["FEAT-11", "FEAT-08"],
+      "verification": [
+        "Test công thức tổng doanh thu khớp chính xác tổng tiền hóa đơn CHECKED_OUT + 20% phí phạt CANCELLED trong khoảng thời gian lọc",
+        "Test endpoint xuất file trả về đúng định dạng Excel (.xlsx) và PDF (.pdf)"
+      ],
+      "status": "not-started",
+      "evidence": null
+    }
+  ]
+}
