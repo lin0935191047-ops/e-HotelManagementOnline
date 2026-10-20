@@ -35,7 +35,7 @@
 - [session-handoff.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/session-handoff.md)
 
 ## Blockers / Risks
-- Máy host hiện tại cần cài đặt Deno v2.0+ hoặc sử dụng Docker Compose để chạy môi trường container thống nhất.
+- Không còn blocker: Deno v2.9.7 đã cài đặt trên host, dịch vụ PostgreSQL 18 đang hoạt động sẵn sàng.
 
 ## Verification Evidence
 - Harness validation audit chạy thành công với điểm số 100/100 qua `node .agents/skills/harness-creator/scripts/validate-harness.mjs --target .`.

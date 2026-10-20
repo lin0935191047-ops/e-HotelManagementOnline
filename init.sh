@@ -5,6 +5,11 @@ echo "===================================================="
 echo "🚀 e-Hotel Harness Environment Initialization"
 echo "===================================================="
 
+# Tự động nạp PATH cho Deno nếu cài ở thư mục mặc định (~/.deno/bin)
+if [ -d "$HOME/.deno/bin" ]; then
+  export PATH="$HOME/.deno/bin:$PATH"
+fi
+
 # 1. Kiểm tra môi trường thực thi (Deno & Docker theo ADR-001)
 if command -v deno &> /dev/null; then
   echo "✅ Deno version: $(deno --version | head -n 1)"
@@ -40,18 +45,34 @@ fi
 if [ -f "feature_list.json" ]; then
   echo "----------------------------------------------------"
   echo "📋 Trạng thái Feature List hiện tại:"
-  node -e '
-    const fs = require("fs");
-    const data = JSON.parse(fs.readFileSync("feature_list.json", "utf8"));
-    const passed = data.features.filter(f => f.status === "done" || f.status === "passed").length;
-    console.log(`Tiến độ: ${passed}/${data.features.length} tính năng hoàn thành.\n`);
-    data.features.forEach(f => {
-      const isDone = f.status === "done" || f.status === "passed";
-      const icon = isDone ? "✅" : (f.status === "in-progress" ? "🔄" : "⏳");
-      const featName = f.name || f.title || "";
-      console.log(`${icon} [${f.id}] (${f.status.toUpperCase()}) - ${featName}`);
-    });
-  '
+  if command -v deno &> /dev/null; then
+    deno eval '
+      const data = JSON.parse(await Deno.readTextFile("feature_list.json"));
+      const passed = data.features.filter(f => f.status === "done" || f.status === "passed").length;
+      console.log(`Tiến độ: ${passed}/${data.features.length} tính năng hoàn thành.\n`);
+      data.features.forEach(f => {
+        const isDone = f.status === "done" || f.status === "passed";
+        const icon = isDone ? "✅" : (f.status === "in-progress" ? "🔄" : "⏳");
+        const featName = f.name || f.title || "";
+        console.log(`${icon} [${f.id}] (${f.status.toUpperCase()}) - ${featName}`);
+      });
+    '
+  elif command -v node &> /dev/null; then
+    node -e '
+      const fs = require("fs");
+      const data = JSON.parse(fs.readFileSync("feature_list.json", "utf8"));
+      const passed = data.features.filter(f => f.status === "done" || f.status === "passed").length;
+      console.log(`Tiến độ: ${passed}/${data.features.length} tính năng hoàn thành.\n`);
+      data.features.forEach(f => {
+        const isDone = f.status === "done" || f.status === "passed";
+        const icon = isDone ? "✅" : (f.status === "in-progress" ? "🔄" : "⏳");
+        const featName = f.name || f.title || "";
+        console.log(`${icon} [${f.id}] (${f.status.toUpperCase()}) - ${featName}`);
+      });
+    '
+  else
+    echo "⚠️ Không tìm thấy Deno hoặc Node để parse feature_list.json"
+  fi
   echo "----------------------------------------------------"
 fi
 

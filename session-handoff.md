@@ -39,7 +39,7 @@
 
 ## Blockers / Risks
 
-- Máy trạm host của lập trình viên hiện chưa cài sẵn `deno` và `docker` trực tiếp trên system PATH. Cần cài đặt Deno v2.0+ (`irm https://deno.land/install.ps1 | iex`) hoặc kích hoạt Docker Desktop để chạy toàn bộ hệ thống qua `docker-compose.yml`.
+- Không còn blocker môi trường: Đã cài đặt thành công **Deno v2.9.7** trên PATH máy host và dịch vụ **PostgreSQL 18** đang chạy (Listen port 5432). Hệ thống đã sẵn sàng 100% để khởi tạo mã nguồn.
 
 ## Next Session Startup
 
