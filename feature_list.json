@@ -4,25 +4,25 @@
   "features": [
     {
       "id": "FEAT-01",
-      "name": "Drizzle Schema & Mock Data Seeding",
-      "title": "Drizzle Schema & Mock Data Seeding",
+      "name": "Prisma Schema & Mock Data Seeding",
+      "title": "Prisma Schema & Mock Data Seeding",
       "module": "Database & Seed",
-      "description": "Khởi tạo Drizzle ORM schema đầy đủ 10 thực thể theo SPEC.md và ARCHITECTURE.md trên PostgreSQL 16, tạo migrations và seed script cho 3 tài khoản nội bộ (admin, manager, sale), các hạng phòng mẫu, dịch vụ mẫu, mã khuyến mãi mẫu và tài khoản ngân hàng giả lập (ATM/Visa).",
+      "description": "Khởi tạo Prisma ORM schema đầy đủ 10 thực thể theo SPEC.md và ARCHITECTURE.md trên PostgreSQL 16, đồng bộ database qua prisma db push và chạy seed script cho 3 tài khoản nội bộ (admin, manager, sale), các hạng phòng mẫu, dịch vụ mẫu, mã khuyến mãi mẫu và tài khoản ngân hàng giả lập (ATM/Visa).",
       "dependencies": [],
       "verification": [
-        "deno check backend/src/main.ts hoặc deno task db:generate chạy thành công",
-        "deno task db:migrate và deno task db:seed tạo đầy đủ dữ liệu mẫu không lỗi",
-        "Unit test xác nhận tồn tại đủ 3 role và tài khoản thanh toán giả lập"
+        "npx prisma validate và npx prisma db push chạy thành công",
+        "npm run db:seed tạo đầy đủ dữ liệu mẫu không lỗi",
+        "Unit test (npm test) xác nhận tồn tại đủ 3 role và tài khoản thanh toán giả lập"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "npx prisma validate và npx prisma db push thành công. npm run db:seed gieo 3 tài khoản, 2 thẻ giả lập, 5 phòng mẫu, 4 dịch vụ, 2 mã KM. npm test passed 6/6 tests (2 suites, 0 errors)."
     },
     {
       "id": "FEAT-02",
       "name": "Authentication, 30-Min Session Timeout & Strict Disjoint RBAC",
       "title": "Authentication, 30-Min Session Timeout & Strict Disjoint RBAC",
       "module": "System Administration",
-      "description": "Đăng nhập cho nhân viên nội bộ qua Hono backend, tự động hết hạn phiên sau 30 phút không tương tác (lastActiveAt), middleware chặn truy cập chéo giữa ADMIN (/api/admin), MANAGER (/api/setup) và SALE (/api/operation).",
+      "description": "Đăng nhập cho nhân viên nội bộ qua Express.js backend, tự động hết hạn phiên sau 30 phút không tương tác (lastActiveAt), middleware chặn truy cập chéo giữa ADMIN (/api/admin), MANAGER (/api/setup) và SALE (/api/operation).",
       "dependencies": ["FEAT-01"],
       "verification": [
         "Test: Khách hàng truy cập trang đặt phòng không cần login (200 OK)",
@@ -31,8 +31,8 @@
         "Test: SALE gọi API của /api/admin hoặc /api/setup bị trả về 403 Forbidden",
         "Test: Phiên có lastActiveAt > 30 phút trước bị trả về 401 Unauthorized"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "15/15 unit & integration tests PASS. Xác thực JWT hoạt động chuẩn. Chặn quyền Strict Disjoint RBAC trả về 403 cho các truy cập chéo. Tự động hết hạn phiên khi không tương tác quá 30 phút trả về 401. Cổng public truy cập 200 OK không cần đăng nhập."
     },
     {
       "id": "FEAT-03",
@@ -46,8 +46,8 @@
         "Validate không cho phép tạo trùng username",
         "Giao diện React SPA hiển thị danh sách người dùng và form thêm/sửa chuẩn UX"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "10/10 integration tests cho FEAT-03 PASS (tổng 25/25 tests hệ thống PASS). CRUD API /api/admin/users hoạt động chính xác với ADMIN. Validate chặn tạo trùng username và chặn vai trò không hợp lệ. Đã xây dựng giao diện React SPA UserManagement.jsx với bảng dữ liệu, lọc vai trò, tìm kiếm, form modal thêm/sửa và xác nhận xóa tài khoản; Vite production build thành công."
     },
     {
       "id": "FEAT-04",
@@ -61,8 +61,8 @@
         "Test xóa phòng chưa có lịch sử -> 200 OK",
         "Test xóa phòng đã có lịch sử gán phòng -> 400 Bad Request (ROOM_CANNOT_BE_DELETED)"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "9/9 integration tests cho FEAT-04 PASS (tổng 34/34 tests hệ thống PASS trên 5 suites). CRUD API /api/setup/rooms hoạt động chính xác với role MANAGER. Validate chặn tạo trùng roomId, kiểm tra loại phòng/kích thước/giá. Booking Deletion Guard kích hoạt chuẩn xác, trả về 400 ROOM_CANNOT_BE_DELETED khi xóa phòng đã có booking. Giao diện React SPA RoomSetup.jsx hỗ trợ bảng dữ liệu, lọc, tìm kiếm, modal tạo/sửa và modal xác nhận xóa an toàn; Vite build thành công trong 2.83s."
     },
     {
       "id": "FEAT-05",

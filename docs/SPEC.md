@@ -1,7 +1,7 @@
 # SOFTWARE SPECIFICATION: e-Hotel Management & Booking Online System
 
 ## 1. Kiến trúc & Công nghệ (Tech Stack)
-- **Framework:** Next.js 14+ (App Router, Fullstack TypeScript) đáp ứng yêu cầu vận hành trên trình duyệt web phổ biến[cite: 2].
+- **Framework:** Next.js 14+ (App Router, Fullstack JavaScript) đáp ứng yêu cầu vận hành trên trình duyệt web phổ biến[cite: 2].
 - **Styling & UI:** Tailwind CSS + Shadcn UI.
 - **Database & ORM:** PostgreSQL + Prisma ORM (hỗ trợ kiểm tra kiểu dữ liệu nghiêm ngặt).
 - **Authentication & Session:** JWT / NextAuth (Custom Credentials) với cơ chế tự động hết hạn phiên (auto-timeout) sau **30 phút** không hoạt động.

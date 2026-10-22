@@ -1,26 +1,71 @@
 # Session Progress Log — e-Hotel Project
 
-**Last Updated:** 2026-10-16
+**Last Updated:** 2026-10-21
 
 ## Current State & Project Status
-- **Completed Features:** 0 / 12
-- **Current Active Feature:** `FEAT-01` (Drizzle Schema & Mock Data Seeding)
-- **Last Known Build/Test Status:** Harness verified (Score 100/100). Project ready for initial codebase scaffolding.
+- **Completed Features:** 4 / 12
+- **Current Active Feature:** `FEAT-05` (Setup Services & Promotion Management) - ready to start
+- **Last Known Build/Test Status:** All 34 tests passing across 5 suites (0 failures), Prisma valid, PostgreSQL in sync. Frontend Vite production build passing (2.83s). Harness audit 100/100.
 
 ## Current Objective
-- **Goal:** Khởi tạo kiến trúc mã nguồn Deno 2.x + Drizzle ORM + Hono và hoàn thành tính năng `FEAT-01`.
-- **Target Deliverables:** `backend/db/schema.ts`, `backend/db/seed.ts`, migrations, Dockerfile, docker-compose.yml.
+- **Goal:** Hoàn thành `FEAT-04: Setup Rooms with Booking Deletion Guard` và chuẩn bị triển khai `FEAT-05: Setup Services & Promotion Management`.
+- **Target Deliverables:** `src/services/room.service.js`, `src/controllers/room.controller.js`, `src/entrypoints/setup.routes.js`, `tests/feat04.test.js`, `frontend/src/pages/manager/RoomSetup.jsx`, `frontend/src/App.jsx`.
 
 ## What Was Done (Session History)
 
 ### Session 0 (Specification & Harness Standardization)
 - Phân tích toàn bộ yêu cầu nghiệp vụ SRS và khóa đặc tả tại [docs/SPEC.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/docs/SPEC.md).
-- Ban hành quyết định kiến trúc [docs/adr/ADR-001-tech-stack-decision.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/docs/adr/ADR-001-tech-stack-decision.md): Chốt Deno 2.x + Hono + Drizzle ORM + PostgreSQL 16 + React 18 SPA + Docker Compose, loại bỏ hoàn toàn Node.js/npm trên máy host của lập trình viên.
-- Ban hành bản thiết kế thi công [ARCHITECHTURE.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/ARCHITECHTURE.md): Thiết lập Clean Layered Architecture, quy chuẩn Pessimistic Locking (`SELECT FOR UPDATE`), và bảng mã lỗi RFC 7807.
-- Chuẩn hóa toàn bộ bộ khung Harness (`AGENTS.md`, `feature_list.json`, `progress.md`, `init.sh`, `session-handoff.md`) bằng `harness-creator`, đạt 100/100 điểm audit.
+- Thiết lập bộ khung Harness 100/100 điểm audit.
+
+### Session 1 (Migration to Node.js & FEAT-01 Completion)
+- Chuyển đổi toàn bộ nền tảng runtime từ Deno sang **Node.js (v24) + JavaScript (ES Modules) + Express.js + Prisma ORM + React.js (Vite)** theo yêu cầu người dùng.
+- Cập nhật quyết định kiến trúc tại [docs/adr/ADR-001-tech-stack-decision.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/docs/adr/ADR-001-tech-stack-decision.md) và [ARCHITECHTURE.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/ARCHITECHTURE.md).
+- Triển khai `backend/package.json`, `backend/prisma/schema.prisma` với 10 thực thể và đầy đủ quan hệ, enums trên PostgreSQL 18.
+- Chạy `npx prisma db push` đồng bộ cấu trúc database thành công.
+- Tạo script `backend/prisma/seed.js` gieo dữ liệu mẫu ban đầu: 3 tài khoản nội bộ (admin, manager, sale), 2 thẻ thanh toán giả lập, 5 phòng mẫu, 4 dịch vụ, 2 mã khuyến mãi.
+- Xây dựng Express entrypoint `backend/src/main.js` với router `/` và `/api/health`.
+- Viết bộ unit test native (`backend/tests/feat01.test.js`, `backend/tests/api.test.js`), chạy qua `npm test` đạt 6/6 tests PASS.
+- Cập nhật script khởi động `init.ps1` và `init.sh` kiểm tra Node.js, npm, PostgreSQL.
+- Đánh dấu hoàn thành tính năng `FEAT-01` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
+
+### Session 2 (FEAT-02: Authentication, 30-Min Session Timeout & Strict Disjoint RBAC)
+- Xây dựng hệ thống lỗi chuẩn RFC 7807 trong [backend/src/common/errors.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/errors.js) và [backend/src/common/middlewares/error.middleware.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/middlewares/error.middleware.js).
+- Xây dựng middleware xác thực JWT và kiểm soát Inactivity Timeout 30 phút trong [backend/src/common/middlewares/auth.middleware.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/middlewares/auth.middleware.js).
+- Xây dựng middleware kiểm soát phân quyền độc lập tuyệt đối [backend/src/common/middlewares/rbac.middleware.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/middlewares/rbac.middleware.js) (`ADMIN` chỉ vào `/admin/*`, `MANAGER` chỉ vào `/setup/*`, `SALE` chỉ vào `/operation/*`, chặn kế thừa chéo quyền).
+- Xây dựng dịch vụ đăng nhập [backend/src/services/auth.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/auth.service.js) và controller [backend/src/controllers/auth.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/auth.controller.js).
+- Định tuyến các module [backend/src/entrypoints/](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/) (`auth.routes.js`, `public.routes.js`, `admin.routes.js`, `setup.routes.js`, `operation.routes.js`).
+- Viết 9 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat02.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat02.test.js), nâng tổng số bài test lên 15/15 PASS.
+- Đánh dấu hoàn thành tính năng `FEAT-02` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
+
+### Session 3 (FEAT-03: User Management - Admin Role)
+- Xây dựng dịch vụ [backend/src/services/user.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/user.service.js): CRUD tài khoản người dùng, validate tên đăng nhập độc nhất, lọc theo role, tìm kiếm tên/username, mã hóa mật khẩu bcrypt, bảo vệ Admin không tự xóa tài khoản của chính mình và không tự hạ quyền của chính mình.
+- Xây dựng REST controller [backend/src/controllers/user.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/user.controller.js) và gắn routes vào [backend/src/entrypoints/admin.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/admin.routes.js) (`/api/admin/users`).
+- Viết 10 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat03.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat03.test.js) (tất cả 10/10 PASS, nâng tổng số tests hệ thống lên 25/25 PASS trên 4 test suites).
+- Tinh chỉnh `backend/package.json` với cờ `--test-concurrency=1` để bảo đảm các bài test database chạy tuần tự, tránh tranh chấp dữ liệu phiên đăng nhập.
+- Khởi tạo Frontend SPA hiện đại bằng React 18 + Vite tại [frontend/](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/):
+  - Hệ thống CSS & UI Tokens hiện đại trong [frontend/src/index.css](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/index.css) với bảng màu sang trọng (dark theme, glassmorphism, badge role, modal overlay, form controls).
+  - API Client [frontend/src/api/client.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/api/client.js) bọc gọi API kèm token và bóc tách lỗi RFC 7807 Problem Details.
+  - Màn hình quản lý người dùng [frontend/src/pages/admin/UserManagement.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/admin/UserManagement.jsx) hiển thị danh sách người dùng, lọc role, tìm kiếm từ khóa, modal tạo/sửa tài khoản, modal xác nhận xóa an toàn.
+  - Màn hình đăng nhập [frontend/src/pages/Login.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/Login.jsx) với nút chọn nhanh tài khoản kiểm thử (Admin, Manager, Sale).
+  - Kiểm tra Vite build thành công: `npm run build` PASS trong 2.77s.
+- Cập nhật tiến độ `FEAT-03` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
+
+### Session 4 (FEAT-04: Setup Rooms with Booking Deletion Guard)
+- Xây dựng tầng nghiệp vụ [backend/src/services/room.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/room.service.js):
+  - CRUD danh mục phòng vật lý với phân trang, bộ lọc (`type`, `size`, `status`), tìm kiếm từ khóa (`roomId`, `description`).
+  - Validate mã phòng độc nhất, giá phòng $> 0$, số lượng người lớn $\ge 1$, trẻ em $\ge 0$, phụ thu $\ge 0$, chuẩn hóa mảng URL hình ảnh.
+  - **Booking Deletion Guard:** Kiểm tra lịch sử gán phòng (`RoomAssignment`) và sử dụng dịch vụ (`ServiceUsage`). Nếu phòng đã từng phát sinh dữ liệu liên quan đến booking, chặn xóa phòng và ném mã lỗi RFC 7807 `ROOM_CANNOT_BE_DELETED`.
+- Xây dựng REST Controller [backend/src/controllers/room.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/room.controller.js) và gắn routes vào [backend/src/entrypoints/setup.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/setup.routes.js) (`/api/setup/rooms`).
+- Viết 9 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat04.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat04.test.js) (toàn bộ 9/9 PASS, nâng tổng số tests hệ thống lên 34/34 PASS trên 5 suites).
+- Xây dựng giao diện Frontend SPA:
+  - Màn hình Quản lý phòng vật lý [frontend/src/pages/manager/RoomSetup.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/manager/RoomSetup.jsx) với bảng dữ liệu, lọc đa tiêu chí, thanh tìm kiếm, modal tạo/sửa thông tin phòng và modal xác nhận xóa an toàn hiển thị cảnh báo Booking Deletion Guard.
+  - Tích hợp vào [frontend/src/App.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/App.jsx) theo vai trò `MANAGER`.
+  - Bổ sung CSS badges và status tags trong [frontend/src/index.css](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/index.css).
+  - Kiểm tra Vite build thành công: `npm run build` PASS trong 2.83s.
+- Cập nhật tiến độ `FEAT-04` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
 ## Architectural Decisions Locked
-1. **Tech Stack:** Deno v2.0+, Hono v4.6+, Drizzle ORM v0.35+, PostgreSQL 16, React v18.3+ SPA (Vite + Tailwind CSS), Docker Compose.
+1. **Tech Stack:** Node.js v20+/v24+, JavaScript ES Modules (`"type": "module"`), Express.js v4.21+, Prisma ORM v6.x, PostgreSQL 16+, React.js v18.3+ SPA (Vite + Tailwind CSS).
 2. **Booking Inventory Model:** Đặt phòng online theo hạng phòng (`type` + `size`) và số lượng (`quantity`). Gán phòng vật lý (`101`, `102`...) chỉ thực hiện khi Check-in có khóa bi quan (`FOR UPDATE`).
 3. **Flexible Prepayment:** Hỗ trợ thanh toán 100% hoặc cọc 50%; khấu trừ chính xác `prepaidBookingValue` khi Check-out.
 4. **Cancellation Rule:** Hủy trước $\ge 24\text{h}$ so với giờ nhận phòng khi trạng thái là `CONFIRMED`; giữ lại 20% phí hủy, hoàn trả 80% về tài khoản thanh toán giả lập.
@@ -28,18 +73,33 @@
 6. **Revenue Calculation:** Tổng doanh thu = $\sum \text{Hóa đơn Check-out} + \sum \text{20\% Phí hủy đơn}$.
 
 ## Files Changed
-- [AGENTS.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/AGENTS.md)
+- [backend/src/common/errors.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/errors.js)
+- [backend/src/common/middlewares/error.middleware.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/middlewares/error.middleware.js)
+- [backend/src/common/middlewares/auth.middleware.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/middlewares/auth.middleware.js)
+- [backend/src/common/middlewares/rbac.middleware.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/middlewares/rbac.middleware.js)
+- [backend/src/services/auth.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/auth.service.js)
+- [backend/src/controllers/auth.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/auth.controller.js)
+- [backend/src/entrypoints/auth.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/auth.routes.js)
+- [backend/src/entrypoints/public.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/public.routes.js)
+- [backend/src/entrypoints/admin.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/admin.routes.js)
+- [backend/src/entrypoints/setup.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/setup.routes.js)
+- [backend/src/entrypoints/operation.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/operation.routes.js)
+- [backend/src/main.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/main.js)
+- [backend/tests/feat02.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat02.test.js)
 - [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json)
 - [progress.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/progress.md)
-- [init.sh](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/init.sh)
 - [session-handoff.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/session-handoff.md)
 
 ## Blockers / Risks
-- Không còn blocker: Deno v2.9.7 đã cài đặt trên host, dịch vụ PostgreSQL 18 đang hoạt động sẵn sàng.
+- Không còn blocker: Toàn bộ 15 tests PASS, hệ thống ổn định và bảo mật.
 
 ## Verification Evidence
-- Harness validation audit chạy thành công với điểm số 100/100 qua `node .agents/skills/harness-creator/scripts/validate-harness.mjs --target .`.
+- `npm test`: 15/15 tests passed across 3 test suites (`api.test.js`, `feat01.test.js`, `feat02.test.js`).
+- `npm run lint`: PASS (0 lỗi).
+- `npx prisma validate`: PASS (Schema hợp lệ 100%).
+- `powershell -ExecutionPolicy Bypass -File .\init.ps1`: Hiển thị tiến độ 2/12 features completed.
+- `node .agents/skills/harness-creator/scripts/validate-harness.mjs --target .`: PASS (100/100).
 
 ## Next Session & Next Steps
-- **Next Session Startup:** Chạy `./init.sh`, đọc `AGENTS.md` và `session-handoff.md`.
-- **Recommended Next Step:** Bắt đầu Session 1 thực hiện tính năng `FEAT-01`: tạo `backend/deno.json`, `backend/db/schema.ts` (10 thực thể), `backend/db/seed.ts` và kiểm tra xác thực.
+- **Next Session Startup:** Chạy `./init.ps1` (hoặc `./init.sh`).
+- **Recommended Next Step:** Bắt đầu tính năng `FEAT-03: User Management (Admin Role)` (CRUD tài khoản người dùng nội bộ và gán role cho Admin).
