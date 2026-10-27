@@ -55,8 +55,16 @@ app.use("/api/operation", operationRoutes);
 // Global Error Handler
 app.use(errorHandler);
 
-// Chạy server khi thực thi trực tiếp
-if (process.argv[1] && import.meta.url.endsWith(process.argv[1].replace(/\\/g, "/"))) {
+import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+// Chạy server khi thực thi trực tiếp (không chạy khi được import bởi test suite)
+const isDirectRun =
+  process.argv[1] &&
+  path.resolve(process.argv[1]).toLowerCase() ===
+    fileURLToPath(import.meta.url).toLowerCase();
+
+if (isDirectRun) {
   app.listen(config.port, () => {
     console.log(`🚀 e-Hotel API server starting on port ${config.port} (Node.js)...`);
   });
