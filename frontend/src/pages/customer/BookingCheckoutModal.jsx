@@ -19,6 +19,7 @@ import {
   ArrowRight,
   Sparkles,
   Bed,
+  Search,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 
@@ -51,6 +52,7 @@ export default function BookingCheckoutModal({
   onUpdateCartItemQuantity,
   onRemoveCartItem,
   onBookingSuccess,
+  onOpenLookup,
 }) {
   // Step: "form" (nhập thông tin & thanh toán) hoặc "success" (đặt phòng thành công)
   const [step, setStep] = useState("form");
@@ -475,7 +477,29 @@ export default function BookingCheckoutModal({
               </div>
             </div>
 
-            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem" }}>
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", flexWrap: "wrap" }}>
+              {onOpenLookup && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={() => {
+                    onClose();
+                    onOpenLookup(completedBookingData.booking.bookingNumber);
+                  }}
+                  style={{
+                    padding: "0.75rem 1.5rem",
+                    fontSize: "0.9375rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.5rem",
+                    borderColor: "rgba(99, 102, 241, 0.4)",
+                    color: "#c7d2fe",
+                  }}
+                >
+                  <Search size={16} />
+                  <span>Tra Cứu & Quản Lý Đơn Này</span>
+                </button>
+              )}
               <button
                 type="button"
                 className="btn btn-primary"

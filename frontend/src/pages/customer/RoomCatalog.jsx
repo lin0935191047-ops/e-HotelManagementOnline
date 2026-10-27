@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 import BookingCheckoutModal from "./BookingCheckoutModal.jsx";
+import BookingLookupModal from "./BookingLookupModal.jsx";
 
 // Định dạng tiền tệ VND
 const formatCurrency = (amount) => {
@@ -80,6 +81,10 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
   // Giỏ hàng đặt phòng (Shopping Cart)
   const [cartItems, setCartItems] = useState([]);
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  // Modal tra cứu & hủy đặt phòng (FEAT-08)
+  const [isLookupOpen, setIsLookupOpen] = useState(false);
+  const [lookupBookingNumber, setLookupBookingNumber] = useState("");
 
   // Toast thông báo thêm phòng thành công
   const [toastMessage, setToastMessage] = useState(null);
@@ -331,6 +336,34 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
           <div style={{ display: "flex", alignItems: "center", gap: "0.35rem" }}>
             <ShieldCheck size={16} color="#10b981" /> Hủy Phòng Linh Hoạt (Hoàn 80%)
           </div>
+        </div>
+
+        {/* Nút tra cứu nhanh đơn đặt phòng */}
+        <div style={{ marginTop: "1.25rem" }}>
+          <button
+            type="button"
+            onClick={() => {
+              setLookupBookingNumber("");
+              setIsLookupOpen(true);
+            }}
+            className="btn btn-secondary"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              padding: "0.5rem 1.25rem",
+              fontSize: "0.875rem",
+              fontWeight: 600,
+              borderRadius: "9999px",
+              border: "1px solid rgba(99, 102, 241, 0.4)",
+              background: "rgba(99, 102, 241, 0.12)",
+              color: "#c7d2fe",
+              cursor: "pointer",
+            }}
+          >
+            <Search size={15} color="#818cf8" />
+            <span>Tra Cứu & Quản Lý / Hủy Đơn Đặt Phòng</span>
+          </button>
         </div>
       </section>
 
@@ -960,6 +993,10 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
           onUpdateCartItemQuantity={handleUpdateCartItemQuantity}
           onRemoveCartItem={handleRemoveCartItem}
           onBookingSuccess={handleBookingSuccess}
+          onOpenLookup={(bNumber) => {
+            setLookupBookingNumber(bNumber);
+            setIsLookupOpen(true);
+          }}
         />
       )}
 
@@ -1116,6 +1153,13 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
           </div>
         </div>
       )}
+
+      {/* Modal Tra Cứu & Hủy Đặt Phòng (BookingLookupModal - FEAT-08) */}
+      <BookingLookupModal
+        isOpen={isLookupOpen}
+        onClose={() => setIsLookupOpen(false)}
+        initialBookingNumber={lookupBookingNumber}
+      />
     </div>
   );
 }

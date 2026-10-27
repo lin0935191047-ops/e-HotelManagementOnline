@@ -118,8 +118,8 @@
         "Test chặn hủy phòng nếu thời gian còn lại < 24 giờ hoặc đã CHECKED_IN (CANCELLATION_INVALID)",
         "Test hủy hợp lệ: cập nhật cancellationFee = 20%, cộng lại 80% vào PaymentAccount.balance, trạng thái chuyển sang CANCELLED"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "9/9 integration tests cho FEAT-08 PASS (tổng 92/92 tests hệ thống PASS trên 9 suites). API GET /api/public/bookings/:bookingNumber tra cứu đầy đủ thông tin đơn, số đêm, items, tiền đã trả, tiền còn lại khi check-in, cờ isCancellable và phân tích phí hủy dự kiến; API POST /api/public/bookings/:bookingNumber/cancel thực thi nghiêm ngặt theo Luồng 3.2 ARCHITECTURE bọc trong Prisma Transaction với khóa bi quan SELECT ... FOR UPDATE trên cả bảng bookings và payment_accounts; kiểm tra chặn chặt chẽ thời gian < 24 giờ và các trạng thái CHECKED_IN/CHECKED_OUT/CANCELLED trả về 400 CANCELLATION_INVALID; chặn 100% rủi ro Double Refund khi gọi hủy đồng thời song song; tính đúng tiền phạt cancellationFee = 20% và hoàn đúng refundAmount = 80% vào số dư PaymentAccount.balance gốc; chuyển trạng thái sang CANCELLED và tự động giải phóng tồn kho phòng AvailableQuota. Giao diện React SPA BookingLookupModal.jsx hỗ trợ tra cứu real-time, giao diện thẻ trạng thái sắc nét, thông tin thanh toán & hoàn tiền chi tiết, cảnh báo đếm ngược luật 24h, modal con xác nhận hủy phòng an toàn chống bấm nhầm; tích hợp nút tra cứu trên thanh Navbar App.jsx, Hero banner RoomCatalog.jsx và màn hình đặt phòng thành công BookingCheckoutModal.jsx; Frontend production build PASS (4.24s)."
     },
     {
       "id": "FEAT-09",

@@ -574,4 +574,273 @@ export class BookingService {
       balance: Number(acc.balance),
     }));
   }
+
+  /**
+   * Tra cứu thông tin chi tiết đơn đặt phòng bằng bookingNumber
+   */
+  static async lookupBooking({ bookingNumber }) {
+    if (!bookingNumber || typeof bookingNumber !== "string") {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Vui lòng cung cấp mã đơn đặt phòng (bookingNumber).",
+        400,
+      );
+    }
+
+    const cleanBookingNumber = bookingNumber.trim().toUpperCase();
+
+    const booking = await prisma.booking.findUnique({
+      where: { bookingNumber: cleanBookingNumber },
+      include: {
+        items: true,
+        promotion: true,
+        assignments: {
+          include: {
+            room: true,
+          },
+        },
+        serviceUsages: {
+          include: {
+            service: true,
+          },
+        },
+      },
+    });
+
+    if (!booking) {
+      throw new AppError(
+        ErrorCodes.RESOURCE_NOT_FOUND,
+        `Không tìm thấy đơn đặt phòng với mã '${cleanBookingNumber}'.`,
+        404,
+      );
+    }
+
+    const now = new Date();
+    const checkInDate = new Date(booking.fromDate);
+    const diffHours = (checkInDate.getTime() - now.getTime()) / (1000 * 60 * 60);
+    const isCancellable = booking.status === "CONFIRMED" && diffHours >= 24;
+
+    const prepaid = Number(booking.prepaidBookingValue);
+    const cancellationFee =
+      booking.cancellationFee !== null
+        ? Number(booking.cancellationFee)
+        : Math.round(prepaid * 0.2);
+    const refundAmount =
+      booking.refundAmount !== null
+        ? Number(booking.refundAmount)
+        : prepaid - cancellationFee;
+
+    const nights = Math.max(
+      1,
+      Math.round(
+        (new Date(booking.toDate).getTime() -
+          new Date(booking.fromDate).getTime()) /
+          (1000 * 60 * 60 * 24),
+      ),
+    );
+
+    return {
+      booking: {
+        id: booking.id,
+        bookingNumber: booking.bookingNumber,
+        customerName: booking.customerName,
+        customerPhone: booking.customerPhone,
+        customerEmail: booking.customerEmail,
+        customerCccd: booking.customerCccd,
+        fromDate: booking.fromDate,
+        toDate: booking.toDate,
+        nights,
+        totalRoomFee: Number(booking.totalRoomFee),
+        discountAmount: Number(booking.discountAmount),
+        netRoomFee: Number(booking.netRoomFee),
+        paymentOption: booking.paymentOption,
+        prepaidBookingValue: prepaid,
+        remainingPayable: Number(booking.netRoomFee) - prepaid,
+        paymentAccountNumber: booking.paymentAccountNumber,
+        status: booking.status,
+        createdAt: booking.createdAt,
+        cancelledAt: booking.cancelledAt,
+        checkedOutAt: booking.checkedOutAt,
+        cancellationFee:
+          booking.cancellationFee !== null
+            ? Number(booking.cancellationFee)
+            : null,
+        refundAmount:
+          booking.refundAmount !== null ? Number(booking.refundAmount) : null,
+        promotion: booking.promotion
+          ? {
+              code: booking.promotion.code,
+              name: booking.promotion.name,
+              discountType: booking.promotion.discountType,
+              value: Number(booking.promotion.value),
+            }
+          : null,
+        items: booking.items.map((it) => ({
+          id: it.id,
+          roomType: it.roomType,
+          roomSize: it.roomSize,
+          categoryName: CatalogService.formatCategoryName(
+            it.roomType,
+            it.roomSize,
+          ),
+          quantity: it.quantity,
+          unitPrice: Number(it.unitPrice),
+          subtotal: it.quantity * Number(it.unitPrice) * nights,
+        })),
+        assignedRooms: booking.assignments.map((as) => ({
+          assignmentId: as.id,
+          roomId: as.roomId,
+          status: as.room?.status,
+        })),
+      },
+      cancellationPolicy: {
+        isCancellable,
+        hoursUntilCheckIn: Number(diffHours.toFixed(1)),
+        cancellationFeeRate: 0.2,
+        refundRate: 0.8,
+        estimatedCancellationFee: cancellationFee,
+        estimatedRefundAmount: refundAmount,
+        reason: !isCancellable
+          ? booking.status !== "CONFIRMED"
+            ? `Đơn đang ở trạng thái ${booking.status}`
+            : `Thời gian tới lúc nhận phòng còn dưới 24 giờ (${diffHours.toFixed(1)}h)`
+          : null,
+      },
+    };
+  }
+
+  /**
+   * Hủy đặt phòng và hoàn tiền theo quy tắc 24h & hoàn 80/20 (Luồng 3.2 Spec 4.3)
+   * Sử dụng khóa bi quan SELECT FOR UPDATE chống Race Condition / Double Refund
+   */
+  static async cancelBooking({ bookingNumber }) {
+    if (!bookingNumber || typeof bookingNumber !== "string") {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Vui lòng cung cấp mã đơn đặt phòng (bookingNumber).",
+        400,
+      );
+    }
+
+    const cleanBookingNumber = bookingNumber.trim().toUpperCase();
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Khóa bi quan bản ghi đơn đặt phòng để chống tranh chấp / Double Refund
+      const bookings = await tx.$queryRaw`
+        SELECT id, booking_number, status, from_date, to_date, prepaid_booking_value, payment_account_number
+        FROM bookings
+        WHERE booking_number = ${cleanBookingNumber}
+        FOR UPDATE;
+      `;
+
+      if (!bookings || bookings.length === 0) {
+        throw new AppError(
+          ErrorCodes.RESOURCE_NOT_FOUND,
+          `Không tìm thấy đơn đặt phòng với mã '${cleanBookingNumber}'.`,
+          404,
+        );
+      }
+
+      const lockedBooking = bookings[0];
+
+      // 2. Kiểm tra trạng thái: chỉ cho phép hủy khi đang CONFIRMED
+      if (lockedBooking.status !== "CONFIRMED") {
+        throw new AppError(
+          ErrorCodes.CANCELLATION_INVALID,
+          `Đơn đặt phòng đang ở trạng thái '${lockedBooking.status}', không thể thực hiện hủy phòng. Chỉ áp dụng cho đơn CONFIRMED chưa check-in.`,
+          400,
+        );
+      }
+
+      // 3. Kiểm tra luật 24h: fromDate - now >= 24 giờ
+      const now = new Date();
+      const checkInDate = new Date(lockedBooking.from_date);
+      const diffMs = checkInDate.getTime() - now.getTime();
+      const diffHours = diffMs / (1000 * 60 * 60);
+
+      if (diffHours < 24) {
+        const remainingStr =
+          diffHours > 0
+            ? `${diffHours.toFixed(1)} giờ`
+            : "đã quá giờ nhận phòng";
+        throw new AppError(
+          ErrorCodes.CANCELLATION_INVALID,
+          `Chỉ được phép hủy phòng trước giờ nhận phòng tối thiểu 24 giờ. Thời gian còn lại: ${remainingStr}.`,
+          400,
+        );
+      }
+
+      // 4. Tính toán tài chính hoàn tiền 80/20 theo Spec 4.3
+      const prepaid = Number(lockedBooking.prepaid_booking_value);
+      const cancellationFee = Math.round(prepaid * 0.2); // Khách sạn giữ lại 20%
+      const refundAmount = prepaid - cancellationFee; // Hoàn trả lại 80%
+
+      // 5. Khóa và hoàn tiền vào tài khoản thanh toán gốc
+      const accountNum = lockedBooking.payment_account_number;
+      const accounts = await tx.$queryRaw`
+        SELECT id, account_number, account_holder, card_type, balance
+        FROM payment_accounts
+        WHERE account_number = ${accountNum}
+        FOR UPDATE;
+      `;
+
+      if (!accounts || accounts.length === 0) {
+        throw new AppError(
+          ErrorCodes.PAYMENT_FAILED,
+          `Không tìm thấy tài khoản thanh toán gốc '${accountNum}' để hoàn tiền.`,
+          400,
+        );
+      }
+
+      const paymentAcc = accounts[0];
+      const previousBalance = Number(paymentAcc.balance);
+      const newBalance = previousBalance + refundAmount;
+
+      await tx.$executeRaw`
+        UPDATE payment_accounts
+        SET balance = balance + ${refundAmount}
+        WHERE account_number = ${accountNum};
+      `;
+
+      // 6. Cập nhật trạng thái Booking sang CANCELLED
+      const updated = await tx.booking.update({
+        where: { id: lockedBooking.id },
+        data: {
+          status: "CANCELLED",
+          cancellationFee,
+          refundAmount,
+          cancelledAt: now,
+        },
+        include: {
+          items: true,
+          promotion: true,
+        },
+      });
+
+      return {
+        booking: {
+          id: updated.id,
+          bookingNumber: updated.bookingNumber,
+          customerName: updated.customerName,
+          status: updated.status,
+          fromDate: updated.fromDate,
+          toDate: updated.toDate,
+          prepaidBookingValue: Number(updated.prepaidBookingValue),
+          cancellationFee: Number(updated.cancellationFee),
+          refundAmount: Number(updated.refundAmount),
+          cancelledAt: updated.cancelledAt,
+          paymentAccountNumber: updated.paymentAccountNumber,
+        },
+        refund: {
+          accountNumber: accountNum,
+          accountHolder: paymentAcc.account_holder,
+          cardType: paymentAcc.card_type,
+          previousBalance,
+          refundAmount,
+          cancellationFee,
+          newBalance,
+        },
+      };
+    });
+  }
 }

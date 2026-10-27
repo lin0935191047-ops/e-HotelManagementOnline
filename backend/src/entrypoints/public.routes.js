@@ -29,4 +29,8 @@ router.post("/bookings/preview", BookingController.previewBooking);
 router.post("/bookings", BookingController.createBooking);
 router.get("/payment-accounts", BookingController.getMockPaymentAccounts);
 
+// Tra cứu & Hủy đặt phòng theo luật 24h & hoàn 80/20 (FEAT-08)
+router.get("/bookings/:bookingNumber", BookingController.lookupBooking);
+router.post("/bookings/:bookingNumber/cancel", BookingController.cancelBooking);
+
 export default router;

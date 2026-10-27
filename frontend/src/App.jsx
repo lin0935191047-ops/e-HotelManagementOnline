@@ -9,18 +9,21 @@ import {
   Bed,
   LogIn,
   LayoutDashboard,
+  Search,
 } from "lucide-react";
 import { getCurrentUser, setCurrentUser, setToken, apiRequest } from "./api/client.js";
 import Login from "./pages/Login.jsx";
 import UserManagement from "./pages/admin/UserManagement.jsx";
 import ManagerSetup from "./pages/manager/ManagerSetup.jsx";
 import RoomCatalog from "./pages/customer/RoomCatalog.jsx";
+import BookingLookupModal from "./pages/customer/BookingLookupModal.jsx";
 
 export default function App() {
   const [user, setUser] = useState(getCurrentUser());
   const [activeTab, setActiveTab] = useState("users");
   // Chế độ xem: "catalog" (Cổng đặt phòng khách hàng) hoặc "portal" (Phân hệ nhân viên/login)
   const [currentView, setCurrentView] = useState("catalog");
+  const [isGlobalLookupOpen, setIsGlobalLookupOpen] = useState(false);
 
   const handleLogout = async () => {
     try {
@@ -97,6 +100,17 @@ export default function App() {
           >
             <Bed size={16} />
             <span>Cổng Đặt Phòng</span>
+          </button>
+
+          {/* Nút tra cứu nhanh đơn đặt phòng */}
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => setIsGlobalLookupOpen(true)}
+            style={{ fontSize: "0.8125rem", padding: "0.5rem 1rem" }}
+          >
+            <Search size={16} />
+            <span>Tra Cứu Đơn</span>
           </button>
 
           {user ? (
@@ -202,6 +216,12 @@ export default function App() {
       >
         © 2026 e-Hotel System — Decoupled Modular Monolith (Node.js + Express + Prisma + React SPA)
       </footer>
+
+      {/* Modal Tra Cứu & Hủy Đơn Đặt Phòng Toàn Cục (FEAT-08) */}
+      <BookingLookupModal
+        isOpen={isGlobalLookupOpen}
+        onClose={() => setIsGlobalLookupOpen(false)}
+      />
     </div>
   );
 }

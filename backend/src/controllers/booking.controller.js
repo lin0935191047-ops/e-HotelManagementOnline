@@ -69,4 +69,39 @@ export class BookingController {
       next(error);
     }
   }
+
+  /**
+   * Tra cứu chi tiết đơn đặt phòng bằng bookingNumber
+   * GET /api/public/bookings/:bookingNumber
+   */
+  static async lookupBooking(req, res, next) {
+    try {
+      const { bookingNumber } = req.params;
+      const data = await BookingService.lookupBooking({ bookingNumber });
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Hủy đơn đặt phòng và hoàn tiền theo quy tắc 80/20 & luật 24h
+   * POST /api/public/bookings/:bookingNumber/cancel
+   */
+  static async cancelBooking(req, res, next) {
+    try {
+      const { bookingNumber } = req.params;
+      const data = await BookingService.cancelBooking({ bookingNumber });
+      return res.json({
+        success: true,
+        message: "Hủy đặt phòng và hoàn tiền thành công.",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
