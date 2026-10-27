@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { CatalogController } from "../controllers/catalog.controller.js";
+import { BookingController } from "../controllers/booking.controller.js";
 
 const router = Router();
 
@@ -19,5 +20,13 @@ router.get("/rooms/:roomId", CatalogController.getRoomDetails);
 // Tra cứu tồn kho phòng trống theo khoảng thời gian lưu trú
 router.get("/availability", CatalogController.getAvailability);
 router.post("/availability/search", CatalogController.getAvailability);
+
+// Áp dụng mã khuyến mãi & tính toán trước giỏ hàng (FEAT-07)
+router.post("/promotions/apply", BookingController.validatePromotion);
+router.post("/bookings/preview", BookingController.previewBooking);
+
+// Đặt phòng & thanh toán giả lập với Transaction (FEAT-07)
+router.post("/bookings", BookingController.createBooking);
+router.get("/payment-accounts", BookingController.getMockPaymentAccounts);
 
 export default router;

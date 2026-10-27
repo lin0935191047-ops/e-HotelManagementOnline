@@ -3,13 +3,13 @@
 **Last Updated:** 2026-10-27
 
 ## Current State & Project Status
-- **Completed Features:** 6 / 12
-- **Current Active Feature:** `FEAT-07` (Shopping Cart, Customer Form, Promotion & Payment Simulator) - ready to start
-- **Last Known Build/Test Status:** All 69 tests passing across 7 suites (0 failures), Prisma valid, PostgreSQL in sync. Frontend Vite production build passing (11.15s). Harness audit 100/100.
+- **Completed Features:** 7 / 12
+- **Current Active Feature:** `FEAT-08` (Check & Cancel Booking - 24h Rule & 80/20 Refund) - ready to start
+- **Last Known Build/Test Status:** All 83 tests passing across 8 suites (0 failures), Prisma valid, PostgreSQL in sync. Frontend Vite production build passing (3.08s). Harness audit 100/100.
 
 ## Current Objective
-- **Goal:** Hoàn thành `FEAT-06: Room Catalog & Inventory-based Availability Search` và chuẩn bị triển khai `FEAT-07: Shopping Cart, Customer Form, Promotion & Payment Simulator`.
-- **Target Deliverables:** `src/services/catalog.service.js`, `src/controllers/catalog.controller.js`, `src/entrypoints/public.routes.js`, `tests/feat06.test.js`, `frontend/src/pages/customer/RoomCatalog.jsx`, `frontend/src/App.jsx`.
+- **Goal:** Hoàn thành `FEAT-07: Shopping Cart, Customer Form, Promotion & Payment Simulator` và chuẩn bị triển khai `FEAT-08: Check & Cancel Booking (24h Rule & 80/20 Refund)`.
+- **Target Deliverables:** `src/services/booking.service.js`, `src/controllers/booking.controller.js`, `src/entrypoints/public.routes.js`, `tests/feat07.test.js`, `frontend/src/pages/customer/BookingCheckoutModal.jsx`, `frontend/src/pages/customer/RoomCatalog.jsx`.
 
 ## What Was Done (Session History)
 
@@ -72,29 +72,40 @@
 ### Session 6 (FEAT-06: Room Catalog & Inventory-based Availability Search)
 - Khắc phục lỗi khởi chạy server backend trong [backend/src/main.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/main.js) khi thư mục dự án trên Windows chứa ký tự khoảng trắng: chuyển đổi logic so sánh sang sử dụng `fileURLToPath` và `path.resolve`.
 - Bổ sung mã lỗi `INVALID_DATE_RANGE` vào [backend/src/common/errors.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/errors.js).
-- Xây dựng Domain Service [backend/src/services/catalog.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/catalog.service.js):
-  - `getCatalog({ type, size, search })`: Gom nhóm phòng theo từng hạng phòng `(type, size)`, tổng hợp tiện nghi, thông số khách, hình ảnh và đơn giá.
-  - `getRoomDetails(roomId)`: Xem chi tiết phòng theo mã phòng.
-  - `searchAvailability({ fromDate, toDate, type, size, forUpdate, tx })`: Triển khai công thức tồn kho chuẩn mực theo SPEC 4.1:
-    - $\text{TotalPhysicalRooms} = \text{Count}(\text{rooms with status} \ne \text{MAINTENANCE})$.
-    - $\text{BookedRooms} = \sum \text{BookingItem.quantity}$ của các đơn có `status IN ('CONFIRMED', 'CHECKED_IN')` và khoảng thời gian giao nhau `[existing.fromDate < search.toDate AND existing.toDate > search.fromDate)`.
-    - $\text{AvailableQuota} = \max(0, \text{TotalPhysicalRooms} - \text{BookedRooms})$.
-    - Đơn `CANCELLED` và `CHECKED_OUT` không chiếm dụng tồn kho.
-    - Hỗ trợ khóa bi quan Pessimistic Locking (`SELECT room_id FROM rooms WHERE ... FOR UPDATE`) khi thực thi trong giao dịch `tx`.
-  - `checkCategoryQuota(...)`: Helper kiểm tra hạn mức tồn kho phòng phục vụ cho luồng giao dịch đặt phòng FEAT-07.
-- Xây dựng Controller [backend/src/controllers/catalog.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/catalog.controller.js) và định tuyến công khai [backend/src/entrypoints/public.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/public.routes.js) (`/api/public/rooms`, `/api/public/rooms/:roomId`, `/api/public/availability`).
+- Xây dựng Domain Service [backend/src/services/catalog.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/catalog.service.js) với công thức tồn kho chuẩn SPEC 4.1 và khóa bi quan Pessimistic Locking.
+- Định tuyến công khai [backend/src/entrypoints/public.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/public.routes.js) (`/api/public/rooms`, `/api/public/rooms/:roomId`, `/api/public/availability`).
 - Viết 15 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat06.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat06.test.js) (toàn bộ 15/15 PASS, nâng tổng số tests hệ thống lên 69/69 PASS trên 7 suites).
-- Xây dựng giao diện Frontend SPA:
-  - Cổng Đặt Phòng Khách Hàng [frontend/src/pages/customer/RoomCatalog.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/RoomCatalog.jsx):
-    - Hero section sang trọng với các cam kết dịch vụ.
-    - Thanh tìm kiếm lưu trú trực quan: chọn `fromDate`, `toDate`, tính toán tự động số đêm `nights`, lọc `RoomType` và `RoomSize`.
-    - Lưới thẻ hạng phòng hiển thị huy hiệu loại phòng (VIP vàng ánh kim, DELUX tím sang trọng, SUITE xanh ngọc), thông số sức chứa người lớn/trẻ em, đơn giá, tổng tiền lưu trú.
-    - Huy hiệu tồn kho thời gian thực (Available Quota Badge): hiển thị rõ số phòng còn trống hoặc thông báo hết phòng.
-    - Bộ chọn số lượng phòng (tối đa bằng `availableQuota`) và nút Đặt Phòng / Thêm vào giỏ.
-    - Modal xem chi tiết phòng: thư viện ảnh lớn, bảng thông số, chính sách nhận/trả phòng và chính sách hủy phòng (hoàn 80%).
-  - Cập nhật điều hướng trong [frontend/src/App.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/App.jsx): Cho phép chuyển đổi linh hoạt giữa Cổng Đặt Phòng Khách Hàng và Bảng Đăng Nhập / Quản Trị Nội Bộ.
-  - Kiểm tra Vite build thành công: `npm run build` PASS trong 11.15s.
+- Cổng Đặt Phòng Khách Hàng [frontend/src/pages/customer/RoomCatalog.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/RoomCatalog.jsx): Hero section sang trọng, thanh tìm kiếm lưu trú trực quan, lưới thẻ phòng với Available Quota Badge, modal chi tiết phòng.
+- Cập nhật điều hướng trong [frontend/src/App.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/App.jsx). Vite build PASS trong 11.15s.
 - Cập nhật tiến độ `FEAT-06` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
+
+### Session 7 (FEAT-07: Shopping Cart, Customer Form, Promotion & Payment Simulator)
+- Xây dựng Domain Service Đặt phòng [backend/src/services/booking.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/booking.service.js):
+  - `validatePromotion({ code, totalRoomFee })`: Kiểm tra sự tồn tại của mã khuyến mãi, thời hạn hiệu lực `[startDate, endDate]`, tính toán chính xác chiết khấu theo `PERCENTAGE` hoặc `FIXED_AMOUNT`.
+  - `calculateBookingPreview({ fromDate, toDate, items, promotionCode, paymentOption })`: Tính toán trước số đêm `nights`, lấy đơn giá niêm yết từ DB, tổng tiền phòng, tiền giảm giá, tiền sau giảm `netRoomFee` và tiền đặt cọc 50%.
+  - `createBooking({ customerName, customerPhone, customerEmail, customerCccd, fromDate, toDate, items, promotionCode, paymentOption, paymentAccountNumber })`:
+    - **Pessimistic Locking Flow (Luồng 3.1 ARCHITECHTURE.md):** Mở giao dịch `prisma.$transaction(async (tx) => { ... })`.
+    - Khóa các phòng vật lý tương ứng với `FOR UPDATE`, kiểm tra hạn mức tồn kho qua `CatalogService.checkCategoryQuota` (chặn overbooking với `ROOM_QUOTA_EXCEEDED`).
+    - Lấy đơn giá thực tế từ DB để chống gian lận giá từ client.
+    - Khóa bản ghi tài khoản thanh toán giả lập với `SELECT ... FOR UPDATE`.
+    - Kiểm tra số dư tài khoản: nếu thiếu tiền, ném mã lỗi RFC 7807 `PAYMENT_FAILED` và rollback giao dịch.
+    - Trừ tiền tài khoản thanh toán giả lập (`balance = balance - prepaidBookingValue`).
+    - Sinh mã `bookingNumber` duy nhất dạng `BK-YYYYMMDD-XXXX`.
+    - Tạo bản ghi `Booking` trạng thái `CONFIRMED` cùng các `BookingItem`.
+  - `getMockPaymentAccounts()`: Trả về danh sách tài khoản test giả lập phục vụ giao diện.
+- Xây dựng Controller [backend/src/controllers/booking.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/booking.controller.js) và mount routes trong [backend/src/entrypoints/public.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/public.routes.js) (`POST /api/public/promotions/apply`, `POST /api/public/bookings/preview`, `POST /api/public/bookings`, `GET /api/public/payment-accounts`).
+- Viết 14 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat07.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat07.test.js) (toàn bộ 14/14 PASS, nâng tổng số tests hệ thống lên 83/83 PASS trên 8 suites).
+- Xây dựng giao diện Frontend SPA:
+  - Component [frontend/src/pages/customer/BookingCheckoutModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/BookingCheckoutModal.jsx):
+    - Quản lý giỏ hàng: xem danh mục phòng đã chọn, tăng/giảm số lượng phòng, xóa phòng.
+    - Form nhập thông tin khách hàng: họ tên, số điện thoại, email, CCCD.
+    - Áp dụng mã coupon: ô nhập mã kèm feedback số tiền được giảm theo thời gian thực.
+    - Lựa chọn hình thức thanh toán: Thanh toán 100% (`FULL_100`) hoặc Đặt cọc 50% (`DEPOSIT_50`).
+    - Cổng thanh toán giả lập: ô nhập số tài khoản kèm các nút chọn nhanh tài khoản kiểm thử 1-click (ATM, VISA).
+    - Màn hình đặt phòng thành công rực rỡ: hiển thị mã `bookingNumber` với nút sao chép, tóm tắt đơn đặt phòng, tiền đã trừ và tiền còn lại cần quyết toán tại quầy khi check-out.
+  - Tích hợp thanh giỏ hàng nổi (Floating Cart Bar) và modal thanh toán vào [frontend/src/pages/customer/RoomCatalog.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/RoomCatalog.jsx).
+  - Kiểm tra Vite build thành công: `npm run build` PASS trong 3.08s.
+- Cập nhật tiến độ `FEAT-07` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
 ## Architectural Decisions Locked
 1. **Tech Stack:** Node.js v20+/v24+, JavaScript ES Modules (`"type": "module"`), Express.js v4.21+, Prisma ORM v6.x, PostgreSQL 16+, React.js v18.3+ SPA (Vite + Tailwind CSS).
@@ -107,28 +118,26 @@
 8. **Revenue Calculation:** Tổng doanh thu = $\sum \text{Hóa đơn Check-out} + \sum \text{20\% Phí hủy đơn}$.
 
 ## Files Changed
-- [backend/src/main.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/main.js)
-- [backend/src/common/errors.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/errors.js)
-- [backend/src/services/catalog.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/catalog.service.js)
-- [backend/src/controllers/catalog.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/catalog.controller.js)
+- [backend/src/services/booking.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/booking.service.js)
+- [backend/src/controllers/booking.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/booking.controller.js)
 - [backend/src/entrypoints/public.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/public.routes.js)
-- [backend/tests/feat06.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat06.test.js)
+- [backend/tests/feat07.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat07.test.js)
+- [frontend/src/pages/customer/BookingCheckoutModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/BookingCheckoutModal.jsx)
 - [frontend/src/pages/customer/RoomCatalog.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/RoomCatalog.jsx)
-- [frontend/src/App.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/App.jsx)
 - [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json)
 - [progress.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/progress.md)
 - [session-handoff.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/session-handoff.md)
 
 ## Blockers / Risks
-- Không còn blocker: Toàn bộ 69 tests PASS, hệ thống tính toán tồn kho phòng theo thời gian thực và khóa bi quan Pessimistic Locking hoạt động chính xác 100%.
+- Không còn blocker: Toàn bộ 83 tests PASS, quy trình đặt phòng, giỏ hàng, áp mã khuyến mãi, lựa chọn thanh toán 100%/50% và trừ tiền tài khoản giả lập có khóa bi quan hoạt động chính xác 100%.
 
 ## Verification Evidence
-- `npm test`: 69/69 tests passed across 7 test suites (`api.test.js`, `feat01.test.js`, `feat02.test.js`, `feat03.test.js`, `feat04.test.js`, `feat05.test.js`, `feat06.test.js`).
+- `npm test`: 83/83 tests passed across 8 test suites (`api.test.js`, `feat01.test.js`, `feat02.test.js`, `feat03.test.js`, `feat04.test.js`, `feat05.test.js`, `feat06.test.js`, `feat07.test.js`).
 - `npm run lint`: PASS (0 lỗi).
 - `npx prisma validate`: PASS (Schema hợp lệ 100%).
-- `cd frontend && npm run build`: PASS (Vite production bundle built in 11.15s).
-- `powershell -ExecutionPolicy Bypass -File .\init.ps1`: Hiển thị tiến độ 6/12 features completed.
+- `cd frontend && npm run build`: PASS (Vite production bundle built in 3.08s).
+- `powershell -ExecutionPolicy Bypass -File .\init.ps1`: Hiển thị tiến độ 7/12 features completed.
 
 ## Next Session & Next Steps
 - **Next Session Startup:** Chạy `./init.ps1` (hoặc `./init.sh`).
-- **Recommended Next Step:** Bắt đầu tính năng `FEAT-07: Shopping Cart, Customer Form, Promotion & Payment Simulator` (Giỏ hàng đặt phòng, form nhập thông tin khách hàng, áp dụng mã khuyến mãi và trừ tiền tài khoản thanh toán giả lập có khóa bi quan).
+- **Recommended Next Step:** Bắt đầu tính năng `FEAT-08: Check & Cancel Booking (24h Rule & 80/20 Refund)` (Tra cứu đơn đặt phòng qua bookingNumber, kiểm tra điều kiện hủy trước 24h, áp dụng chính sách phạt 20% và hoàn 80% về tài khoản thanh toán giả lập có khóa bi quan FOR UPDATE).

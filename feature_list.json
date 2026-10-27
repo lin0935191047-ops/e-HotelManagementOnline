@@ -104,8 +104,8 @@
         "Test thanh toán thất bại khi số dư tài khoản giả lập < số tiền cần thanh toán (PAYMENT_FAILED)",
         "Test thanh toán thành công: trừ đúng số dư (100% hoặc 50%), sinh bookingNumber và giảm tồn kho hạng phòng"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "14/14 integration tests cho FEAT-07 PASS (tổng 83/83 tests hệ thống PASS trên 8 suites). API /api/public/promotions/apply áp dụng chính xác chiết khấu PERCENTAGE và FIXED_AMOUNT, kiểm tra nghiêm ngặt thời hạn startDate-endDate; API /api/public/bookings/preview tính toán chính xác số đêm, tổng tiền gốc, chiết khấu và cọc 50%; API /api/public/bookings thực thi an toàn bọc trong Prisma Transaction với khóa bi quan FOR UPDATE trên rooms và payment_accounts, kiểm tra tồn kho thời gian thực qua CatalogService.checkCategoryQuota (chặn quá quota với ROOM_QUOTA_EXCEEDED), validate số dư tài khoản thanh toán giả lập (báo lỗi PAYMENT_FAILED khi thiếu tiền và rollback hoàn toàn), trừ đúng số dư theo lựa chọn FULL_100 hoặc DEPOSIT_50, sinh mã bookingNumber BK-YYYYMMDD-XXXX và tạo đơn CONFIRMED. Giao diện React SPA BookingCheckoutModal.jsx hỗ trợ xem lại giỏ hàng, tăng/giảm số lượng, nhập thông tin cá nhân khách, nhập và áp coupon, chọn hình thức thanh toán 100%/50%, chọn nhanh thẻ thanh toán giả lập test 1-click, màn hình đặt phòng thành công với mã bookingNumber nổi bật và chính sách hủy phòng; Vite production build PASS (3.08s)."
     },
     {
       "id": "FEAT-08",

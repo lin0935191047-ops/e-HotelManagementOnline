@@ -17,8 +17,11 @@ import {
   Plus,
   Minus,
   Bed,
+  ShoppingCart,
+  Trash2,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
+import BookingCheckoutModal from "./BookingCheckoutModal.jsx";
 
 // Định dạng tiền tệ VND
 const formatCurrency = (amount) => {
@@ -71,8 +74,12 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
   const [detailModalCat, setDetailModalCat] = useState(null);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  // Số lượng phòng khách muốn chọn cho từng category
+  // Số lượng phòng khách muốn chọn cho từng category trên từng thẻ
   const [quantities, setQuantities] = useState({});
+
+  // Giỏ hàng đặt phòng (Shopping Cart)
+  const [cartItems, setCartItems] = useState([]);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
 
   // Toast thông báo thêm phòng thành công
   const [toastMessage, setToastMessage] = useState(null);
@@ -131,7 +138,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
     fetchAvailability(fromDate, toDate, selectedType, selectedSize);
   };
 
-  // Tăng giảm số lượng phòng muốn đặt
+  // Tăng giảm số lượng phòng muốn đặt trên từng card
   const handleQuantityChange = (catKey, delta, maxQuota) => {
     setQuantities((prev) => {
       const current = prev[catKey] || 1;
@@ -140,7 +147,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
     });
   };
 
-  // Chọn phòng và đưa vào giỏ hàng
+  // Thêm phòng vào giỏ hàng và mở modal thanh toán
   const handleAddToCart = (cat) => {
     const key = `${cat.type}_${cat.size}`;
     const qty = quantities[key] || 1;
@@ -150,34 +157,76 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
       return;
     }
 
-    const cartItem = {
-      roomType: cat.type,
-      roomSize: cat.size,
-      categoryName: cat.name,
-      quantity: qty,
-      unitPrice: cat.price,
-      nights,
-      fromDate,
-      toDate,
-      totalFee: cat.price * qty * nights,
-      pictures: cat.pictures,
-      maxAdults: cat.maxAdults,
-      maxChildren: cat.maxChildren,
-      extraChildFee: cat.extraChildFee,
-    };
+    setCartItems((prevItems) => {
+      const existingIdx = prevItems.findIndex(
+        (it) => it.roomType === cat.type && it.roomSize === cat.size,
+      );
 
-    // Lưu vào localStorage ehotel_cart
-    try {
-      localStorage.setItem("ehotel_pending_booking", JSON.stringify(cartItem));
-    } catch {
-      // Bỏ qua lỗi storage
-    }
+      if (existingIdx >= 0) {
+        // Cập nhật số lượng
+        const updated = [...prevItems];
+        const newQty = Math.min(cat.availableQuota, updated[existingIdx].quantity + qty);
+        updated[existingIdx] = {
+          ...updated[existingIdx],
+          quantity: newQty,
+        };
+        return updated;
+      } else {
+        // Thêm mới vào giỏ
+        return [
+          ...prevItems,
+          {
+            roomType: cat.type,
+            roomSize: cat.size,
+            categoryName: cat.name,
+            quantity: qty,
+            unitPrice: cat.price,
+            pictures: cat.pictures || [],
+            maxAdults: cat.maxAdults,
+            maxChildren: cat.maxChildren,
+            extraChildFee: cat.extraChildFee,
+          },
+        ];
+      }
+    });
 
-    setToastMessage(`Đã chọn ${qty} x ${cat.name} (${nights} đêm). Tồn kho còn lại: ${cat.availableQuota - qty} phòng.`);
-    setTimeout(() => setToastMessage(null), 4000);
+    setToastMessage(`Đã thêm ${qty} x ${cat.name} vào giỏ hàng.`);
+    setTimeout(() => setToastMessage(null), 3500);
 
+    // Mở modal thanh toán ngay để trải nghiệm mượt mà
+    setIsCheckoutOpen(true);
+  };
+
+  // Cập nhật số lượng trong giỏ hàng
+  const handleUpdateCartItemQuantity = (item, delta) => {
+    setCartItems((prev) => {
+      return prev
+        .map((it) => {
+          if (it.roomType === item.roomType && it.roomSize === item.roomSize) {
+            const nextQty = it.quantity + delta;
+            return nextQty > 0 ? { ...it, quantity: nextQty } : null;
+          }
+          return it;
+        })
+        .filter(Boolean);
+    });
+  };
+
+  // Xóa mục khỏi giỏ hàng
+  const handleRemoveCartItem = (item) => {
+    setCartItems((prev) =>
+      prev.filter(
+        (it) => !(it.roomType === item.roomType && it.roomSize === item.roomSize),
+      ),
+    );
+  };
+
+  // Xử lý khi đặt phòng thành công
+  const handleBookingSuccess = (bookingData) => {
+    setCartItems([]);
+    fetchAvailability(fromDate, toDate, selectedType, selectedSize);
     if (onSelectRoomForBooking) {
-      onSelectRoomForBooking(cartItem);
+      onSelectRoomForBooking(bookingData);
     }
   };
 
@@ -187,14 +236,21 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
     setActiveImageIndex(0);
   };
 
+  // Tổng tiền tạm tính trong giỏ hàng
+  const cartTotalAmount = cartItems.reduce(
+    (acc, it) => acc + it.quantity * it.unitPrice * nights,
+    0,
+  );
+  const cartTotalRooms = cartItems.reduce((acc, it) => acc + it.quantity, 0);
+
   return (
-    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "1.5rem 1rem" }}>
+    <div style={{ maxWidth: "1280px", margin: "0 auto", padding: "1.5rem 1rem", paddingBottom: cartItems.length > 0 ? "6rem" : "2rem" }}>
       {/* Toast thông báo */}
       {toastMessage && (
         <div
           style={{
             position: "fixed",
-            bottom: "2rem",
+            bottom: "5rem",
             right: "2rem",
             background: "rgba(16, 185, 129, 0.95)",
             backdropFilter: "blur(12px)",
@@ -323,7 +379,6 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                 value={fromDate}
                 onChange={(e) => {
                   setFromDate(e.target.value);
-                  // Tự động đẩy toDate nếu toDate <= fromDate
                   if (new Date(e.target.value) >= new Date(toDate)) {
                     const nextDay = new Date(e.target.value);
                     nextDay.setDate(nextDay.getDate() + 1);
@@ -535,7 +590,6 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                 ? cat.pictures[0]
                 : "https://images.unsplash.com/photo-1590490360182-c33d57733427";
 
-            // Định dạng màu badge theo loại phòng
             const typeBadgeStyle =
               cat.type === "VIP"
                 ? { background: "rgba(245, 158, 11, 0.15)", color: "#fbbf24", border: "1px solid rgba(245, 158, 11, 0.3)" }
@@ -603,7 +657,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                     </span>
                   </div>
 
-                  {/* Badge Tồn kho khả dụng (Available Quota Badge) */}
+                  {/* Badge Tồn kho khả dụng */}
                   <div style={{ position: "absolute", bottom: "12px", right: "12px" }}>
                     {isAvailable ? (
                       <div
@@ -817,6 +871,96 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
             );
           })}
         </div>
+      )}
+
+      {/* Floating Bottom Cart Bar (Khi có phòng trong giỏ hàng) */}
+      {cartItems.length > 0 && !isCheckoutOpen && (
+        <aside
+          aria-label="Tóm tắt giỏ hàng đặt phòng"
+          style={{
+            position: "fixed",
+            bottom: "1.5rem",
+            left: "50%",
+            transform: "translateX(-50%)",
+            width: "calc(100% - 2rem)",
+            maxWidth: "850px",
+            background: "rgba(17, 24, 39, 0.92)",
+            backdropFilter: "blur(20px)",
+            borderRadius: "16px",
+            border: "1px solid var(--border-highlight)",
+            padding: "0.85rem 1.5rem",
+            boxShadow: "0 15px 35px rgba(0, 0, 0, 0.6)",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            zIndex: 30,
+            flexWrap: "wrap",
+            gap: "1rem",
+            animation: "fadeIn 0.3s ease",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+            <div
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "10px",
+                background: "var(--primary-gradient)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "white",
+              }}
+            >
+              <ShoppingCart size={20} />
+            </div>
+            <div>
+              <div style={{ fontSize: "0.9375rem", fontWeight: 700 }}>
+                Giỏ hàng: <span style={{ color: "#a5b4fc" }}>{cartTotalRooms} phòng</span> ({cartItems.length} hạng phòng, {nights} đêm)
+              </div>
+              <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                Tổng tạm tính: <strong style={{ color: "#34d399", fontSize: "0.9375rem" }}>{formatCurrency(cartTotalAmount)}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "0.75rem", alignItems: "center" }}>
+            <button
+              type="button"
+              className="btn btn-secondary"
+              onClick={() => setCartItems([])}
+              style={{ padding: "0.5rem 0.85rem", fontSize: "0.8125rem" }}
+              title="Xóa toàn bộ giỏ hàng"
+            >
+              <Trash2 size={15} />
+              <span>Xóa Giỏ</span>
+            </button>
+
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => setIsCheckoutOpen(true)}
+              style={{ padding: "0.6rem 1.5rem", fontSize: "0.9375rem", fontWeight: 700 }}
+            >
+              <CreditCard size={17} />
+              <span>Thanh Toán Ngay</span>
+            </button>
+          </div>
+        </aside>
+      )}
+
+      {/* Modal Thanh Toán & Đặt Phòng (BookingCheckoutModal) */}
+      {isCheckoutOpen && (
+        <BookingCheckoutModal
+          cartItems={cartItems}
+          fromDate={fromDate}
+          toDate={toDate}
+          nights={nights}
+          onClose={() => setIsCheckoutOpen(false)}
+          onUpdateCartItemQuantity={handleUpdateCartItemQuantity}
+          onRemoveCartItem={handleRemoveCartItem}
+          onBookingSuccess={handleBookingSuccess}
+        />
       )}
 
       {/* Modal Xem Chi Tiết Phòng (Room Details Modal) */}
