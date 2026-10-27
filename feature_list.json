@@ -89,8 +89,8 @@
         "Test tính toán AvailableQuota = TotalPhysicalRooms - OverlappingConfirmedOrCheckedInBookings",
         "Giao diện hiển thị đúng số lượng phòng còn trống của từng hạng phòng"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "15/15 integration tests cho FEAT-06 PASS (tổng 69/69 tests hệ thống PASS trên 7 suites). API /api/public/rooms trả về danh mục phòng công khai và hỗ trợ lọc theo type/size; /api/public/rooms/:roomId trả về chi tiết phòng; /api/public/availability tính toán chính xác AvailableQuota = TotalPhysicalRooms - OverlappingConfirmedOrCheckedInBookings; loại trừ phòng MAINTENANCE; xử lý chính xác đơn CANCELLED và CHECKED_OUT tự giải phóng tồn kho; hỗ trợ khóa bi quan Pessimistic Locking (FOR UPDATE) trong Prisma interactive transaction. Giao diện React SPA RoomCatalog.jsx cung cấp thanh tìm kiếm ngày lưu trú trực quan, bộ đếm số đêm, hiển thị real-time số phòng trống theo từng hạng phòng, modal chi tiết tiện nghi & chính sách lưu trú, bộ chọn số lượng phòng tích hợp vào giỏ hàng; Vite production build PASS (11.15s)."
     },
     {
       "id": "FEAT-07",

@@ -1,37 +1,9 @@
 import { Router } from "express";
-import { prisma } from "../common/prisma.js";
+import { CatalogController } from "../controllers/catalog.controller.js";
 
 const router = Router();
 
-// Endpoint danh sách phòng công khai cho khách hàng xem và tìm kiếm
-router.get("/rooms", async (req, res, next) => {
-  try {
-    const rooms = await prisma.room.findMany({
-      where: { status: "AVAILABLE" },
-      select: {
-        roomId: true,
-        type: true,
-        size: true,
-        price: true,
-        maxAdults: true,
-        maxChildren: true,
-        extraChildFee: true,
-        description: true,
-        pictures: true,
-        status: true,
-      },
-    });
-
-    res.json({
-      success: true,
-      data: rooms,
-    });
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Endpoint kiểm tra cổng đặt phòng
+// Endpoint kiểm tra cổng đặt phòng công khai
 router.get("/ping", (req, res) => {
   res.json({
     success: true,
@@ -39,5 +11,13 @@ router.get("/ping", (req, res) => {
     message: "Public booking portal is accessible without authentication.",
   });
 });
+
+// Danh mục phòng và chi tiết phòng
+router.get("/rooms", CatalogController.getCatalog);
+router.get("/rooms/:roomId", CatalogController.getRoomDetails);
+
+// Tra cứu tồn kho phòng trống theo khoảng thời gian lưu trú
+router.get("/availability", CatalogController.getAvailability);
+router.post("/availability/search", CatalogController.getAvailability);
 
 export default router;
