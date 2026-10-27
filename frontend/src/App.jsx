@@ -3,7 +3,7 @@ import { LogOut, Hotel, Shield, Settings, Calendar, UserCheck } from "lucide-rea
 import { getCurrentUser, setCurrentUser, setToken, apiRequest } from "./api/client.js";
 import Login from "./pages/Login.jsx";
 import UserManagement from "./pages/admin/UserManagement.jsx";
-import RoomSetup from "./pages/manager/RoomSetup.jsx";
+import ManagerSetup from "./pages/manager/ManagerSetup.jsx";
 
 export default function App() {
   const [user, setUser] = useState(getCurrentUser());
@@ -87,7 +87,7 @@ export default function App() {
         ) : user.role === "ADMIN" ? (
           <UserManagement currentLoggedUser={user} />
         ) : user.role === "MANAGER" ? (
-          <RoomSetup />
+          <ManagerSetup />
         ) : (
           <div style={{ maxWidth: "800px", margin: "4rem auto", textAlign: "center", padding: "2rem" }} className="glass-card">
             <Calendar size={48} color="#10b981" style={{ margin: "0 auto 1rem" }} />

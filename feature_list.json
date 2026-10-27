@@ -75,8 +75,8 @@
         "Test CRUD /api/setup/services kiểm tra đơn giá > 0",
         "Test CRUD /api/setup/promotions kiểm tra endDate >= startDate và phần trăm <= 100"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "20/20 integration tests cho FEAT-05 PASS (tổng 54/54 tests hệ thống PASS trên 6 suites). CRUD API /api/setup/services kiểm tra đơn giá > 0, chặn trùng serviceId, có guard chặn xóa dịch vụ đã dùng (SERVICE_CANNOT_BE_DELETED). CRUD API /api/setup/promotions kiểm tra endDate >= startDate, validate % <= 100, chặn trùng code, có guard chặn xóa khuyến mãi đã dùng (PROMOTION_CANNOT_BE_DELETED). Strict Disjoint RBAC chặn ADMIN/SALE truy cập setup module trả về 403. Giao diện React SPA ServiceSetup.jsx và PromotionSetup.jsx tích hợp mượt mà trong tab container ManagerSetup.jsx; Vite build PASS."
     },
     {
       "id": "FEAT-06",
