@@ -17,6 +17,7 @@ import UserManagement from "./pages/admin/UserManagement.jsx";
 import ManagerSetup from "./pages/manager/ManagerSetup.jsx";
 import RoomCatalog from "./pages/customer/RoomCatalog.jsx";
 import BookingLookupModal from "./pages/customer/BookingLookupModal.jsx";
+import SaleOperation from "./pages/operation/SaleOperation.jsx";
 
 export default function App() {
   const [user, setUser] = useState(getCurrentUser());
@@ -178,29 +179,7 @@ export default function App() {
         ) : user.role === "MANAGER" ? (
           <ManagerSetup />
         ) : (
-          <div
-            style={{ maxWidth: "800px", margin: "4rem auto", textAlign: "center", padding: "2rem" }}
-            className="glass-card"
-          >
-            <Calendar size={48} color="#10b981" style={{ margin: "0 auto 1rem" }} />
-            <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.5rem" }}>
-              Operation Module (SALE)
-            </h2>
-            <p style={{ color: "var(--text-muted)", marginBottom: "1.5rem" }}>
-              Bạn đang đăng nhập với vai trò <strong>SALE</strong>. Bạn có quyền vận hành Đặt phòng, Check-in, Dịch vụ, Check-out và Báo cáo.
-            </p>
-            <div
-              style={{
-                padding: "1rem",
-                borderRadius: "8px",
-                background: "rgba(16, 185, 129, 0.1)",
-                color: "#6ee7b7",
-                fontSize: "0.875rem",
-              }}
-            >
-              🛡️ Quy tắc Strict Disjoint RBAC: Tài khoản SALE không có quyền truy cập vào chức năng Quản lý người dùng của ADMIN hay Cấu hình của MANAGER.
-            </div>
-          </div>
+          <SaleOperation />
         )}
       </main>
 

@@ -132,8 +132,8 @@
         "Test gán số phòng vật lý chuyển trạng thái phòng sang OCCUPIED và booking sang CHECKED_IN",
         "Test tự động tính extraChildrenFee khi số trẻ em trong phòng > Room.maxChildren"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "9/9 integration tests cho FEAT-09 PASS (tổng 101/101 tests hệ thống PASS trên 10 suites). Đảm bảo Strict Disjoint RBAC (SALE độc quyền gọi /api/operation/*, ADMIN/MANAGER bị từ chối 403); API GET /api/operation/bookings hỗ trợ tìm kiếm phân trang theo mã booking, họ tên, điện thoại, CCCD và lọc theo trạng thái, ngày lưu trú; API GET /api/operation/bookings/:id trả về đầy đủ chi tiết đơn đặt phòng; API GET /api/operation/bookings/:id/available-rooms trả về danh sách phòng vật lý đang AVAILABLE khớp với từng hạng phòng trong đơn; API POST /api/operation/bookings/:id/check-in bọc trong Prisma Transaction với khóa bi quan SELECT ... FOR UPDATE trên phòng vật lý (chặn gán trùng phòng, chặn phòng OCCUPIED với mã lỗi ROOM_ALREADY_OCCUPIED); tự động tính phụ thu trẻ em extraChildrenFee theo công thức SPEC 4.4 khi childCount > Room.maxChildren; chuyển phòng sang OCCUPIED, booking sang CHECKED_IN và lưu trữ StayingGuest. Giao diện React SPA SaleOperation.jsx và CheckinModal.jsx hỗ trợ lễ tân tra cứu trực quan, chọn số phòng khả dụng, nhập danh sách khách kèm badge tuổi và xem bảng tính phụ thu tự động theo thời gian thực; Vite production build PASS (17.51s)."
     },
     {
       "id": "FEAT-10",
@@ -146,8 +146,8 @@
         "Test đăng ký dịch vụ chỉ cho phép phòng đang ở trạng thái OCCUPIED",
         "Trang in phiếu dịch vụ hiển thị đầy đủ mã phiếu, số phòng, tên dịch vụ, số lượng, đơn giá, thành tiền và gọi window.print()"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "11/11 integration tests cho FEAT-10 PASS (tổng 112/112 tests hệ thống PASS trên 11 suites). Strict Disjoint RBAC được bảo vệ nghiêm ngặt (chỉ SALE được truy cập /api/operation/services/*, ADMIN/MANAGER bị từ chối 403); API GET /api/operation/services/catalog trả về danh mục dịch vụ; API GET /api/operation/services/occupied-rooms truy vấn chính xác các phòng đang OCCUPIED kèm thông tin booking và khách; API POST /api/operation/services/usage bọc trong Prisma Transaction với khóa bi quan SELECT ... FOR UPDATE trên bảng rooms, kiểm tra bắt buộc phòng phải đang OCCUPIED (trả về 400 ROOM_NOT_OCCUPIED nếu là AVAILABLE hoặc MAINTENANCE), sinh mã phiếu ticketId định dạng TK-YYYYMMDD-XXXX, lưu ServiceUsage và tính đúng đơn giá * số lượng; API GET /api/operation/services/tickets/:ticketId trả về chi tiết phiếu in gồm mã phiếu, số phòng, dịch vụ, số lượng, đơn giá, thành tiền; API GET /api/operation/services/tickets hỗ trợ tra cứu lịch sử phiếu; Giao diện React SPA ServiceUsageModal.jsx và ServiceTicketPrintModal.jsx hỗ trợ lễ tân lập phiếu trực quan, xem trước phiếu và tự động in HTML qua window.print() chuẩn CSS @media print; Frontend Vite production build thành công (4.16s)."
     },
     {
       "id": "FEAT-11",
