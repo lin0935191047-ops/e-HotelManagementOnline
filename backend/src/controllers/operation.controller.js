@@ -162,4 +162,140 @@ export class OperationController {
       next(error);
     }
   }
+
+  /**
+   * FEAT-11: Xem trước quyết toán hóa đơn Check-out
+   * GET /api/operation/bookings/:id/checkout-preview
+   */
+  static async previewCheckout(req, res, next) {
+    try {
+      const { id } = req.params;
+      const data = await OperationService.previewCheckout(id);
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-11: Thực hiện thủ tục Check-out & Quyết toán hóa đơn
+   * POST /api/operation/bookings/:id/check-out
+   */
+  static async checkOutBooking(req, res, next) {
+    try {
+      const { id } = req.params;
+      const data = await OperationService.checkOutBooking(id);
+      return res.json({
+        success: true,
+        message: "Làm thủ tục Check-out và xuất hóa đơn quyết toán thành công.",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-11: Lấy chi tiết hóa đơn xuất xưởng phục vụ in ấn HTML
+   * GET /api/operation/invoices/:invoiceId
+   */
+  static async getInvoiceDetails(req, res, next) {
+    try {
+      const { invoiceId } = req.params;
+      const data = await OperationService.getInvoiceDetails(invoiceId);
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-11: Danh sách các hóa đơn đã xuất
+   * GET /api/operation/invoices
+   */
+  static async listInvoices(req, res, next) {
+    try {
+      const data = await OperationService.listInvoices(req.query);
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-12: Lấy dữ liệu Báo cáo Doanh thu (JSON)
+   * GET /api/operation/reports/revenue
+   */
+  static async getRevenueReport(req, res, next) {
+    try {
+      const { fromDate, toDate } = req.query;
+      const data = await OperationService.getRevenueReport({ fromDate, toDate });
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-12: Xuất Báo cáo Doanh thu định dạng Excel (.xlsx)
+   * GET /api/operation/reports/revenue/export-excel
+   */
+  static async exportRevenueExcel(req, res, next) {
+    try {
+      const { fromDate, toDate } = req.query;
+      const buffer = await OperationService.exportRevenueExcel({ fromDate, toDate });
+
+      const fromStr = fromDate ? String(fromDate).replace(/[^a-zA-Z0-9_-]/g, "") : "all";
+      const toStr = toDate ? String(toDate).replace(/[^a-zA-Z0-9_-]/g, "") : "all";
+      const filename = `BaoCaoDoanhThu_${fromStr}_${toStr}.xlsx`;
+
+      res.setHeader(
+        "Content-Type",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+      );
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+      return res.send(Buffer.from(buffer));
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-12: Xuất Báo cáo Doanh thu định dạng PDF (.pdf)
+   * GET /api/operation/reports/revenue/export-pdf
+   */
+  static async exportRevenuePdf(req, res, next) {
+    try {
+      const { fromDate, toDate } = req.query;
+      const buffer = await OperationService.exportRevenuePdf({ fromDate, toDate });
+
+      const fromStr = fromDate ? String(fromDate).replace(/[^a-zA-Z0-9_-]/g, "") : "all";
+      const toStr = toDate ? String(toDate).replace(/[^a-zA-Z0-9_-]/g, "") : "all";
+      const filename = `BaoCaoDoanhThu_${fromStr}_${toStr}.pdf`;
+
+      res.setHeader("Content-Type", "application/pdf");
+      res.setHeader(
+        "Content-Disposition",
+        `attachment; filename="${filename}"`
+      );
+      return res.send(Buffer.from(buffer));
+    } catch (error) {
+      next(error);
+    }
+  }
 }

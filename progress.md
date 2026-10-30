@@ -3,13 +3,13 @@
 **Last Updated:** 2026-10-30
 
 ## Current State & Project Status
-- **Completed Features:** 10 / 12
-- **Current Active Feature:** `FEAT-11` (Check-out, Invoice Calculation & HTML Invoice Printing) - ready to start
-- **Last Known Build/Test Status:** All 112 tests passing across 11 suites (0 failures), Prisma valid, PostgreSQL in sync. Frontend Vite production build passing (4.16s). Harness audit 100/100.
+- **Completed Features:** 12 / 12 (100% Hoàn Thành Toàn Bộ Hệ Thống!)
+- **Current Active Feature:** Tất cả tính năng đã hoàn thành và nghiệm thu đầy đủ theo đặc tả [docs/SPEC.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/docs/SPEC.md).
+- **Last Known Build/Test Status:** Toàn bộ 130 tests passing across 13 suites (0 failures), Prisma valid, PostgreSQL in sync. Frontend Vite production build passing (6.30s). Harness audit 100/100.
 
 ## Current Objective
-- **Goal:** Hoàn thành `FEAT-10: Use Services & HTML Ticket Printing` và chuẩn bị triển khai `FEAT-11: Check-out, Invoice Calculation & HTML Invoice Printing`.
-- **Target Deliverables:** `backend/src/services/operation.service.js`, `backend/src/controllers/operation.controller.js`, `backend/src/entrypoints/operation.routes.js`, `backend/src/common/errors.js`, `backend/tests/feat10.test.js`, `frontend/src/pages/operation/SaleOperation.jsx`, `frontend/src/pages/operation/ServiceUsageModal.jsx`, `frontend/src/pages/operation/ServiceTicketPrintModal.jsx`.
+- **Goal:** Hoàn thành toàn diện tính năng cuối cùng `FEAT-12: Revenue Report & Excel/PDF Export` và nghiệm thu 100% hệ thống e-Hotel.
+- **Target Deliverables:** `backend/src/services/operation.service.js`, `backend/src/controllers/operation.controller.js`, `backend/src/entrypoints/operation.routes.js`, `backend/tests/feat12.test.js`, `frontend/src/pages/operation/SaleOperation.jsx`.
 
 ## What Was Done (Session History)
 
@@ -98,27 +98,64 @@
 - Cập nhật tiến độ `FEAT-09` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
 ### Session 10 (FEAT-10: Use Services & HTML Ticket Printing)
-- Bổ sung mã lỗi RFC 7807 trong [backend/src/common/errors.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/errors.js): `ROOM_NOT_OCCUPIED` và `SERVICE_NOT_FOUND`.
-- Xây dựng nghiệp vụ Sử dụng dịch vụ trong [backend/src/services/operation.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/operation.service.js):
-  - `getOccupiedRooms()`: Lấy danh sách các phòng vật lý đang `OCCUPIED` kèm thông tin đơn booking và khách lưu trú.
-  - `getServicesCatalog()`: Lấy danh mục dịch vụ có sẵn của khách sạn.
-  - `createServiceUsage({ roomId, serviceId, quantity })`: Mở Interactive Transaction, khóa bi quan phòng vật lý bằng `SELECT ... FOR UPDATE`, kiểm tra nghiêm ngặt phòng phải đang `OCCUPIED` (chặn phòng `AVAILABLE` hoặc `MAINTENANCE` ném lỗi `ROOM_NOT_OCCUPIED`), tìm phiên lưu trú đang hoạt động, sinh mã phiếu `ticketId` định dạng `TK-YYYYMMDD-XXXX`, lưu bản ghi vào `ServiceUsage` với `totalPrice = unitPrice * quantity`.
-  - `getServiceTicket(ticketId)`: Lấy chi tiết toàn diện phiếu dịch vụ gồm thông tin phòng, thông tin khách, tên dịch vụ, đơn vị tính, số lượng, đơn giá, thành tiền, phục vụ in ấn.
-  - `listServiceTickets({ page, limit, roomId, bookingId, keyword })`: Lịch sử các phiếu dịch vụ đã tạo để quản lý và in lại.
-- Mount API endpoints trong [backend/src/entrypoints/operation.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/operation.routes.js):
-  - `GET /api/operation/services/occupied-rooms`
-  - `GET /api/operation/services/catalog`
-  - `POST /api/operation/services/usage`
-  - `GET /api/operation/services/tickets/:ticketId`
-  - `GET /api/operation/services/tickets`
-  - Strict Disjoint RBAC bảo vệ 100% (chỉ SALE được truy cập, ADMIN/MANAGER nhận 403).
-- Viết 11 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat10.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat10.test.js) (toàn bộ 11/11 PASS, nâng tổng số tests hệ thống lên 112/112 PASS trên 11 test suites).
-- Xây dựng giao diện Frontend SPA:
-  - Component [frontend/src/pages/operation/ServiceUsageModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/ServiceUsageModal.jsx): Chọn phòng đang ở (`OCCUPIED`), chọn dịch vụ, nhập số lượng, tự động tính thành tiền thời gian thực, nút "Lập Phiếu & In Ngay".
-  - Component [frontend/src/pages/operation/ServiceTicketPrintModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/ServiceTicketPrintModal.jsx): Giao diện HTML phiếu dịch vụ phòng sang trọng, chuẩn CSS `@media print`, hiển thị đầy đủ thương hiệu khách sạn, mã phiếu, phòng, dịch vụ, số lượng, đơn giá, thành tiền, ghi chú quyết toán và chữ ký 2 bên, tự động kích hoạt `window.print()`.
-  - Tích hợp 2 tab điều hướng trong [frontend/src/pages/operation/SaleOperation.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/SaleOperation.jsx): Tab Đặt phòng & Check-in (có nút nhanh "+ Dịch vụ" cho đơn đang ở) và Tab Dịch vụ phòng (danh sách phòng đang ở kèm nút thêm dịch vụ, bảng lịch sử phiếu đã lập kèm nút in lại).
-  - Kiểm tra Vite build thành công: `npm run build` PASS trong 4.16s.
+- Nghiệp vụ Sử dụng dịch vụ cho phòng đang ở (`OCCUPIED`), khóa bi quan mức dòng `SELECT ... FOR UPDATE`, sinh mã `ticketId` định dạng `TK-YYYYMMDD-XXXX`, lưu `ServiceUsage`.
+- Giao diện ServiceUsageModal.jsx và ServiceTicketPrintModal.jsx chuẩn CSS `@media print` tự động in qua `window.print()`.
+- 11 bài kiểm thử tích hợp trong [backend/tests/feat10.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat10.test.js) PASS 100% (112/112 tests toàn hệ thống PASS).
 - Cập nhật tiến độ `FEAT-10` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
+
+### Session 11 (FEAT-11: Check-out, Invoice Calculation & HTML Invoice Printing)
+- Bổ sung mã lỗi RFC 7807 trong [backend/src/common/errors.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/errors.js): `CHECKOUT_INVALID` và `INVOICE_NOT_FOUND`.
+- Xây dựng nghiệp vụ Quyết toán Check-out trong [backend/src/services/operation.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/operation.service.js):
+  - `previewCheckout(bookingIdOrNumber)`: Lấy toàn diện bảng kê tài chính trước check-out (netRoomFee, extraChildrenFee, các ServiceUsage và totalServiceFee, prepaidBookingValue, remainingPayable).
+  - `checkOutBooking(bookingIdOrNumber)`: Thực thi Luồng 3.4 ARCHITECTURE bọc trong Prisma Interactive Transaction với khóa bi quan `SELECT ... FOR UPDATE` trên cả bảng `bookings` và `rooms`:
+    - Kiểm tra nghiêm ngặt chỉ cho phép Check-out đơn `CHECKED_IN` (ném lỗi 400 `CHECKOUT_INVALID` nếu không phải).
+    - Chặn hoàn toàn Double Checkout (kiểm tra `existingInvoice`).
+    - Tính toán theo công thức SPEC 4.5:
+      $$\text{totalInvoiceAmount} = \text{netRoomFee} + \text{extraChildrenFee} + \text{totalServiceFee}$$
+      $$\text{remainingPayable} = \text{totalInvoiceAmount} - \text{prepaidBookingValue}$$
+    - Sinh mã hóa đơn `invoiceId` định dạng `INV-YYYYMMDD-XXXX`.
+    - Tạo bản ghi `Invoice` trong cơ sở dữ liệu.
+    - Cập nhật thời điểm `checkOutAt` cho tất cả các `RoomAssignment`.
+    - Khóa bi quan và giải phóng tất cả phòng vật lý đã gán về trạng thái `AVAILABLE`.
+    - Cập nhật đơn đặt phòng `status = 'CHECKED_OUT'` và lưu `checkedOutAt`.
+  - `getInvoiceDetails(invoiceIdOrBookingId)`: Lấy chi tiết toàn diện hóa đơn xuất xưởng (thông tin khách, phòng, dịch vụ, bảng kê thanh toán) phục vụ in ấn.
+  - `listInvoices({ page, limit, keyword, fromDate, toDate })`: Tra cứu danh sách lịch sử hóa đơn đã quyết toán.
+- Gắn các API endpoints trong [backend/src/entrypoints/operation.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/operation.routes.js):
+  - `GET /api/operation/bookings/:id/checkout-preview`
+  - `POST /api/operation/bookings/:id/check-out`
+  - `GET /api/operation/invoices`
+  - `GET /api/operation/invoices/:invoiceId`
+  - Bảo vệ nghiêm ngặt bằng Strict Disjoint RBAC (chỉ SALE được truy cập, ADMIN/MANAGER bị 403).
+- Viết 10 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat11.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat11.test.js) (toàn bộ 10/10 PASS, nâng tổng số tests hệ thống lên 122/122 PASS trên 12 test suites).
+- Xây dựng giao diện Frontend SPA:
+  - Component [frontend/src/pages/operation/CheckoutModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/CheckoutModal.jsx): Xem trước chi tiết tài chính, tiền phòng, phụ thu trẻ em, dịch vụ, khấu trừ tiền đặt cọc và số tiền cần thu tại quầy, nút xác nhận Check-out.
+  - Component [frontend/src/pages/operation/InvoicePrintModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/InvoicePrintModal.jsx): Giao diện HTML hóa đơn thanh toán khách sạn (Check-out Invoice / Guest Folio) sang trọng, chuẩn CSS `@media print` khổ A4, tự động kích hoạt `window.print()`.
+  - Tích hợp 3 Tab trong [frontend/src/pages/operation/SaleOperation.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/SaleOperation.jsx): Tab 1: Đặt phòng & Check-in / Check-out (nút Check-out màu amber, nút Xem Hóa Đơn màu emerald); Tab 2: Dịch Vụ Phòng & Phiếu In; Tab 3: Danh Sách Hóa Đơn Quyết Toán (tìm kiếm và in lại 1-click).
+  - Kiểm tra Vite build thành công: `npm run build` PASS trong 3.75s.
+- Cập nhật tiến độ `FEAT-11` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
+
+### Session 12 (FEAT-12: Revenue Report & Excel/PDF Export — 100% System Completion)
+- Cài đặt thư viện xử lý xuất file chuẩn Node.js: `exceljs` (tạo bảng tính .xlsx) và `pdfkit` (tạo tệp PDF).
+- Triển khai nghiệp vụ Báo cáo Doanh thu trong [backend/src/services/operation.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/operation.service.js):
+  - `getRevenueReport({ fromDate, toDate })`: Tính toán doanh thu theo công thức chuẩn SPEC 4.5 & Điều 6 Architectural Guardrails:
+    $$\text{Total Revenue} = \sum_{\text{Checked-out}} \text{Invoice.totalInvoiceAmount} + \sum_{\text{Cancelled}} \text{Booking.cancellationFee}$$
+    Hỗ trợ lọc linh hoạt theo ngày `fromDate` và `toDate` (bao gồm cả lọc theo ngày giao dịch trả phòng `checkedOutAt` và ngày hủy phòng `cancelledAt`).
+  - `exportRevenueExcel({ fromDate, toDate })`: Kết xuất bảng tính Excel (.xlsx) với phong cách trình bày chuyên nghiệp: tiêu đề khách sạn e-Hotel, khối tóm tắt doanh thu, bảng kê chi tiết từng giao dịch và dòng tổng cộng định dạng tiền tệ `#,##0`.
+  - `exportRevenuePdf({ fromDate, toDate })`: Kết xuất tệp PDF (.pdf) chuẩn trang in A4, magic header `%PDF-`, bảng kê chi tiết và 3 chữ ký (Người lập biểu, Kế toán trưởng, Giám đốc khách sạn).
+- Xây dựng Controller trong [backend/src/controllers/operation.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/operation.controller.js) và gắn endpoints vào [backend/src/entrypoints/operation.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/operation.routes.js):
+  - `GET /api/operation/reports/revenue`
+  - `GET /api/operation/reports/revenue/export-excel`
+  - `GET /api/operation/reports/revenue/export-pdf`
+  - Bảo vệ nghiêm ngặt bằng Strict Disjoint RBAC (chỉ SALE được truy cập, ADMIN/MANAGER bị 403).
+- Viết 8 bài kiểm thử tích hợp chuyên sâu trong [backend/tests/feat12.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat12.test.js) (toàn bộ 8/8 PASS, nâng tổng số tests hệ thống lên 130/130 PASS trên 13 test suites).
+- Xây dựng giao diện Frontend SPA:
+  - Tích hợp Tab "4. Báo Cáo Doanh Thu (Excel/PDF)" trong [frontend/src/pages/operation/SaleOperation.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/SaleOperation.jsx).
+  - 4 Thẻ thống kê trực quan: Tổng Doanh Thu Thực Tế (nổi bật công thức SPEC 4.5), Doanh thu Trả phòng, 20% Phí phạt hủy phòng, Tổng lượt giao dịch.
+  - Thanh công cụ lọc ngày với các phím tắt chọn nhanh: "Hôm nay", "Tháng này", "Tất cả".
+  - Nút "Xuất Excel (.xlsx)" và "Xuất PDF (.pdf)" tải trực tiếp file về máy qua blob download.
+  - Bảng kê chi tiết từng giao dịch với badge trạng thái sắc nét và dòng tổng doanh thu nổi bật cuối bảng.
+  - Kiểm tra Vite build thành công: `npm run build` PASS trong 6.30s.
+- Cập nhật tiến độ `FEAT-12` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
 ## Architectural Decisions Locked
 1. **Tech Stack:** Node.js v20+/v24+, JavaScript ES Modules (`"type": "module"`), Express.js v4.21+, Prisma ORM v6.x, PostgreSQL 16+, React.js v18.3+ SPA (Vite + Tailwind CSS).
@@ -128,32 +165,39 @@
 5. **Cancellation Rule:** Hủy trước $\ge 24\text{h}$ so với giờ nhận phòng khi trạng thái là `CONFIRMED`; giữ lại 20% phí hủy, hoàn trả 80% về tài khoản thanh toán giả lập. Khóa bi quan phòng chống Double Refund.
 6. **Strict Disjoint RBAC:** `ADMIN` (`/admin/*`), `MANAGER` (`/setup/*`), `SALE` (`/operation/*`) tách biệt hoàn toàn; không kế thừa quyền; timeout phiên sau 30 phút không hoạt động.
 7. **Deletion Guards:** Cấm xóa Phòng vật lý (`ROOM_CANNOT_BE_DELETED`), Dịch vụ (`SERVICE_CANNOT_BE_DELETED`), Khuyến mãi (`PROMOTION_CANNOT_BE_DELETED`) nếu đã từng phát sinh liên kết với Booking hay phiếu dịch vụ.
-8. **Service Usage Rule:** Chỉ cho phép đăng ký dịch vụ cho các phòng đang ở trạng thái `OCCUPIED` thuộc một đơn booking `CHECKED_IN`. Khóa bi quan phòng vật lý bằng `SELECT ... FOR UPDATE`. Mã phiếu sinh theo định dạng `TK-YYYYMMDD-XXXX`. Tiền dịch vụ được ghi nhận và quyết toán tổng hợp khi Check-out.
-9. **HTML Print Standards:** In phiếu dịch vụ và hóa đơn Check-out sử dụng HTML view chuyên biệt kèm CSS `@media print`, kích hoạt trực tiếp qua `window.print()`.
+8. **Check-out & Invoicing Rule (SPEC 4.5 & Luồng 3.4 ARCHITECTURE):**
+   - Khóa bi quan booking và phòng vật lý bằng `SELECT ... FOR UPDATE`.
+   - $\text{totalInvoiceAmount} = \text{netRoomFee} + \text{extraChildrenFee} + \sum \text{ServiceUsage.totalPrice}$.
+   - $\text{remainingPayable} = \text{totalInvoiceAmount} - \text{prepaidBookingValue}$.
+   - Sinh mã hóa đơn `INV-YYYYMMDD-XXXX`, lưu bản ghi `Invoice`.
+   - Chuyển `Booking` sang `CHECKED_OUT`, cập nhật `checkedOutAt`, giải phóng các phòng vật lý về `AVAILABLE`.
+   - Mở giao diện HTML in hóa đơn kích hoạt qua `window.print()`.
+9. **Revenue Formula & Reporting (SPEC 4.5 & Rule 6 ARCHITECTURE):**
+   - Báo cáo doanh thu theo đúng công thức:
+     $$\text{Total Revenue} = \sum_{\text{Checked-out}} \text{Invoice.totalInvoiceAmount} + \sum_{\text{Cancelled}} \text{Booking.cancellationFee}$$
+   - Xuất dữ liệu tệp Excel (.xlsx qua `exceljs`) và tệp PDF (.pdf qua `pdfkit`).
 
 ## Files Changed
-- [backend/src/common/errors.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/common/errors.js)
+- [backend/package.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/package.json)
 - [backend/src/services/operation.service.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/services/operation.service.js)
 - [backend/src/controllers/operation.controller.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/controllers/operation.controller.js)
 - [backend/src/entrypoints/operation.routes.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/src/entrypoints/operation.routes.js)
-- [backend/tests/feat10.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat10.test.js)
+- [backend/tests/feat12.test.js](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/backend/tests/feat12.test.js)
 - [frontend/src/pages/operation/SaleOperation.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/SaleOperation.jsx)
-- [frontend/src/pages/operation/ServiceUsageModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/ServiceUsageModal.jsx)
-- [frontend/src/pages/operation/ServiceTicketPrintModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/ServiceTicketPrintModal.jsx)
 - [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json)
 - [progress.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/progress.md)
 - [session-handoff.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/session-handoff.md)
 
 ## Blockers / Risks
-- Không còn blocker: Toàn bộ 112 tests PASS trên 11 suites, quy trình đăng ký dịch vụ cho phòng đang ở, khóa bi quan và in phiếu HTML qua `window.print()` hoạt động hoàn hảo 100%.
+- Không còn blocker: Toàn bộ 12/12 tính năng của hệ thống e-Hotel đã hoàn thành 100%, 130/130 unit & integration tests PASS trên 13 test suites, Prisma valid, PostgreSQL in sync, frontend production build thành công.
 
 ## Verification Evidence
-- `npm test`: 112/112 tests passed across 11 test suites (`api.test.js`, `feat01.test.js`, `feat02.test.js`, `feat03.test.js`, `feat04.test.js`, `feat05.test.js`, `feat06.test.js`, `feat07.test.js`, `feat08.test.js`, `feat09.test.js`, `feat10.test.js`).
+- `npm test`: 130/130 tests passed across 13 test suites (`api.test.js`, `feat01.test.js` đến `feat12.test.js`).
 - `npm run lint`: PASS (0 lỗi).
 - `npx prisma validate`: PASS (Schema hợp lệ 100%).
-- `cd frontend && npm run build`: PASS (Vite production bundle built in 4.16s).
-- `powershell -ExecutionPolicy Bypass -File .\init.ps1`: Hiển thị tiến độ 10/12 features completed.
+- `cd frontend && npm run build`: PASS (Vite production bundle built in 6.30s).
+- `powershell -ExecutionPolicy Bypass -File .\init.ps1`: Hiển thị tiến độ 12/12 features completed.
+- `node .agents/skills/harness-creator/scripts/validate-harness.mjs`: Đạt điểm tuyệt đối 100/100.
 
 ## Next Session & Next Steps
-- **Next Session Startup:** Chạy `./init.ps1` (hoặc `./init.sh`).
-- **Recommended Next Step:** Bắt đầu tính năng `FEAT-11: Check-out, Invoice Calculation & HTML Invoice Printing` (Tổng hợp tiền phòng, phụ thu trẻ em, tổng phí dịch vụ, khấu trừ số tiền đã trả trước prepaidBookingValue, xuất hóa đơn quyết toán, giải phóng phòng về AVAILABLE và mở trang in HTML qua window.print()).
+- Toàn bộ 12 tính năng cốt lõi theo đặc tả [docs/SPEC.md](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/docs/SPEC.md) đã hoàn tất và nghiệm thu 100%. Hệ thống sẵn sàng cho việc đưa vào triển khai thực tế (Production Deployment via Docker Compose).

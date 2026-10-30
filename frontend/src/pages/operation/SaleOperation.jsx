@@ -21,11 +21,18 @@ import {
   Printer,
   ChevronRight,
   PlusCircle,
+  DollarSign,
+  Receipt,
+  TrendingUp,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 import CheckinModal from "./CheckinModal.jsx";
 import ServiceUsageModal from "./ServiceUsageModal.jsx";
 import ServiceTicketPrintModal from "./ServiceTicketPrintModal.jsx";
+import CheckoutModal from "./CheckoutModal.jsx";
+import InvoicePrintModal from "./InvoicePrintModal.jsx";
 
 // Định dạng tiền tệ VND
 const formatCurrency = (amount) => {
@@ -36,7 +43,7 @@ const formatCurrency = (amount) => {
 };
 
 export default function SaleOperation() {
-  // Tab điều hướng chính: 'bookings' hoặc 'services'
+  // Tab điều hướng chính: 'bookings' | 'services' | 'invoices'
   const [activeTab, setActiveTab] = useState("bookings");
 
   const [bookings, setBookings] = useState([]);
@@ -52,14 +59,17 @@ export default function SaleOperation() {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({ total: 0, totalPages: 1, limit: 10 });
 
-  // Modal Check-in
+  // Modal Check-in (FEAT-09)
   const [checkinBooking, setCheckinBooking] = useState(null);
+
+  // Modal Check-out (FEAT-11)
+  const [checkoutBooking, setCheckoutBooking] = useState(null);
 
   // Modal Chi tiết booking
   const [detailBooking, setDetailBooking] = useState(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // State cho Tab Dịch Vụ
+  // State cho Tab Dịch Vụ (FEAT-10)
   const [serviceModalOpen, setServiceModalOpen] = useState(false);
   const [serviceRoomTarget, setServiceRoomTarget] = useState("");
   const [ticketPrintData, setTicketPrintData] = useState(null);
@@ -71,6 +81,127 @@ export default function SaleOperation() {
   const [serviceTickets, setServiceTickets] = useState([]);
   const [loadingTickets, setLoadingTickets] = useState(false);
   const [ticketKeyword, setTicketKeyword] = useState("");
+
+  // State cho Tab Hóa Đơn (FEAT-11)
+  const [invoicesList, setInvoicesList] = useState([]);
+  const [loadingInvoices, setLoadingInvoices] = useState(false);
+  const [invoiceKeyword, setInvoiceKeyword] = useState("");
+  const [invoicePrintData, setInvoicePrintData] = useState(null);
+  const [autoPrintInvoice, setAutoPrintInvoice] = useState(false);
+
+  // State cho Tab Báo Cáo Doanh Thu (FEAT-12)
+  const [reportData, setReportData] = useState({
+    summary: {
+      totalRevenue: 0,
+      totalCheckoutRevenue: 0,
+      totalCancellationFee: 0,
+      checkoutCount: 0,
+      cancellationCount: 0,
+      totalCount: 0,
+      fromDate: null,
+      toDate: null,
+    },
+    records: [],
+  });
+  const [reportLoading, setReportLoading] = useState(false);
+  const [reportFromDate, setReportFromDate] = useState("");
+  const [reportToDate, setReportToDate] = useState("");
+  const [exportingExcel, setExportingExcel] = useState(false);
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  // Tải dữ liệu báo cáo doanh thu
+  const fetchRevenueReport = async (fDate = reportFromDate, tDate = reportToDate) => {
+    try {
+      setReportLoading(true);
+      const params = new URLSearchParams();
+      if (fDate) params.append("fromDate", fDate);
+      if (tDate) params.append("toDate", tDate);
+
+      const res = await apiRequest(`/api/operation/reports/revenue?${params.toString()}`);
+      if (res.success && res.data) {
+        setReportData(res.data);
+      }
+    } catch (err) {
+      console.error("Error loading revenue report:", err);
+      setErrorMsg(err.message || "Không thể tải báo cáo doanh thu.");
+    } finally {
+      setReportLoading(false);
+    }
+  };
+
+  // Xuất file Excel (.xlsx)
+  const handleExportExcel = async () => {
+    try {
+      setExportingExcel(true);
+      const token = localStorage.getItem("token") || "";
+      const params = new URLSearchParams();
+      if (reportFromDate) params.append("fromDate", reportFromDate);
+      if (reportToDate) params.append("toDate", reportToDate);
+
+      const response = await fetch(`/api/operation/reports/revenue/export-excel?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể xuất file Excel.");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `BaoCaoDoanhThu_${reportFromDate || "all"}_${reportToDate || "all"}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setToastMsg("Xuất file Excel thành công! Đang tải xuống máy...");
+      setTimeout(() => setToastMsg(null), 3000);
+    } catch (err) {
+      alert("Lỗi xuất Excel: " + err.message);
+    } finally {
+      setExportingExcel(false);
+    }
+  };
+
+  // Xuất file PDF (.pdf)
+  const handleExportPdf = async () => {
+    try {
+      setExportingPdf(true);
+      const token = localStorage.getItem("token") || "";
+      const params = new URLSearchParams();
+      if (reportFromDate) params.append("fromDate", reportFromDate);
+      if (reportToDate) params.append("toDate", reportToDate);
+
+      const response = await fetch(`/api/operation/reports/revenue/export-pdf?${params.toString()}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error("Không thể xuất file PDF.");
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `BaoCaoDoanhThu_${reportFromDate || "all"}_${reportToDate || "all"}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      setToastMsg("Xuất file PDF thành công! Đang tải xuống máy...");
+      setTimeout(() => setToastMsg(null), 3000);
+    } catch (err) {
+      alert("Lỗi xuất PDF: " + err.message);
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   // Tải danh sách bookings
   const fetchBookings = async (targetPage = page) => {
@@ -135,6 +266,25 @@ export default function SaleOperation() {
     }
   };
 
+  // Tải danh sách hóa đơn đã quyết toán
+  const fetchInvoices = async (kw = invoiceKeyword) => {
+    try {
+      setLoadingInvoices(true);
+      const params = new URLSearchParams({ limit: 50 });
+      if (kw && kw.trim()) {
+        params.append("keyword", kw.trim());
+      }
+      const res = await apiRequest(`/api/operation/invoices?${params.toString()}`);
+      if (res.success && res.data) {
+        setInvoicesList(res.data.invoices || []);
+      }
+    } catch (err) {
+      console.error("Error loading invoices:", err);
+    } finally {
+      setLoadingInvoices(false);
+    }
+  };
+
   useEffect(() => {
     fetchBookings(1);
   }, []);
@@ -143,6 +293,10 @@ export default function SaleOperation() {
     if (activeTab === "services") {
       fetchOccupiedRooms();
       fetchServiceTickets();
+    } else if (activeTab === "invoices") {
+      fetchInvoices();
+    } else if (activeTab === "reports") {
+      fetchRevenueReport();
     }
   }, [activeTab]);
 
@@ -185,6 +339,43 @@ export default function SaleOperation() {
     }
   };
 
+  // Sau khi check-out thành công (FEAT-11)
+  const handleCheckoutSuccess = async (data) => {
+    setCheckoutBooking(null);
+    setToastMsg(
+      `Check-out thành công đơn ${data.booking.bookingNumber}! Hóa đơn ${data.invoice.invoiceId} đã được xuất.`,
+    );
+    setTimeout(() => setToastMsg(null), 5000);
+
+    // Tự động mở modal in hóa đơn kèm autoPrint
+    try {
+      const invRes = await apiRequest(`/api/operation/invoices/${data.invoice.invoiceId}`);
+      if (invRes.success && invRes.data) {
+        setInvoicePrintData(invRes.data);
+        setAutoPrintInvoice(true);
+      }
+    } catch (err) {
+      console.error("Failed to load invoice for print:", err);
+    }
+
+    fetchBookings(page);
+    fetchOccupiedRooms();
+    fetchInvoices();
+  };
+
+  // Xem & In hóa đơn
+  const handleOpenInvoicePrint = async (invoiceIdOrBookingId) => {
+    try {
+      const res = await apiRequest(`/api/operation/invoices/${invoiceIdOrBookingId}`);
+      if (res.success && res.data) {
+        setInvoicePrintData(res.data);
+        setAutoPrintInvoice(false);
+      }
+    } catch (err) {
+      alert("Không thể tải chi tiết hóa đơn: " + err.message);
+    }
+  };
+
   // Mở modal lập phiếu dịch vụ
   const handleOpenCreateService = (targetRoomId = "") => {
     setServiceRoomTarget(targetRoomId);
@@ -203,7 +394,7 @@ export default function SaleOperation() {
     fetchBookings(page);
   };
 
-  // Xem & In lại một phiếu từ danh sách
+  // Xem & In lại một phiếu dịch vụ từ danh sách
   const handleReprintTicket = async (ticketId) => {
     try {
       const res = await apiRequest(`/api/operation/services/tickets/${ticketId}`);
@@ -274,9 +465,9 @@ export default function SaleOperation() {
               borderRadius: "9999px",
               fontSize: "0.75rem",
               fontWeight: 700,
-              background: "rgba(107, 114, 128, 0.2)",
-              color: "#9ca3af",
-              border: "1px solid rgba(107, 114, 128, 0.4)",
+              background: "rgba(16, 185, 129, 0.15)",
+              color: "#10b981",
+              border: "1px solid rgba(16, 185, 129, 0.3)",
               display: "inline-flex",
               alignItems: "center",
               gap: "0.3rem",
@@ -369,10 +560,10 @@ export default function SaleOperation() {
             <UserCheck size={14} /> Phân Hệ Lễ Tân & Bán Hàng (SALE)
           </div>
           <h1 style={{ fontSize: "1.75rem", fontWeight: 800, margin: 0, color: "var(--text-main)" }}>
-            Vận Hành Khách Sạn & Quầy Dịch Vụ
+            Vận Hành Khách Sạn: Check-in, Dịch Vụ & Check-out
           </h1>
           <p style={{ color: "var(--text-muted)", fontSize: "0.875rem", margin: "0.25rem 0 0" }}>
-            Quản lý check-in, gán phòng vật lý khóa bi quan, đăng ký dịch vụ phòng & in phiếu HTML.
+            Quản lý check-in, gán phòng vật lý khóa bi quan, đăng ký dịch vụ & quyết toán trả phòng HTML.
           </p>
         </div>
 
@@ -399,9 +590,13 @@ export default function SaleOperation() {
             type="button"
             onClick={() => {
               if (activeTab === "bookings") fetchBookings(page);
-              else {
+              else if (activeTab === "services") {
                 fetchOccupiedRooms();
                 fetchServiceTickets();
+              } else if (activeTab === "invoices") {
+                fetchInvoices();
+              } else if (activeTab === "reports") {
+                fetchRevenueReport();
               }
             }}
             className="btn btn-secondary"
@@ -443,7 +638,7 @@ export default function SaleOperation() {
           }}
         >
           <Bed size={18} />
-          <span>1. Đặt Phòng & Check-in ({pagination.total})</span>
+          <span>1. Đặt Phòng & Check-in / Out ({pagination.total})</span>
         </button>
 
         <button
@@ -469,9 +664,57 @@ export default function SaleOperation() {
           <Coffee size={18} />
           <span>2. Dịch Vụ Phòng & Phiếu In ({serviceTickets.length})</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("invoices")}
+          style={{
+            padding: "0.75rem 1.25rem",
+            fontSize: "0.9375rem",
+            fontWeight: 700,
+            color: activeTab === "invoices" ? "var(--primary-color)" : "var(--text-muted)",
+            borderBottom: activeTab === "invoices" ? "2px solid var(--primary-color)" : "2px solid transparent",
+            background: "none",
+            borderTop: "none",
+            borderLeft: "none",
+            borderRight: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            transition: "all 0.2s ease",
+          }}
+        >
+          <Receipt size={18} />
+          <span>3. Hóa Đơn Quyết Toán ({invoicesList.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab("reports")}
+          style={{
+            padding: "0.75rem 1.25rem",
+            fontSize: "0.9375rem",
+            fontWeight: 700,
+            color: activeTab === "reports" ? "var(--primary-color)" : "var(--text-muted)",
+            borderBottom: activeTab === "reports" ? "2px solid var(--primary-color)" : "2px solid transparent",
+            background: "none",
+            borderTop: "none",
+            borderLeft: "none",
+            borderRight: "none",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            gap: "0.5rem",
+            transition: "all 0.2s ease",
+          }}
+        >
+          <TrendingUp size={18} />
+          <span>4. Báo Cáo Doanh Thu (Excel/PDF)</span>
+        </button>
       </div>
 
-      {/* TAB 1: QUẢN LÝ ĐẶT PHÒNG & CHECK-IN */}
+      {/* TAB 1: QUẢN LÝ ĐẶT PHÒNG & CHECK-IN / CHECK-OUT */}
       {activeTab === "bookings" && (
         <>
           {/* Thẻ Thống kê nhanh */}
@@ -508,10 +751,10 @@ export default function SaleOperation() {
               </div>
             </div>
             <div className="glass-card" style={{ padding: "1rem" }}>
-              <div style={{ fontSize: "0.75rem", color: "#9ca3af", textTransform: "uppercase" }}>
+              <div style={{ fontSize: "0.75rem", color: "#10b981", textTransform: "uppercase" }}>
                 Đã Trả Phòng
               </div>
-              <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#9ca3af", marginTop: "0.25rem" }}>
+              <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#10b981", marginTop: "0.25rem" }}>
                 {stats.checkedOut}
               </div>
             </div>
@@ -731,7 +974,7 @@ export default function SaleOperation() {
                         </td>
                         <td style={{ padding: "1rem" }}>{renderStatusBadge(b.status)}</td>
                         <td style={{ padding: "1rem", textAlign: "right" }}>
-                          <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.5rem" }}>
+                          <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.4rem" }}>
                             {/* Nút Check-in nếu CONFIRMED */}
                             {b.status === "CONFIRMED" && (
                               <button
@@ -754,24 +997,67 @@ export default function SaleOperation() {
                               </button>
                             )}
 
-                            {/* Nút Thêm Dịch Vụ nếu CHECKED_IN */}
-                            {b.status === "CHECKED_IN" && b.assignments && b.assignments.length > 0 && (
+                            {/* Nút Thao tác khi đang CHECKED_IN */}
+                            {b.status === "CHECKED_IN" && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => handleOpenCreateService(b.assignments?.[0]?.roomId || "")}
+                                  className="btn btn-secondary"
+                                  style={{
+                                    padding: "0.35rem 0.6rem",
+                                    fontSize: "0.75rem",
+                                    color: "#38bdf8",
+                                    borderColor: "rgba(56, 189, 248, 0.4)",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.3rem",
+                                  }}
+                                  title="Đăng ký dịch vụ cho phòng này"
+                                >
+                                  <Coffee size={13} /> +DV
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => setCheckoutBooking(b)}
+                                  className="btn btn-primary"
+                                  style={{
+                                    padding: "0.35rem 0.75rem",
+                                    fontSize: "0.75rem",
+                                    fontWeight: 700,
+                                    background: "#f59e0b",
+                                    border: "none",
+                                    color: "white",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.3rem",
+                                  }}
+                                  title="Làm thủ tục trả phòng & quyết toán"
+                                >
+                                  <LogOut size={13} /> Check-out
+                                </button>
+                              </>
+                            )}
+
+                            {/* Nút Xem Hóa Đơn nếu CHECKED_OUT */}
+                            {b.status === "CHECKED_OUT" && (
                               <button
                                 type="button"
-                                onClick={() => handleOpenCreateService(b.assignments[0]?.roomId)}
+                                onClick={() => handleOpenInvoicePrint(b.id)}
                                 className="btn btn-secondary"
                                 style={{
                                   padding: "0.35rem 0.65rem",
                                   fontSize: "0.75rem",
-                                  color: "#38bdf8",
-                                  borderColor: "rgba(56, 189, 248, 0.4)",
+                                  color: "#10b981",
+                                  borderColor: "rgba(16, 185, 129, 0.4)",
                                   display: "flex",
                                   alignItems: "center",
                                   gap: "0.3rem",
                                 }}
-                                title="Đăng ký dịch vụ cho phòng này"
+                                title="Xem và in hóa đơn Check-out"
                               >
-                                <Coffee size={13} /> +Dịch vụ
+                                <Receipt size={13} /> Hóa Đơn
                               </button>
                             )}
 
@@ -1119,12 +1405,614 @@ export default function SaleOperation() {
         </div>
       )}
 
+      {/* TAB 3: LỊCH SỬ HÓA ĐƠN QUYẾT TOÁN (FEAT-11) */}
+      {activeTab === "invoices" && (
+        <div className="glass-card" style={{ padding: "0", overflow: "hidden" }}>
+          <div
+            style={{
+              padding: "1.25rem",
+              borderBottom: "1px solid var(--border-color)",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
+            <div>
+              <h3 style={{ fontSize: "1.125rem", fontWeight: 700, margin: 0, color: "var(--text-main)" }}>
+                Danh Sách Hóa Đơn Quyết Toán Check-out
+              </h3>
+              <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: "0.25rem 0 0" }}>
+                Toàn bộ hóa đơn thanh toán đã quyết toán khi khách trả phòng, sẵn sàng in lại chuẩn A4.
+              </p>
+            </div>
+
+            <div style={{ display: "flex", gap: "0.5rem" }}>
+              <input
+                type="text"
+                placeholder="Tìm mã hóa đơn, mã booking, khách..."
+                value={invoiceKeyword}
+                onChange={(e) => {
+                  setInvoiceKeyword(e.target.value);
+                  fetchInvoices(e.target.value);
+                }}
+                className="input-field"
+                style={{ width: "280px", fontSize: "0.8125rem" }}
+              />
+              <button
+                type="button"
+                onClick={() => fetchInvoices(invoiceKeyword)}
+                className="btn btn-secondary"
+                style={{ padding: "0.45rem 0.75rem" }}
+              >
+                <RefreshCw size={14} />
+              </button>
+            </div>
+          </div>
+
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.875rem" }}>
+              <thead>
+                <tr style={{ background: "rgba(255, 255, 255, 0.03)", borderBottom: "1px solid var(--border-color)" }}>
+                  <th style={{ padding: "1rem" }}>Mã Hóa Đơn</th>
+                  <th style={{ padding: "1rem" }}>Thời Gian Xuất</th>
+                  <th style={{ padding: "1rem" }}>Khách Hàng & Đơn Đặt</th>
+                  <th style={{ padding: "1rem", textAlign: "right" }}>Tổng Tiền Hóa Đơn</th>
+                  <th style={{ padding: "1rem", textAlign: "right" }}>Đã Trả Trước</th>
+                  <th style={{ padding: "1rem", textAlign: "right" }}>Còn Thu Tại Quầy</th>
+                  <th style={{ padding: "1rem", textAlign: "right" }}>Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loadingInvoices ? (
+                  <tr>
+                    <td colSpan="7" style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                      Đang tải danh sách hóa đơn...
+                    </td>
+                  </tr>
+                ) : invoicesList.length === 0 ? (
+                  <tr>
+                    <td colSpan="7" style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                      Chưa có hóa đơn quyết toán nào.
+                    </td>
+                  </tr>
+                ) : (
+                  invoicesList.map((inv) => (
+                    <tr
+                      key={inv.invoiceId}
+                      style={{
+                        borderBottom: "1px solid var(--border-color)",
+                        transition: "background 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.02)")}
+                      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+                    >
+                      <td style={{ padding: "1rem" }}>
+                        <span style={{ fontWeight: 800, fontFamily: "monospace", color: "#10b981" }}>
+                          {inv.invoiceId}
+                        </span>
+                      </td>
+                      <td style={{ padding: "1rem", fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                        {new Date(inv.issuedAt).toLocaleString("vi-VN")}
+                      </td>
+                      <td style={{ padding: "1rem" }}>
+                        <div style={{ fontWeight: 600, color: "var(--text-main)" }}>{inv.customerName}</div>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", fontFamily: "monospace" }}>
+                          {inv.bookingNumber} ({inv.customerPhone})
+                        </div>
+                      </td>
+                      <td style={{ padding: "1rem", textAlign: "right", fontWeight: 700 }}>
+                        {formatCurrency(inv.totalInvoiceAmount)}
+                      </td>
+                      <td style={{ padding: "1rem", textAlign: "right", color: "#10b981" }}>
+                        -{formatCurrency(inv.prepaidBookingValue)}
+                      </td>
+                      <td style={{ padding: "1rem", textAlign: "right", fontWeight: 800, color: "#fbbf24" }}>
+                        {formatCurrency(inv.remainingPayable)}
+                      </td>
+                      <td style={{ padding: "1rem", textAlign: "right" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenInvoicePrint(inv.invoiceId)}
+                          className="btn btn-secondary"
+                          style={{
+                            padding: "0.35rem 0.75rem",
+                            fontSize: "0.75rem",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.3rem",
+                            color: "#10b981",
+                            borderColor: "rgba(16, 185, 129, 0.4)",
+                          }}
+                        >
+                          <Printer size={13} />
+                          <span>In Hóa Đơn</span>
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* TAB 4: BÁO CÁO DOANH THU & XUẤT EXCEL/PDF (FEAT-12) */}
+      {activeTab === "reports" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
+          {/* Thanh công cụ lọc & xuất file */}
+          <div
+            className="glass-card"
+            style={{
+              padding: "1.25rem 1.5rem",
+              borderRadius: "16px",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: "1rem",
+            }}
+          >
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: "0.75rem" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <Calendar size={16} style={{ color: "var(--text-muted)" }} />
+                <span style={{ fontSize: "0.875rem", fontWeight: 600 }}>Từ ngày:</span>
+                <input
+                  type="date"
+                  value={reportFromDate}
+                  onChange={(e) => setReportFromDate(e.target.value)}
+                  className="input-field"
+                  style={{ padding: "0.45rem 0.75rem", fontSize: "0.875rem", width: "160px" }}
+                />
+              </div>
+
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <span style={{ fontSize: "0.875rem", fontWeight: 600 }}>Đến ngày:</span>
+                <input
+                  type="date"
+                  value={reportToDate}
+                  onChange={(e) => setReportToDate(e.target.value)}
+                  className="input-field"
+                  style={{ padding: "0.45rem 0.75rem", fontSize: "0.875rem", width: "160px" }}
+                />
+              </div>
+
+              <button
+                type="button"
+                onClick={() => fetchRevenueReport(reportFromDate, reportToDate)}
+                className="btn btn-primary"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  padding: "0.45rem 1rem",
+                  fontSize: "0.875rem",
+                }}
+              >
+                <Filter size={15} />
+                <span>Lọc Báo Cáo</span>
+              </button>
+
+              {/* Phím tắt chọn nhanh */}
+              <div style={{ display: "flex", gap: "0.35rem" }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const todayStr = new Date().toISOString().split("T")[0];
+                    setReportFromDate(todayStr);
+                    setReportToDate(todayStr);
+                    fetchRevenueReport(todayStr, todayStr);
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: "0.35rem 0.65rem", fontSize: "0.75rem" }}
+                >
+                  Hôm nay
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const now = new Date();
+                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
+                    const todayStr = now.toISOString().split("T")[0];
+                    setReportFromDate(firstDay);
+                    setReportToDate(todayStr);
+                    fetchRevenueReport(firstDay, todayStr);
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: "0.35rem 0.65rem", fontSize: "0.75rem" }}
+                >
+                  Tháng này
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setReportFromDate("");
+                    setReportToDate("");
+                    fetchRevenueReport("", "");
+                  }}
+                  className="btn btn-secondary"
+                  style={{ padding: "0.35rem 0.65rem", fontSize: "0.75rem" }}
+                >
+                  Tất cả
+                </button>
+              </div>
+            </div>
+
+            {/* Các nút Xuất Excel & PDF */}
+            <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
+              <button
+                type="button"
+                onClick={handleExportExcel}
+                disabled={exportingExcel || reportLoading}
+                className="btn"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  background: "linear-gradient(135deg, #059669, #10b981)",
+                  color: "#ffffff",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: "0.875rem",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(16, 185, 129, 0.3)",
+                }}
+              >
+                <FileSpreadsheet size={16} />
+                <span>{exportingExcel ? "Đang xuất..." : "Xuất Excel (.xlsx)"}</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleExportPdf}
+                disabled={exportingPdf || reportLoading}
+                className="btn"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  background: "linear-gradient(135deg, #dc2626, #ef4444)",
+                  color: "#ffffff",
+                  border: "none",
+                  fontWeight: 700,
+                  fontSize: "0.875rem",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "8px",
+                  cursor: "pointer",
+                  boxShadow: "0 2px 8px rgba(239, 68, 68, 0.3)",
+                }}
+              >
+                <Download size={16} />
+                <span>{exportingPdf ? "Đang xuất..." : "Xuất PDF (.pdf)"}</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Thẻ Thống kê Tổng quan Doanh thu */}
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: "1rem",
+            }}
+          >
+            {/* Card 1: Tổng Doanh Thu */}
+            <div
+              className="glass-card"
+              style={{
+                padding: "1.25rem",
+                borderRadius: "14px",
+                borderLeft: "4px solid #10b981",
+                background: "linear-gradient(135deg, rgba(16, 185, 129, 0.08), rgba(6, 78, 59, 0.15))",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", color: "#10b981", letterSpacing: "0.05em" }}>
+                    TỔNG DOANH THU THỰC TẾ
+                  </div>
+                  <div style={{ fontSize: "1.75rem", fontWeight: 900, color: "#34d399", margin: "0.25rem 0" }}>
+                    {formatCurrency(reportData.summary.totalRevenue)}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    SPEC 4.5: Σ(Check-out) + Σ(20% Phí hủy)
+                  </div>
+                </div>
+                <div style={{ padding: "0.6rem", borderRadius: "10px", background: "rgba(16, 185, 129, 0.2)", color: "#10b981" }}>
+                  <TrendingUp size={24} />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 2: Hóa đơn Check-out */}
+            <div
+              className="glass-card"
+              style={{
+                padding: "1.25rem",
+                borderRadius: "14px",
+                borderLeft: "4px solid #3b82f6",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", color: "#60a5fa", letterSpacing: "0.05em" }}>
+                    HÓA ĐƠN TRẢ PHÒNG (CHECK-OUT)
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#93c5fd", margin: "0.25rem 0" }}>
+                    {formatCurrency(reportData.summary.totalCheckoutRevenue)}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    {reportData.summary.checkoutCount} lượt hoàn tất thủ tục
+                  </div>
+                </div>
+                <div style={{ padding: "0.6rem", borderRadius: "10px", background: "rgba(59, 130, 246, 0.15)", color: "#3b82f6" }}>
+                  <Receipt size={22} />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 3: Phí phạt hủy phòng */}
+            <div
+              className="glass-card"
+              style={{
+                padding: "1.25rem",
+                borderRadius: "14px",
+                borderLeft: "4px solid #f59e0b",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", color: "#fbbf24", letterSpacing: "0.05em" }}>
+                    20% PHÍ PHẠT HỦY ĐƠN (CANCELLED)
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#fcd34d", margin: "0.25rem 0" }}>
+                    {formatCurrency(reportData.summary.totalCancellationFee)}
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    {reportData.summary.cancellationCount} lượt hủy trước 24h
+                  </div>
+                </div>
+                <div style={{ padding: "0.6rem", borderRadius: "10px", background: "rgba(245, 158, 11, 0.15)", color: "#f59e0b" }}>
+                  <AlertCircle size={22} />
+                </div>
+              </div>
+            </div>
+
+            {/* Card 4: Tổng số giao dịch */}
+            <div
+              className="glass-card"
+              style={{
+                padding: "1.25rem",
+                borderRadius: "14px",
+                borderLeft: "4px solid #8b5cf6",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", color: "#a78bfa", letterSpacing: "0.05em" }}>
+                    TỔNG LƯỢT GIAO DỊCH
+                  </div>
+                  <div style={{ fontSize: "1.5rem", fontWeight: 800, color: "#c4b5fd", margin: "0.25rem 0" }}>
+                    {reportData.summary.totalCount} <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>giao dịch</span>
+                  </div>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                    Trong kỳ báo cáo đã chọn
+                  </div>
+                </div>
+                <div style={{ padding: "0.6rem", borderRadius: "10px", background: "rgba(139, 92, 246, 0.15)", color: "#8b5cf6" }}>
+                  <Users size={22} />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Bảng chi tiết doanh thu */}
+          <div className="glass-card" style={{ borderRadius: "16px", overflow: "hidden" }}>
+            <div
+              style={{
+                padding: "1rem 1.5rem",
+                borderBottom: "1px solid var(--border-color)",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: "1.125rem", fontWeight: 800, color: "var(--text-main)" }}>
+                  Bảng Kê Chi Tiết Giao Dịch Doanh Thu
+                </h3>
+                <p style={{ margin: "0.2rem 0 0", fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                  {reportData.summary.fromDate || reportData.summary.toDate
+                    ? `Kỳ lọc: ${reportData.summary.fromDate || "Toàn bộ"} đến ${reportData.summary.toDate || "Hiện tại"}`
+                    : "Toàn bộ lịch sử hoạt động ghi nhận doanh thu"}
+                </p>
+              </div>
+
+              <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                Hiển thị <strong>{reportData.records.length}</strong> bản ghi
+              </div>
+            </div>
+
+            <div style={{ overflowX: "auto" }}>
+              <table style={{ width: "100%", borderCollapse: "collapse", textAlign: "left", fontSize: "0.875rem" }}>
+                <thead>
+                  <tr style={{ background: "rgba(255, 255, 255, 0.03)", borderBottom: "1px solid var(--border-color)" }}>
+                    <th style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text-muted)", width: "40px" }}>STT</th>
+                    <th style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text-muted)" }}>Mã Booking / Hóa Đơn</th>
+                    <th style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text-muted)" }}>Khách Hàng</th>
+                    <th style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text-muted)" }}>Trạng Thái</th>
+                    <th style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text-muted)" }}>Thời Điểm</th>
+                    <th style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text-muted)" }}>Chi Tiết Phân Bổ</th>
+                    <th style={{ padding: "0.85rem 1rem", fontWeight: 700, color: "var(--text-muted)", textAlign: "right" }}>
+                      Doanh Thu Thực Nhận (VNĐ)
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportLoading ? (
+                    <tr>
+                      <td colSpan={7} style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                        <div style={{ display: "inline-block", animation: "spin 1s linear infinite" }}>
+                          <RefreshCw size={24} />
+                        </div>
+                        <div style={{ marginTop: "0.5rem" }}>Đang tổng hợp dữ liệu báo cáo...</div>
+                      </td>
+                    </tr>
+                  ) : reportData.records.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+                        <div style={{ marginBottom: "0.5rem" }}>
+                          <AlertCircle size={32} style={{ opacity: 0.5 }} />
+                        </div>
+                        <div>Không có giao dịch phát sinh doanh thu nào trong khoảng thời gian đã chọn.</div>
+                      </td>
+                    </tr>
+                  ) : (
+                    reportData.records.map((r, idx) => (
+                      <tr
+                        key={`${r.status}-${r.id}-${idx}`}
+                        style={{
+                          borderBottom: "1px solid rgba(255, 255, 255, 0.04)",
+                          transition: "background 0.2s ease",
+                        }}
+                      >
+                        <td style={{ padding: "1rem", color: "var(--text-muted)", textAlign: "center" }}>
+                          {idx + 1}
+                        </td>
+                        <td style={{ padding: "1rem" }}>
+                          <div style={{ fontWeight: 700, fontFamily: "monospace", color: "#60a5fa" }}>
+                            {r.bookingNumber}
+                          </div>
+                          {r.invoiceId ? (
+                            <div style={{ fontSize: "0.75rem", fontFamily: "monospace", color: "#10b981", marginTop: "0.2rem" }}>
+                              HĐ: {r.invoiceId}
+                            </div>
+                          ) : (
+                            <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "0.2rem" }}>
+                              (Hủy trước Check-in)
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: "1rem" }}>
+                          <div style={{ fontWeight: 600, color: "var(--text-main)" }}>{r.customerName}</div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{r.customerPhone}</div>
+                        </td>
+                        <td style={{ padding: "1rem" }}>
+                          {r.status === "CHECKED_OUT" ? (
+                            <span
+                              style={{
+                                padding: "0.25rem 0.6rem",
+                                borderRadius: "9999px",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                background: "rgba(16, 185, 129, 0.15)",
+                                color: "#10b981",
+                                border: "1px solid rgba(16, 185, 129, 0.3)",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.3rem",
+                              }}
+                            >
+                              <CheckCircle size={12} /> Trả Phòng (Check-out)
+                            </span>
+                          ) : (
+                            <span
+                              style={{
+                                padding: "0.25rem 0.6rem",
+                                borderRadius: "9999px",
+                                fontSize: "0.75rem",
+                                fontWeight: 700,
+                                background: "rgba(239, 68, 68, 0.15)",
+                                color: "#ef4444",
+                                border: "1px solid rgba(239, 68, 68, 0.3)",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.3rem",
+                              }}
+                            >
+                              <AlertCircle size={12} /> Đã Hủy (Cancelled)
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ padding: "1rem", fontSize: "0.8125rem", color: "var(--text-muted)" }}>
+                          {r.transactionDate ? new Date(r.transactionDate).toLocaleString("vi-VN") : "-"}
+                        </td>
+                        <td style={{ padding: "1rem", fontSize: "0.8125rem" }}>
+                          {r.status === "CHECKED_OUT" ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "0.15rem" }}>
+                              <div>Tiền phòng: <strong>{formatCurrency(r.netRoomFee)}</strong></div>
+                              {r.extraChildrenFee > 0 && (
+                                <div style={{ color: "#fbbf24" }}>
+                                  Phụ thu trẻ em: +{formatCurrency(r.extraChildrenFee)}
+                                </div>
+                              )}
+                              {r.totalServiceFee > 0 && (
+                                <div style={{ color: "#60a5fa" }}>
+                                  Dịch vụ phát sinh: +{formatCurrency(r.totalServiceFee)}
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div style={{ color: "#f87171" }}>
+                              20% Phí phạt hủy phòng (Tiền khách cọc: {formatCurrency(r.prepaidBookingValue)})
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: "1rem", textAlign: "right", fontWeight: 800, fontSize: "0.9375rem" }}>
+                          <span style={{ color: r.status === "CHECKED_OUT" ? "#34d399" : "#fbbf24" }}>
+                            {formatCurrency(r.revenueAmount)}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+
+                {/* Dòng Tổng Doanh Thu Cuối Bảng */}
+                {reportData.records.length > 0 && (
+                  <tfoot>
+                    <tr
+                      style={{
+                        background: "rgba(16, 185, 129, 0.08)",
+                        borderTop: "2px solid rgba(16, 185, 129, 0.3)",
+                      }}
+                    >
+                      <td colSpan={6} style={{ padding: "1rem 1.5rem", fontWeight: 800, textAlign: "right", fontSize: "1rem", color: "var(--text-main)" }}>
+                        TỔNG CỘNG DOANH THU THỰC NHẬN:
+                      </td>
+                      <td style={{ padding: "1rem 1.5rem", textAlign: "right", fontWeight: 900, fontSize: "1.25rem", color: "#34d399" }}>
+                        {formatCurrency(reportData.summary.totalRevenue)}
+                      </td>
+                    </tr>
+                  </tfoot>
+                )}
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Modal Check-in (FEAT-09) */}
       {checkinBooking && (
         <CheckinModal
           booking={checkinBooking}
           onClose={() => setCheckinBooking(null)}
           onSuccess={handleCheckinSuccess}
+        />
+      )}
+
+      {/* Modal Check-out (FEAT-11) */}
+      {checkoutBooking && (
+        <CheckoutModal
+          booking={checkoutBooking}
+          onClose={() => setCheckoutBooking(null)}
+          onCheckoutSuccess={handleCheckoutSuccess}
         />
       )}
 
@@ -1143,6 +2031,15 @@ export default function SaleOperation() {
           ticket={ticketPrintData}
           autoPrint={autoPrintTicket}
           onClose={() => setTicketPrintData(null)}
+        />
+      )}
+
+      {/* Modal In Hóa Đơn Quyết Toán Check-out Chuẩn HTML @media print (FEAT-11) */}
+      {invoicePrintData && (
+        <InvoicePrintModal
+          invoiceData={invoicePrintData}
+          autoPrint={autoPrintInvoice}
+          onClose={() => setInvoicePrintData(null)}
         />
       )}
 

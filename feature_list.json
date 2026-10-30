@@ -160,8 +160,8 @@
         "Test công thức remainingPayable = (netRoomFee + extraChildrenFee + totalServiceFee) - prepaidBookingValue",
         "Test sau khi Check-out: phòng vật lý trở về AVAILABLE, booking chuyển sang CHECKED_OUT"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "10/10 integration tests cho FEAT-11 PASS (tổng 122/122 tests hệ thống PASS trên 12 suites). Strict Disjoint RBAC được bảo vệ nghiêm ngặt (chỉ SALE được truy cập /api/operation/bookings/:id/checkout-preview, /api/operation/bookings/:id/check-out và /api/operation/invoices, ADMIN/MANAGER nhận 403); API GET /api/operation/bookings/:id/checkout-preview tính toán chính xác bảng kê tài chính; API POST /api/operation/bookings/:id/check-out bọc trong Prisma Transaction với khóa bi quan SELECT ... FOR UPDATE trên bảng bookings và rooms, kiểm tra chỉ cho phép đơn CHECKED_IN, chặn Double Checkout, tính đúng công thức SPEC 4.5 remainingPayable = (netRoomFee + extraChildrenFee + totalServiceFee) - prepaidBookingValue cho cả FULL_100 và DEPOSIT_50, sinh mã invoiceId định dạng INV-YYYYMMDD-XXXX, lưu Invoice, cập nhật checkOutAt, chuyển tất cả phòng vật lý về AVAILABLE và booking sang CHECKED_OUT; API GET /api/operation/invoices/:invoiceId trả về chi tiết toàn diện hóa đơn; API GET /api/operation/invoices tra cứu lịch sử hóa đơn; Giao diện React SPA CheckoutModal.jsx và InvoicePrintModal.jsx hỗ trợ lễ tân quyết toán trực quan và tự động in hóa đơn HTML qua window.print() chuẩn CSS @media print; Frontend Vite production build thành công (3.75s)."
     },
     {
       "id": "FEAT-12",
@@ -174,8 +174,8 @@
         "Test công thức tổng doanh thu khớp chính xác tổng tiền hóa đơn CHECKED_OUT + 20% phí phạt CANCELLED trong khoảng thời gian lọc",
         "Test endpoint xuất file trả về đúng định dạng Excel (.xlsx) và PDF (.pdf)"
       ],
-      "status": "not-started",
-      "evidence": null
+      "status": "done",
+      "evidence": "8/8 integration tests cho FEAT-12 PASS (tổng 130/130 tests hệ thống PASS trên 13 suites). Strict Disjoint RBAC được bảo vệ nghiêm ngặt (chỉ SALE được truy cập /api/operation/reports/revenue, /api/operation/reports/revenue/export-excel và /api/operation/reports/revenue/export-pdf, ADMIN/MANAGER nhận 403); API GET /api/operation/reports/revenue tính toán chính xác doanh thu theo công thức chuẩn SPEC 4.5: Total Revenue = Σ(Hóa đơn Check-out) + Σ(20% Phí phạt Hủy), hỗ trợ lọc linh hoạt theo khoảng thời gian fromDate-toDate và lấy toàn bộ lịch sử khi không truyền tham số; API GET /api/operation/reports/revenue/export-excel sinh và trả về buffer bảng tính Excel chuẩn .xlsx (MIME application/vnd.openxmlformats-officedocument.spreadsheetml.sheet) với đầy đủ tiêu đề resort, khối tổng quan và dòng tổng cộng định dạng số #,##0; API GET /api/operation/reports/revenue/export-pdf sinh và trả về buffer PDF chuẩn .pdf (magic header %PDF-, MIME application/pdf) kèm bảng kê và chữ ký 3 bên; Giao diện React SPA SaleOperation.jsx tích hợp Tab '4. Báo Cáo Doanh Thu (Excel/PDF)' với 4 thẻ thống kê trực quan, bộ lọc ngày có phím tắt Hôm nay/Tháng này/Tất cả, bảng kê chi tiết từng giao dịch kèm phân bổ nguồn thu và nút tải file 1-click; Frontend Vite production build thành công (6.30s)."
     }
   ]
 }

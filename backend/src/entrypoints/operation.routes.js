@@ -30,4 +30,15 @@ router.get("/services/tickets", OperationController.listServiceTickets);
 router.get("/services/tickets/:ticketId", OperationController.getServiceTicket);
 router.post("/services/usage", OperationController.createServiceUsage);
 
+// FEAT-11: Check-out, Invoice Calculation & HTML Invoice Printing
+router.get("/bookings/:id/checkout-preview", OperationController.previewCheckout);
+router.post("/bookings/:id/check-out", OperationController.checkOutBooking);
+router.get("/invoices", OperationController.listInvoices);
+router.get("/invoices/:invoiceId", OperationController.getInvoiceDetails);
+
+// FEAT-12: Revenue Report & Excel/PDF Export
+router.get("/reports/revenue", OperationController.getRevenueReport);
+router.get("/reports/revenue/export-excel", OperationController.exportRevenueExcel);
+router.get("/reports/revenue/export-pdf", OperationController.exportRevenuePdf);
+
 export default router;
