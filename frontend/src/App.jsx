@@ -76,13 +76,16 @@ export default function App() {
             <Hotel size={22} />
           </div>
           <div>
-            <div className="brand-title">e-Hotel Management</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+              <div className="brand-title">e-Hotel Luxury Resort</div>
+              <span style={{ fontSize: "0.65rem", padding: "0.15rem 0.5rem", borderRadius: "6px", background: "rgba(245, 158, 11, 0.15)", color: "#fbbf24", border: "1px solid rgba(245, 158, 11, 0.3)", fontWeight: 700, letterSpacing: "0.05em" }}>5★ LUXURY</span>
+            </div>
             <div
               style={{
                 fontSize: "0.7rem",
                 color: "var(--text-dim)",
                 textTransform: "uppercase",
-                letterSpacing: "0.05em",
+                letterSpacing: "0.06em",
               }}
             >
               Hệ Thống Đặt Phòng & Quản Lý Trực Tuyến
@@ -126,10 +129,29 @@ export default function App() {
                 <span>Bảng Quản Trị</span>
               </button>
 
-              <div style={{ textAlign: "right" }}>
-                <div style={{ fontSize: "0.875rem", fontWeight: 600 }}>{user.fullName}</div>
-                <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2px" }}>
-                  <span className={`role-tag ${user.role.toLowerCase()}`}>{user.role}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                <div
+                  style={{
+                    width: "36px",
+                    height: "36px",
+                    borderRadius: "50%",
+                    background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontWeight: 800,
+                    fontSize: "0.875rem",
+                    color: "#ffffff",
+                    boxShadow: "0 2px 8px rgba(79, 70, 229, 0.4)",
+                  }}
+                >
+                  {user.fullName ? user.fullName[0].toUpperCase() : "U"}
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--text-main)" }}>{user.fullName}</div>
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "2px" }}>
+                    <span className={`role-tag ${user.role.toLowerCase()}`}>{user.role}</span>
+                  </div>
                 </div>
               </div>
 
@@ -187,13 +209,24 @@ export default function App() {
       <footer
         style={{
           padding: "1.25rem 2rem",
-          textAlign: "center",
           borderTop: "1px solid var(--border-color)",
+          background: "rgba(10, 13, 20, 0.95)",
           color: "var(--text-dim)",
           fontSize: "0.8125rem",
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "space-between",
+          alignItems: "center",
+          gap: "1rem",
         }}
       >
-        © 2026 e-Hotel System — Decoupled Modular Monolith (Node.js + Express + Prisma + React SPA)
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+          <span style={{ display: "inline-block", width: "8px", height: "8px", borderRadius: "50%", background: "#10b981", boxShadow: "0 0 8px #10b981" }}></span>
+          <span>Hệ thống trực tuyến thời gian thực • Node.js v24 + PostgreSQL + Prisma ORM</span>
+        </div>
+        <div>
+          © 2026 e-Hotel System — Decoupled Modular Monolith Architecture
+        </div>
       </footer>
 
       {/* Modal Tra Cứu & Hủy Đơn Đặt Phòng Toàn Cục (FEAT-08) */}

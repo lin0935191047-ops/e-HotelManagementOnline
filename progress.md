@@ -157,6 +157,19 @@
   - Kiểm tra Vite build thành công: `npm run build` PASS trong 6.30s.
 - Cập nhật tiến độ `FEAT-12` thành `"done"` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
+### Session 13 (System-wide UI Polish & Modern Luxury Aesthetic)
+- Nâng cấp diện mạo toàn diện theo phong cách **Modern Luxury Resort** (tông màu Dark Mode sang trọng, nền `#0a0d14`, hiệu ứng ánh sáng ambient radial glow, kính mờ frosted glassmorphism).
+- Nâng cấp typography: Tích hợp font Google cao cấp `Outfit` kết hợp `Plus Jakarta Sans`, các tiêu đề chữ nét to, tracking thanh thoát `-0.03em`.
+- Hiệu ứng tương tác: Thêm `.glass-card-hover` nâng thẻ mềm mại khi di chuột (`translateY(-4px)` kèm đổ bóng neon dịu), nút bấm có phản hồi chạm thực tế (`scale(0.98)`).
+- Tùy biến thanh cuộn hệ thống: Custom sleek scrollbar màu tím chàm tinh tế bo tròn góc.
+- Nâng cấp Header & Navbar: Biểu tượng thương hiệu "e-Hotel Luxury Resort" kèm huy hiệu vàng "5★ LUXURY", avatar monogram người dùng bo tròn gradient, thanh trạng thái thời gian thực "🟢 Hệ thống trực tuyến".
+- Nâng cấp màn hình Đăng nhập (Login): Thêm các nút chọn nhanh tài khoản test (1-click fast login) với màu sắc đặc trưng từng vai trò (Hồng cho ADMIN, Xanh dương cho MANAGER, Ngọc lục bảo cho SALE).
+- Nâng cấp Room Catalog & Modals: Thẻ phòng có ảnh sang trọng, giá phòng nổi bật với gradient vàng hổ phách, các modal check-in, check-out và lập phiếu dịch vụ giữ nguyên 100% logic, không ảnh hưởng đến bất kỳ hành vi hoặc kiểm thử nào.
+- Kiểm thử và xác minh:
+  - 130/130 bài kiểm thử vượt qua 100% (13 test suites).
+  - Frontend Vite build hoàn tất trong 3.75s không có lỗi.
+  - Harness Creator audit đạt 100/100 điểm.
+
 ## Architectural Decisions Locked
 1. **Tech Stack:** Node.js v20+/v24+, JavaScript ES Modules (`"type": "module"`), Express.js v4.21+, Prisma ORM v6.x, PostgreSQL 16+, React.js v18.3+ SPA (Vite + Tailwind CSS).
 2. **Booking Inventory Model:** Đặt phòng online theo hạng phòng (`type` + `size`) và số lượng (`quantity`). Gán phòng vật lý (`101`, `102`...) chỉ thực hiện khi Check-in có khóa bi quan (`FOR UPDATE`).

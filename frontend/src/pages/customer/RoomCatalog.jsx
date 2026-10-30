@@ -299,14 +299,12 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
         </div>
 
         <h1
+          className="gradient-title"
           style={{
-            fontSize: "2.5rem",
+            fontSize: "2.75rem",
             fontWeight: 800,
-            letterSpacing: "-0.02em",
+            letterSpacing: "-0.03em",
             marginBottom: "0.75rem",
-            background: "linear-gradient(to right, #ffffff, #cbd5e1)",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
           }}
         >
           Trải Nghiệm Nghỉ Dưỡng Đẳng Cấp Tại e-Hotel
@@ -633,15 +631,14 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
             return (
               <div
                 key={catKey}
-                className="glass-card"
+                className="glass-card glass-card-hover"
                 style={{
                   borderRadius: "16px",
                   overflow: "hidden",
                   display: "flex",
                   flexDirection: "column",
-                  transition: "transform 0.25s ease, box-shadow 0.25s ease",
                   border: isAvailable ? "1px solid var(--border-color)" : "1px solid rgba(239, 68, 68, 0.2)",
-                  background: isAvailable ? "rgba(17, 24, 39, 0.75)" : "rgba(17, 24, 39, 0.45)",
+                  background: isAvailable ? "rgba(15, 22, 38, 0.78)" : "rgba(15, 22, 38, 0.45)",
                 }}
               >
                 {/* Ảnh phòng & Badges */}

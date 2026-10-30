@@ -38,6 +38,13 @@
     - Nút "Xuất Excel (.xlsx)" và "Xuất PDF (.pdf)" tải trực tiếp file về máy qua blob download.
     - Bảng kê chi tiết từng giao dịch với badge trạng thái sắc nét và dòng tổng doanh thu nổi bật cuối bảng.
     - Frontend Vite production build PASS (6.30s).
+- [x] Nâng cấp toàn diện giao diện người dùng (UI Polish & Modern Luxury Aesthetic):
+  - Phong cách thiết kế: Dark Mode sang trọng, nền `#0a0d14`, ambient radial glow, frosted glassmorphism, viền neon phát sáng dịu.
+  - Phông chữ cao cấp: Kết hợp Google Fonts `Outfit` (tiêu đề, số hiệu) và `Plus Jakarta Sans` (nội dung, bảng biểu).
+  - Tương tác mượt mà: Hiệu ứng hover nhấc thẻ `.glass-card-hover`, thanh cuộn tuỳ biến sleek scrollbar, phản hồi bấm nút thực tế.
+  - Header & Navbar: Thương hiệu "e-Hotel Luxury Resort" 5★ LUXURY, avatar monogram người dùng, chỉ báo trực tuyến thời gian thực.
+  - Trang đăng nhập: Đèn nền radial glow, phím đăng nhập nhanh 1 chạm (ADMIN, MANAGER, SALE).
+  - Đảm bảo 100% tính nguyên vẹn của toàn bộ nghiệp vụ và không phát sinh bất kỳ lỗi hồi quy nào.
 - [x] Nghiệm thu hoàn thành `FEAT-12` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
 ## Verification Evidence

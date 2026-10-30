@@ -34,26 +34,62 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div style={{ minHeight: "85vh", display: "flex", alignItems: "center", justifyContent: "center", padding: "1.5rem" }}>
-      <div className="glass-card" style={{ width: "100%", maxWidth: "440px", padding: "2.25rem" }}>
+    <div
+      style={{
+        minHeight: "85vh",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1.5rem",
+        position: "relative",
+      }}
+    >
+      {/* Decorative ambient background orb */}
+      <div
+        style={{
+          position: "absolute",
+          width: "400px",
+          height: "400px",
+          borderRadius: "50%",
+          background: "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
+          filter: "blur(40px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        className="glass-card"
+        style={{
+          width: "100%",
+          maxWidth: "460px",
+          padding: "2.5rem",
+          position: "relative",
+          zIndex: 1,
+          borderRadius: "20px",
+          border: "1px solid rgba(255, 255, 255, 0.1)",
+          boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 25px rgba(99, 102, 241, 0.15)",
+        }}
+      >
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
           <div
             style={{
-              width: "52px",
-              height: "52px",
-              borderRadius: "14px",
-              background: "var(--primary-gradient)",
+              width: "56px",
+              height: "56px",
+              borderRadius: "16px",
+              background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
               display: "inline-flex",
               alignItems: "center",
               justifyContent: "center",
               color: "white",
               marginBottom: "1rem",
-              boxShadow: "0 8px 24px rgba(99, 102, 241, 0.35)",
+              boxShadow: "0 8px 24px rgba(79, 70, 229, 0.45)",
             }}
           >
-            <Lock size={26} />
+            <Lock size={28} />
           </div>
-          <h2 style={{ fontSize: "1.5rem", fontWeight: 700, marginBottom: "0.25rem" }}>Đăng Nhập Hệ Thống</h2>
+          <h2 style={{ fontSize: "1.65rem", fontWeight: 800, marginBottom: "0.35rem", letterSpacing: "-0.02em" }}>
+            Đăng Nhập Cổng Nội Bộ
+          </h2>
           <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
             Hệ thống Quản lý Khách sạn & Đặt phòng Trực tuyến e-Hotel
           </p>
@@ -62,16 +98,16 @@ export default function Login({ onLoginSuccess }) {
         {error && (
           <div
             style={{
-              padding: "0.875rem",
-              borderRadius: "8px",
+              padding: "0.875rem 1rem",
+              borderRadius: "10px",
               background: "rgba(239, 68, 68, 0.15)",
-              border: "1px solid rgba(239, 68, 68, 0.3)",
+              border: "1px solid rgba(239, 68, 68, 0.35)",
               color: "#fca5a5",
-              marginBottom: "1.25rem",
+              marginBottom: "1.5rem",
               fontSize: "0.875rem",
               display: "flex",
               alignItems: "center",
-              gap: "0.5rem",
+              gap: "0.6rem",
             }}
           >
             <AlertCircle size={18} />
@@ -83,12 +119,12 @@ export default function Login({ onLoginSuccess }) {
           <div className="form-group">
             <label className="form-label">Tên đăng nhập</label>
             <div style={{ position: "relative" }}>
-              <User size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-dim)" }} />
+              <User size={18} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-dim)" }} />
               <input
                 type="text"
                 required
                 className="form-input"
-                style={{ paddingLeft: "2.5rem" }}
+                style={{ paddingLeft: "2.75rem", paddingRight: "1rem" }}
                 placeholder="Nhập tên đăng nhập..."
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -99,12 +135,12 @@ export default function Login({ onLoginSuccess }) {
           <div className="form-group">
             <label className="form-label">Mật khẩu</label>
             <div style={{ position: "relative" }}>
-              <KeyRound size={18} style={{ position: "absolute", left: "12px", top: "50%", transform: "translateY(-50%)", color: "var(--text-dim)" }} />
+              <KeyRound size={18} style={{ position: "absolute", left: "14px", top: "50%", transform: "translateY(-50%)", color: "var(--text-dim)" }} />
               <input
                 type="password"
                 required
                 className="form-input"
-                style={{ paddingLeft: "2.5rem" }}
+                style={{ paddingLeft: "2.75rem", paddingRight: "1rem" }}
                 placeholder="Nhập mật khẩu..."
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -116,7 +152,7 @@ export default function Login({ onLoginSuccess }) {
             type="submit"
             className="btn btn-primary"
             disabled={loading}
-            style={{ width: "100%", marginTop: "0.75rem", padding: "0.75rem" }}
+            style={{ width: "100%", marginTop: "0.75rem", padding: "0.85rem", fontSize: "0.9375rem" }}
           >
             {loading ? "Đang xác thực..." : "Đăng Nhập"}
           </button>
@@ -124,14 +160,21 @@ export default function Login({ onLoginSuccess }) {
 
         {/* Quick autofill buttons for testing */}
         <div style={{ marginTop: "2rem", paddingTop: "1.25rem", borderTop: "1px solid var(--border-color)" }}>
-          <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 600, letterSpacing: "0.05em", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.35rem" }}>
-            <Sparkles size={14} color="#6366f1" /> Điền nhanh tài khoản mẫu:
+          <p style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 700, letterSpacing: "0.06em", marginBottom: "0.75rem", display: "flex", alignItems: "center", gap: "0.4rem" }}>
+            <Sparkles size={14} color="#818cf8" /> Tài khoản kiểm thử nhanh (1-Click):
           </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.6rem" }}>
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: "0.4rem 0.5rem", fontSize: "0.75rem" }}
+              style={{
+                padding: "0.45rem 0.5rem",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                color: "#f43f5e",
+                borderColor: "rgba(244, 63, 94, 0.3)",
+                background: "rgba(244, 63, 94, 0.08)",
+              }}
               onClick={() => handleQuickLogin("admin", "Admin@123")}
             >
               ADMIN
@@ -139,7 +182,14 @@ export default function Login({ onLoginSuccess }) {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: "0.4rem 0.5rem", fontSize: "0.75rem" }}
+              style={{
+                padding: "0.45rem 0.5rem",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                color: "#3b82f6",
+                borderColor: "rgba(59, 130, 246, 0.3)",
+                background: "rgba(59, 130, 246, 0.08)",
+              }}
               onClick={() => handleQuickLogin("manager", "Manager@123")}
             >
               MANAGER
@@ -147,7 +197,14 @@ export default function Login({ onLoginSuccess }) {
             <button
               type="button"
               className="btn btn-secondary"
-              style={{ padding: "0.4rem 0.5rem", fontSize: "0.75rem" }}
+              style={{
+                padding: "0.45rem 0.5rem",
+                fontSize: "0.75rem",
+                fontWeight: 700,
+                color: "#10b981",
+                borderColor: "rgba(16, 185, 129, 0.3)",
+                background: "rgba(16, 185, 129, 0.08)",
+              }}
               onClick={() => handleQuickLogin("sale", "Sale@123")}
             >
               SALE
