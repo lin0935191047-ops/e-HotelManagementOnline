@@ -50,6 +50,13 @@
   - Thanh cuộn hệ thống tùy biến theo theme sáng, các thẻ `.glass-card` nền trắng sạch sẽ với bóng mờ mềm mại.
   - Cập nhật toàn bộ các trang và modals: RoomCatalog (date inputs `colorScheme: "light"`, search bar, room cards, bottom floating cart), Login, BookingCheckoutModal, BookingLookupModal, CheckinModal, UserManagement, ManagerSetup.
   - Bảo đảm 100% tính nguyên vẹn của toàn bộ tính năng và logic nghiệp vụ.
+- [x] Tinh chỉnh màu sắc khu vực tra cứu mã đặt phòng và chi tiết đơn (Booking Lookup & Info Styling Polish):
+  - Loại bỏ hoàn toàn nền xám cũ (`var(--bg-tertiary)` / `#f1f5f9` / `rgba(0, 0, 0, 0.2)`).
+  - Áp dụng bảng màu Luxury White & Soft Indigo:
+    - Thanh tra cứu mã đơn: Phủ gradient chàm nhạt `linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%)`, viền xanh chàm `1px solid rgba(79, 70, 229, 0.22)`, ô nhập liệu trắng tinh `#ffffff`.
+    - Các thẻ thông tin chi tiết (Lịch trình lưu trú, Khách hàng, Phòng đã đặt, Quyết toán, Xác nhận hủy): Nền gradient pastel `linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)`, viền nhấn chàm tinh xảo `1px solid rgba(99, 102, 241, 0.22)`, tiêu đề màu chàm đậm `#4338ca`.
+    - Đồng bộ tương tự cho modal chi tiết đơn trong `SaleOperation.jsx`, modal xác nhận hoàn tất trong `BookingCheckoutModal.jsx`, `CheckinModal.jsx` và `RoomCatalog.jsx`.
+    - Không làm thay đổi hay ảnh hưởng đến bất kỳ hàm xử lý logic hay luồng nghiệp vụ nào.
 - [x] Nghiệm thu hoàn thành `FEAT-12` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
 ## Verification Evidence
@@ -59,7 +66,7 @@
 | Prisma Schema Validation | `cd backend && npx prisma validate` | PASS | Schema hợp lệ 100% |
 | Unit & Integration Tests | `cd backend && npm test` | PASS (130/130 tests) | 13 suites (`api`, `feat01` đến `feat12`), 0 fail |
 | Code Linting | `cd backend && npm run lint` | PASS | 0 lint errors |
-| Frontend Production Build | `cd frontend && npm run build` | PASS | Vite bundle built in 3.05s |
+| Frontend Production Build | `cd frontend && npm run build` | PASS | Vite bundle built in 3.13s (0 errors) |
 | Environment Init Script | `powershell -ExecutionPolicy Bypass -File .\init.ps1` | PASS | Tiến độ 12/12 features completed (100%) |
 | Harness Creator Audit | `node .agents/skills/harness-creator/scripts/validate-harness.mjs` | PASS | Đạt điểm tuyệt đối 100/100 |
 

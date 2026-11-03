@@ -188,6 +188,27 @@
   - Vite production build hoàn tất trong 3.05s không có lỗi.
   - Harness audit đạt điểm tối đa 100/100.
 
+### Session 15 (Refining Booking Lookup & Information Styling to Luxury White/Indigo Palette)
+- Tinh chỉnh toàn bộ khu vực hiển thị thông tin và tra cứu mã đơn đặt phòng theo đúng yêu cầu người dùng: loại bỏ triệt để màu xám xỉn cũ (`var(--bg-tertiary)` / `#f1f5f9`), thay thế bằng tông màu trắng và gradient chàm quý phái (Luxury White & Soft Indigo).
+- Các điểm nâng cấp chi tiết:
+  - **[BookingLookupModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/BookingLookupModal.jsx):**
+    - Thanh tra cứu mã đơn: Phủ gradient chàm nhạt `linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%)`, viền xanh chàm `1px solid rgba(79, 70, 229, 0.22)`, ô input nền trắng tuyết `#ffffff`.
+    - Thẻ tiêu đề đơn đặt phòng: Mã đơn số to màu xanh đậm `#3730a3`, huy hiệu trạng thái `CHECKED_OUT` chuyển sang nền pastel chàm thanh lịch.
+    - Khối Lịch trình lưu trú, Khách hàng, Danh sách phòng, Quyết toán: Phủ màu chuyển sắc nhẹ nhàng `linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)` cùng viền `1px solid rgba(99, 102, 241, 0.22)`.
+    - Thẻ hướng dẫn ban đầu: Bổ sung thẻ hướng dẫn sang trọng khi chưa tra cứu với icon tìm kiếm nổi bật.
+    - Hộp thoại xác nhận hủy phòng: Khối tóm tắt hoàn tiền được chuyển sang nền trắng gradient pastel không còn màu xám.
+  - **[BookingCheckoutModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/BookingCheckoutModal.jsx):**
+    - Khối xác nhận đơn sau đặt phòng: Thông tin khách hàng, thẻ thanh toán giả lập, danh mục phòng đặt đều chuyển sang nền gradient trắng/pastel chàm sang trọng.
+    - Thẻ chính sách hủy 24h: Màu chữ chuyển sang xanh chàm tương phản cao `#3730a3`.
+    - Danh sách phòng chọn và các tùy chọn cọc 50% / thanh toán 100%: Nền thẻ trắng tinh khiết, viền nhấn xanh chàm khi chọn.
+  - **[SaleOperation.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/SaleOperation.jsx) & [CheckinModal.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/operation/CheckinModal.jsx) & [RoomCatalog.jsx](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/pages/customer/RoomCatalog.jsx):**
+    - Xóa bỏ hoàn toàn tàn dư nền xám `var(--bg-tertiary)` và `rgba(0, 0, 0, 0.2)` trong modal chi tiết đơn của Lễ tân, modal gán phòng Check-in và chi tiết hạng phòng.
+- Giữ nguyên 100% logic nghiệp vụ, tính năng, validations và các lời gọi API.
+- Kiểm thử và xác minh:
+  - 130/130 bài kiểm thử tích hợp backend PASS 100% (13 test suites).
+  - Frontend Vite build hoàn tất thành công trong 3.13s (0 cảnh báo/lỗi).
+  - Môi trường sạch sẽ và hợp lệ qua `init.ps1` và `npx prisma validate`.
+
 ## Architectural Decisions Locked
 1. **Tech Stack:** Node.js v20+/v24+, JavaScript ES Modules (`"type": "module"`), Express.js v4.21+, Prisma ORM v6.x, PostgreSQL 16+, React.js v18.3+ SPA (Vite + Tailwind CSS).
 2. **Booking Inventory Model:** Đặt phòng online theo hạng phòng (`type` + `size`) và số lượng (`quantity`). Gán phòng vật lý (`101`, `102`...) chỉ thực hiện khi Check-in có khóa bi quan (`FOR UPDATE`).
