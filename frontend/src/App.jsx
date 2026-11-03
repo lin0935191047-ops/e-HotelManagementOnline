@@ -78,7 +78,7 @@ export default function App() {
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
               <div className="brand-title">e-Hotel Luxury Resort</div>
-              <span style={{ fontSize: "0.65rem", padding: "0.15rem 0.5rem", borderRadius: "6px", background: "rgba(245, 158, 11, 0.15)", color: "#fbbf24", border: "1px solid rgba(245, 158, 11, 0.3)", fontWeight: 700, letterSpacing: "0.05em" }}>5★ LUXURY</span>
+              <span style={{ fontSize: "0.65rem", padding: "0.15rem 0.5rem", borderRadius: "6px", background: "rgba(245, 158, 11, 0.12)", color: "#b45309", border: "1px solid rgba(245, 158, 11, 0.3)", fontWeight: 700, letterSpacing: "0.05em" }}>5★ LUXURY</span>
             </div>
             <div
               style={{
@@ -210,7 +210,7 @@ export default function App() {
         style={{
           padding: "1.25rem 2rem",
           borderTop: "1px solid var(--border-color)",
-          background: "rgba(10, 13, 20, 0.95)",
+          background: "var(--bg-secondary)",
           color: "var(--text-dim)",
           fontSize: "0.8125rem",
           display: "flex",

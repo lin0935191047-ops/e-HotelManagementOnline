@@ -286,9 +286,9 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
             gap: "0.5rem",
             padding: "0.35rem 1rem",
             borderRadius: "9999px",
-            background: "rgba(99, 102, 241, 0.15)",
-            border: "1px solid rgba(99, 102, 241, 0.3)",
-            color: "#a5b4fc",
+            background: "rgba(79, 70, 229, 0.08)",
+            border: "1px solid rgba(79, 70, 229, 0.2)",
+            color: "#4338ca",
             fontSize: "0.8125rem",
             fontWeight: 600,
             marginBottom: "1rem",
@@ -353,13 +353,13 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
               fontSize: "0.875rem",
               fontWeight: 600,
               borderRadius: "9999px",
-              border: "1px solid rgba(99, 102, 241, 0.4)",
-              background: "rgba(99, 102, 241, 0.12)",
-              color: "#c7d2fe",
+              border: "1px solid rgba(79, 70, 229, 0.25)",
+              background: "rgba(79, 70, 229, 0.06)",
+              color: "#4338ca",
               cursor: "pointer",
             }}
           >
-            <Search size={15} color="#818cf8" />
+            <Search size={15} color="#4f46e5" />
             <span>Tra Cứu & Quản Lý / Hủy Đơn Đặt Phòng</span>
           </button>
         </div>
@@ -371,10 +371,10 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
         style={{
           padding: "1.5rem",
           borderRadius: "16px",
-          background: "rgba(17, 24, 39, 0.75)",
+          background: "var(--bg-card)",
           backdropFilter: "blur(20px)",
-          border: "1px solid var(--border-highlight)",
-          boxShadow: "0 12px 30px rgba(0, 0, 0, 0.35)",
+          border: "1px solid var(--border-color)",
+          boxShadow: "0 4px 20px -2px rgba(0, 0, 0, 0.06)",
           marginBottom: "2.5rem",
         }}
       >
@@ -417,7 +417,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                   }
                 }}
                 required
-                style={{ width: "100%", padding: "0.75rem 1rem", colorScheme: "dark" }}
+                style={{ width: "100%", padding: "0.75rem 1rem", colorScheme: "light" }}
               />
             </div>
 
@@ -444,7 +444,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
                 required
-                style={{ width: "100%", padding: "0.75rem 1rem", colorScheme: "dark" }}
+                style={{ width: "100%", padding: "0.75rem 1rem", colorScheme: "light" }}
               />
             </div>
 
@@ -638,7 +638,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                   display: "flex",
                   flexDirection: "column",
                   border: isAvailable ? "1px solid var(--border-color)" : "1px solid rgba(239, 68, 68, 0.2)",
-                  background: isAvailable ? "rgba(15, 22, 38, 0.78)" : "rgba(15, 22, 38, 0.45)",
+                  background: isAvailable ? "var(--bg-card)" : "#f8fafc",
                 }}
               >
                 {/* Ảnh phòng & Badges */}
@@ -765,7 +765,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                       fontSize: "0.8125rem",
                       color: "var(--text-muted)",
                       padding: "0.75rem",
-                      background: "rgba(255, 255, 255, 0.03)",
+                      background: "var(--bg-tertiary)",
                       borderRadius: "8px",
                       marginBottom: "1rem",
                     }}
@@ -801,7 +801,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                     {nights > 1 && (
                       <div style={{ textAlign: "right" }}>
                         <div style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>Tổng {nights} đêm</div>
-                        <div style={{ fontSize: "0.9375rem", fontWeight: 700, color: "#a5b4fc" }}>
+                        <div style={{ fontSize: "0.9375rem", fontWeight: 700, color: "var(--primary)" }}>
                           {formatCurrency(cat.totalPriceForStay)}
                         </div>
                       </div>
@@ -829,7 +829,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
-                              background: "rgba(31, 41, 55, 0.9)",
+                              background: "var(--bg-tertiary)",
                               borderRadius: "8px",
                               border: "1px solid var(--border-color)",
                               padding: "0 0.25rem",
@@ -914,12 +914,12 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
             transform: "translateX(-50%)",
             width: "calc(100% - 2rem)",
             maxWidth: "850px",
-            background: "rgba(17, 24, 39, 0.92)",
+            background: "rgba(255, 255, 255, 0.96)",
             backdropFilter: "blur(20px)",
             borderRadius: "16px",
-            border: "1px solid var(--border-highlight)",
+            border: "1px solid var(--border-color)",
             padding: "0.85rem 1.5rem",
-            boxShadow: "0 15px 35px rgba(0, 0, 0, 0.6)",
+            boxShadow: "0 15px 35px rgba(0, 0, 0, 0.12)",
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
@@ -946,7 +946,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
             </div>
             <div>
               <div style={{ fontSize: "0.9375rem", fontWeight: 700 }}>
-                Giỏ hàng: <span style={{ color: "#a5b4fc" }}>{cartTotalRooms} phòng</span> ({cartItems.length} hạng phòng, {nights} đêm)
+                Giỏ hàng: <span style={{ color: "var(--primary)" }}>{cartTotalRooms} phòng</span> ({cartItems.length} hạng phòng, {nights} đêm)
               </div>
               <div style={{ fontSize: "0.8125rem", color: "var(--text-muted)" }}>
                 Tổng tạm tính: <strong style={{ color: "#34d399", fontSize: "0.9375rem" }}>{formatCurrency(cartTotalAmount)}</strong>
@@ -1072,26 +1072,26 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
 
             {/* Thông số kỹ thuật & Tiện nghi */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-              <div style={{ padding: "0.85rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "10px" }}>
+              <div style={{ padding: "0.85rem", background: "var(--bg-tertiary)", borderRadius: "10px" }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>Sức chứa tiêu chuẩn</div>
                 <div style={{ fontSize: "0.9375rem", fontWeight: 700, marginTop: "0.25rem" }}>
                   {detailModalCat.maxAdults} Người lớn, {detailModalCat.maxChildren} Trẻ em
                 </div>
               </div>
-              <div style={{ padding: "0.85rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "10px" }}>
+              <div style={{ padding: "0.85rem", background: "var(--bg-tertiary)", borderRadius: "10px" }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>Phụ thu trẻ em quá quy định</div>
-                <div style={{ fontSize: "0.9375rem", fontWeight: 700, marginTop: "0.25rem", color: "#fbbf24" }}>
+                <div style={{ fontSize: "0.9375rem", fontWeight: 700, marginTop: "0.25rem", color: "#b45309" }}>
                   {formatCurrency(detailModalCat.extraChildFee)} / trẻ / đêm
                 </div>
               </div>
-              <div style={{ padding: "0.85rem", background: "rgba(255, 255, 255, 0.03)", borderRadius: "10px" }}>
+              <div style={{ padding: "0.85rem", background: "var(--bg-tertiary)", borderRadius: "10px" }}>
                 <div style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>Tồn kho thời gian thực</div>
                 <div
                   style={{
                     fontSize: "0.9375rem",
                     fontWeight: 700,
                     marginTop: "0.25rem",
-                    color: detailModalCat.availableQuota > 0 ? "#34d399" : "#f87171",
+                    color: detailModalCat.availableQuota > 0 ? "#059669" : "#dc2626",
                   }}
                 >
                   {detailModalCat.availableQuota > 0 ? `Còn ${detailModalCat.availableQuota} phòng trống` : "Hết phòng"}
@@ -1112,10 +1112,10 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
               style={{
                 padding: "1rem",
                 borderRadius: "10px",
-                background: "rgba(99, 102, 241, 0.08)",
-                border: "1px solid rgba(99, 102, 241, 0.2)",
+                background: "rgba(79, 70, 229, 0.06)",
+                border: "1px solid rgba(79, 70, 229, 0.18)",
                 fontSize: "0.8125rem",
-                color: "#c7d2fe",
+                color: "#3730a3",
                 marginBottom: "1.5rem",
                 lineHeight: 1.6,
               }}

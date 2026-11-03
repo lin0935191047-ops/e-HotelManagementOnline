@@ -33,7 +33,7 @@ export default function ManagerSetup() {
       {/* Sub-header / Tab Bar */}
       <div
         style={{
-          background: "rgba(17, 24, 39, 0.6)",
+          background: "var(--bg-secondary)",
           borderBottom: "1px solid var(--border-color)",
           backdropFilter: "blur(8px)",
           padding: "1rem 2rem 0",
@@ -46,8 +46,8 @@ export default function ManagerSetup() {
                 width: "32px",
                 height: "32px",
                 borderRadius: "8px",
-                background: "rgba(59, 130, 246, 0.15)",
-                color: "#60a5fa",
+                background: "rgba(37, 99, 235, 0.1)",
+                color: "#2563eb",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -77,10 +77,10 @@ export default function ManagerSetup() {
                     alignItems: "center",
                     gap: "0.625rem",
                     padding: "0.75rem 1.25rem",
-                    background: isActive ? "rgba(59, 130, 246, 0.12)" : "transparent",
-                    color: isActive ? "#60a5fa" : "var(--text-muted)",
+                    background: isActive ? "rgba(37, 99, 235, 0.08)" : "transparent",
+                    color: isActive ? "#2563eb" : "var(--text-muted)",
                     border: "none",
-                    borderBottom: isActive ? "2px solid #3b82f6" : "2px solid transparent",
+                    borderBottom: isActive ? "2px solid #2563eb" : "2px solid transparent",
                     borderRadius: "8px 8px 0 0",
                     cursor: "pointer",
                     fontWeight: isActive ? 600 : 500,

@@ -236,10 +236,10 @@ export default function BookingCheckoutModal({
           overflowY: "auto",
           borderRadius: "20px",
           padding: "2rem",
-          background: "rgba(17, 24, 39, 0.95)",
+          background: "var(--bg-secondary)",
           backdropFilter: "blur(25px)",
-          border: "1px solid var(--border-highlight)",
-          boxShadow: "0 25px 50px rgba(0, 0, 0, 0.5)",
+          border: "1px solid var(--border-color)",
+          boxShadow: "0 25px 50px rgba(0, 0, 0, 0.15)",
         }}
       >
         {/* Header Modal */}
@@ -339,7 +339,7 @@ export default function BookingCheckoutModal({
                   gap: "0.75rem",
                   padding: "0.75rem 1.5rem",
                   borderRadius: "12px",
-                  background: "rgba(0, 0, 0, 0.4)",
+                  background: "rgba(16, 185, 129, 0.08)",
                   border: "1px dashed #10b981",
                 }}
               >
@@ -347,7 +347,7 @@ export default function BookingCheckoutModal({
                   <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", textTransform: "uppercase" }}>
                     Mã Đặt Phòng Của Bạn
                   </div>
-                  <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "#34d399", letterSpacing: "0.05em" }}>
+                  <div style={{ fontSize: "1.35rem", fontWeight: 800, color: "#059669", letterSpacing: "0.05em" }}>
                     {completedBookingData.booking.bookingNumber}
                   </div>
                 </div>
@@ -376,7 +376,7 @@ export default function BookingCheckoutModal({
               <div
                 style={{
                   padding: "1.25rem",
-                  background: "rgba(255, 255, 255, 0.02)",
+                  background: "var(--bg-tertiary)",
                   borderRadius: "12px",
                   border: "1px solid var(--border-color)",
                 }}
@@ -395,7 +395,7 @@ export default function BookingCheckoutModal({
               <div
                 style={{
                   padding: "1.25rem",
-                  background: "rgba(255, 255, 255, 0.02)",
+                  background: "var(--bg-tertiary)",
                   borderRadius: "12px",
                   border: "1px solid var(--border-color)",
                 }}
@@ -412,12 +412,12 @@ export default function BookingCheckoutModal({
                   </div>
                   <div>
                     <strong>Đã thanh toán:</strong>{" "}
-                    <span style={{ color: "#34d399", fontWeight: 700 }}>
+                    <span style={{ color: "#059669", fontWeight: 700 }}>
                       {formatCurrency(completedBookingData.payment.deductedAmount)}
                     </span>
                   </div>
                   {completedBookingData.booking.remainingPayable > 0 && (
-                    <div style={{ color: "#fbbf24" }}>
+                    <div style={{ color: "#b45309" }}>
                       <strong>Còn lại thanh toán tại quầy:</strong> {formatCurrency(completedBookingData.booking.remainingPayable)}
                     </div>
                   )}
@@ -429,7 +429,7 @@ export default function BookingCheckoutModal({
             <div
               style={{
                 padding: "1.25rem",
-                background: "rgba(255, 255, 255, 0.02)",
+                background: "var(--bg-tertiary)",
                 borderRadius: "12px",
                 border: "1px solid var(--border-color)",
                 marginBottom: "2rem",
@@ -555,7 +555,7 @@ export default function BookingCheckoutModal({
                   borderRadius: "12px",
                   border: "1px solid var(--border-color)",
                   overflow: "hidden",
-                  background: "rgba(255, 255, 255, 0.02)",
+                  background: "var(--bg-tertiary)",
                 }}
               >
                 {cartItems.map((item, idx) => (
@@ -587,7 +587,7 @@ export default function BookingCheckoutModal({
                           style={{
                             display: "inline-flex",
                             alignItems: "center",
-                            background: "rgba(31, 41, 55, 0.8)",
+                            background: "var(--bg-card)",
                             borderRadius: "8px",
                             border: "1px solid var(--border-color)",
                           }}
@@ -824,8 +824,8 @@ export default function BookingCheckoutModal({
                   style={{
                     padding: "1rem 1.25rem",
                     borderRadius: "12px",
-                    border: paymentOption === "FULL_100" ? "2px solid #6366f1" : "1px solid var(--border-color)",
-                    background: paymentOption === "FULL_100" ? "rgba(99, 102, 241, 0.12)" : "rgba(255, 255, 255, 0.02)",
+                    border: paymentOption === "FULL_100" ? "2px solid #4f46e5" : "1px solid var(--border-color)",
+                    background: paymentOption === "FULL_100" ? "rgba(79, 70, 229, 0.08)" : "var(--bg-tertiary)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
@@ -842,7 +842,7 @@ export default function BookingCheckoutModal({
                   <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
                     Thanh toán toàn bộ tiền phòng ngay lúc này. Không cần thanh toán thêm tiền phòng tại quầy.
                   </p>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#34d399" }}>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#059669" }}>
                     {formatCurrency(netRoomFee)}
                   </div>
                 </div>
@@ -853,8 +853,8 @@ export default function BookingCheckoutModal({
                   style={{
                     padding: "1rem 1.25rem",
                     borderRadius: "12px",
-                    border: paymentOption === "DEPOSIT_50" ? "2px solid #6366f1" : "1px solid var(--border-color)",
-                    background: paymentOption === "DEPOSIT_50" ? "rgba(99, 102, 241, 0.12)" : "rgba(255, 255, 255, 0.02)",
+                    border: paymentOption === "DEPOSIT_50" ? "2px solid #4f46e5" : "1px solid var(--border-color)",
+                    background: paymentOption === "DEPOSIT_50" ? "rgba(79, 70, 229, 0.08)" : "var(--bg-tertiary)",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
@@ -871,7 +871,7 @@ export default function BookingCheckoutModal({
                   <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
                     Thanh toán trước 50% giá trị để giữ phòng. 50% còn lại thanh toán tại quầy khi Check-out.
                   </p>
-                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#fbbf24" }}>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 800, color: "#b45309" }}>
                     {formatCurrency(Math.round(netRoomFee * 0.5))}
                   </div>
                 </div>
@@ -884,8 +884,8 @@ export default function BookingCheckoutModal({
                 marginBottom: "2rem",
                 padding: "1.25rem",
                 borderRadius: "12px",
-                background: "rgba(99, 102, 241, 0.06)",
-                border: "1px solid rgba(99, 102, 241, 0.2)",
+                background: "rgba(79, 70, 229, 0.05)",
+                border: "1px solid rgba(79, 70, 229, 0.18)",
               }}
             >
               <h3
@@ -893,7 +893,7 @@ export default function BookingCheckoutModal({
                   fontSize: "1rem",
                   fontWeight: 700,
                   marginBottom: "0.5rem",
-                  color: "#c7d2fe",
+                  color: "#3730a3",
                   display: "flex",
                   alignItems: "center",
                   gap: "0.4rem",
@@ -919,8 +919,8 @@ export default function BookingCheckoutModal({
                         borderRadius: "8px",
                         fontSize: "0.8125rem",
                         cursor: "pointer",
-                        border: paymentAccountNumber === acc.accountNumber ? "2px solid #6366f1" : "1px solid var(--border-color)",
-                        background: paymentAccountNumber === acc.accountNumber ? "rgba(99, 102, 241, 0.2)" : "rgba(31, 41, 55, 0.6)",
+                        border: paymentAccountNumber === acc.accountNumber ? "2px solid #4f46e5" : "1px solid var(--border-color)",
+                        background: paymentAccountNumber === acc.accountNumber ? "rgba(79, 70, 229, 0.12)" : "var(--bg-card)",
                         color: "var(--text-main)",
                         textAlign: "left",
                       }}
@@ -957,7 +957,7 @@ export default function BookingCheckoutModal({
               style={{
                 padding: "1.25rem",
                 borderRadius: "12px",
-                background: "rgba(0, 0, 0, 0.3)",
+                background: "var(--bg-tertiary)",
                 border: "1px solid var(--border-color)",
                 marginBottom: "2rem",
               }}

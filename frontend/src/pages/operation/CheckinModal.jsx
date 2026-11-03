@@ -268,7 +268,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
       style={{
         position: "fixed",
         inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.8)",
+        backgroundColor: "rgba(15, 23, 42, 0.5)",
         backdropFilter: "blur(6px)",
         zIndex: 9999,
         display: "flex",
@@ -287,9 +287,9 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
           display: "flex",
           flexDirection: "column",
           borderRadius: "1rem",
-          border: "1px solid rgba(255, 255, 255, 0.12)",
-          background: "#111827",
-          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.7)",
+          border: "1px solid var(--border-color)",
+          background: "var(--bg-secondary)",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.15)",
           overflow: "hidden",
         }}
       >
@@ -301,7 +301,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            background: "rgba(17, 24, 39, 0.95)",
+            background: "var(--bg-secondary)",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
@@ -391,7 +391,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                       style={{
                         padding: "1.25rem",
                         borderRadius: "0.75rem",
-                        background: "rgba(31, 41, 55, 0.5)",
+                        background: "var(--bg-tertiary)",
                         border: "1px solid var(--border-color)",
                         display: "flex",
                         flexDirection: "column",
@@ -431,9 +431,9 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                             style={{
                               padding: "0.5rem 1rem",
                               borderRadius: "0.5rem",
-                              background: "#1f2937",
-                              border: "1px solid rgba(99, 102, 241, 0.4)",
-                              color: "#a5b4fc",
+                              background: "var(--bg-card)",
+                              border: "1px solid var(--border-color)",
+                              color: "var(--primary)",
                               fontSize: "0.875rem",
                               fontWeight: 700,
                               minWidth: "160px",
@@ -457,7 +457,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                             gap: "1.5rem",
                             fontSize: "0.75rem",
                             color: "var(--text-muted)",
-                            background: "rgba(17, 24, 39, 0.4)",
+                            background: "var(--bg-card)",
                             padding: "0.5rem 0.75rem",
                             borderRadius: "0.375rem",
                           }}
@@ -468,7 +468,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                           </div>
                           <div>
                             Phụ thu trẻ em vượt định mức:{" "}
-                            <strong style={{ color: "#fbbf24" }}>
+                            <strong style={{ color: "#b45309" }}>
                               {formatCurrency(slot.roomDetails.extraChildFee)}/trẻ/đêm
                             </strong>
                           </div>
@@ -512,7 +512,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                                   gridTemplateColumns: "1fr 1fr 100px 90px 40px",
                                   gap: "0.5rem",
                                   alignItems: "center",
-                                  background: "rgba(17, 24, 39, 0.6)",
+                                  background: "var(--bg-card)",
                                   padding: "0.5rem 0.75rem",
                                   borderRadius: "0.375rem",
                                 }}
@@ -528,7 +528,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                                   style={{
                                     padding: "0.4rem 0.6rem",
                                     borderRadius: "0.25rem",
-                                    background: "#1f2937",
+                                    background: "var(--bg-secondary)",
                                     border: "1px solid var(--border-color)",
                                     color: "var(--text-main)",
                                     fontSize: "0.8125rem",
@@ -546,7 +546,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                                   style={{
                                     padding: "0.4rem 0.6rem",
                                     borderRadius: "0.25rem",
-                                    background: "#1f2937",
+                                    background: "var(--bg-secondary)",
                                     border: "1px solid var(--border-color)",
                                     color: "var(--text-main)",
                                     fontSize: "0.8125rem",
@@ -566,7 +566,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                                   style={{
                                     padding: "0.4rem 0.6rem",
                                     borderRadius: "0.25rem",
-                                    background: "#1f2937",
+                                    background: "var(--bg-secondary)",
                                     border: "1px solid var(--border-color)",
                                     color: "var(--text-main)",
                                     fontSize: "0.8125rem",
@@ -670,7 +670,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                 style={{
                   padding: "1.25rem",
                   borderRadius: "0.75rem",
-                  background: "rgba(17, 24, 39, 0.8)",
+                  background: "var(--bg-tertiary)",
                   border: "1px solid var(--border-color)",
                   display: "flex",
                   flexDirection: "column",
@@ -689,7 +689,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
 
                 <div style={{ display: "flex", justifyContent: "space-between", color: "var(--text-muted)" }}>
                   <span>Số tiền khách đã thanh toán trước:</span>
-                  <span style={{ color: "#10b981", fontWeight: 600 }}>
+                  <span style={{ color: "#059669", fontWeight: 600 }}>
                     -{formatCurrency(booking?.prepaidBookingValue)} ({booking?.paymentOption === "FULL_100" ? "100%" : "Cọc 50%"})
                   </span>
                 </div>
@@ -698,7 +698,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    color: totalExtraChildrenFee > 0 ? "#f59e0b" : "var(--text-muted)",
+                    color: totalExtraChildrenFee > 0 ? "#b45309" : "var(--text-muted)",
                     fontWeight: totalExtraChildrenFee > 0 ? 700 : 400,
                   }}
                 >
@@ -717,7 +717,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                   }}
                 >
                   <span style={{ color: "var(--text-main)" }}>Dự kiến số tiền còn lại phải thu khi Check-out:</span>
-                  <span style={{ color: "#fbbf24" }}>
+                  <span style={{ color: "#b45309" }}>
                     {formatCurrency(
                       Number(booking?.netRoomFee || 0) +
                         totalExtraChildrenFee -

@@ -170,14 +170,14 @@ export default function UserManagement({ currentLoggedUser }) {
 
       {/* Notifications */}
       {error && (
-        <div style={{ padding: "1rem", borderRadius: "8px", background: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", color: "#fca5a5", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div style={{ padding: "1rem", borderRadius: "8px", background: "rgba(239, 68, 68, 0.08)", border: "1px solid rgba(239, 68, 68, 0.25)", color: "#dc2626", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <AlertTriangle size={18} />
           <span>{error}</span>
         </div>
       )}
 
       {successMsg && (
-        <div style={{ padding: "1rem", borderRadius: "8px", background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#6ee7b7", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
+        <div style={{ padding: "1rem", borderRadius: "8px", background: "rgba(16, 185, 129, 0.08)", border: "1px solid rgba(16, 185, 129, 0.25)", color: "#059669", marginBottom: "1.25rem", display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <CheckCircle size={18} />
           <span>{successMsg}</span>
         </div>
@@ -399,7 +399,7 @@ export default function UserManagement({ currentLoggedUser }) {
               </div>
               <h3 style={{ fontSize: "1.125rem", fontWeight: 700, marginBottom: "0.5rem" }}>Xác nhận xóa tài khoản</h3>
               <p style={{ color: "var(--text-muted)", fontSize: "0.875rem" }}>
-                Bạn có chắc chắn muốn xóa người dùng <strong style={{ color: "#fff" }}>{userToDelete.username}</strong> ({userToDelete.fullName})? Hành động này không thể hoàn tác.
+                Bạn có chắc chắn muốn xóa người dùng <strong style={{ color: "var(--text-main)" }}>{userToDelete.username}</strong> ({userToDelete.fullName})? Hành động này không thể hoàn tác.
               </p>
             </div>
 

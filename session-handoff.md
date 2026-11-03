@@ -45,6 +45,11 @@
   - Header & Navbar: Thương hiệu "e-Hotel Luxury Resort" 5★ LUXURY, avatar monogram người dùng, chỉ báo trực tuyến thời gian thực.
   - Trang đăng nhập: Đèn nền radial glow, phím đăng nhập nhanh 1 chạm (ADMIN, MANAGER, SALE).
   - Đảm bảo 100% tính nguyên vẹn của toàn bộ nghiệp vụ và không phát sinh bất kỳ lỗi hồi quy nào.
+- [x] Chuyển đổi giao diện người dùng sang tông nền trắng (White / Light Luxury Theme):
+  - Phong cách thiết kế: Nền trắng tinh tế, thanh lịch (`#f8fafc` & `#ffffff`), đường viền xám nhạt (`#e2e8f0`), chữ đen đậm tương phản cao (`#0f172a`), điểm nhấn tím chàm Indigo (`#4f46e5`).
+  - Thanh cuộn hệ thống tùy biến theo theme sáng, các thẻ `.glass-card` nền trắng sạch sẽ với bóng mờ mềm mại.
+  - Cập nhật toàn bộ các trang và modals: RoomCatalog (date inputs `colorScheme: "light"`, search bar, room cards, bottom floating cart), Login, BookingCheckoutModal, BookingLookupModal, CheckinModal, UserManagement, ManagerSetup.
+  - Bảo đảm 100% tính nguyên vẹn của toàn bộ tính năng và logic nghiệp vụ.
 - [x] Nghiệm thu hoàn thành `FEAT-12` trong [feature_list.json](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/feature_list.json).
 
 ## Verification Evidence
@@ -54,7 +59,7 @@
 | Prisma Schema Validation | `cd backend && npx prisma validate` | PASS | Schema hợp lệ 100% |
 | Unit & Integration Tests | `cd backend && npm test` | PASS (130/130 tests) | 13 suites (`api`, `feat01` đến `feat12`), 0 fail |
 | Code Linting | `cd backend && npm run lint` | PASS | 0 lint errors |
-| Frontend Production Build | `cd frontend && npm run build` | PASS | Vite bundle built in 6.30s |
+| Frontend Production Build | `cd frontend && npm run build` | PASS | Vite bundle built in 3.05s |
 | Environment Init Script | `powershell -ExecutionPolicy Bypass -File .\init.ps1` | PASS | Tiến độ 12/12 features completed (100%) |
 | Harness Creator Audit | `node .agents/skills/harness-creator/scripts/validate-harness.mjs` | PASS | Đạt điểm tuyệt đối 100/100 |
 

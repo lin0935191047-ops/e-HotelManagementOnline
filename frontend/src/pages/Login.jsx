@@ -51,7 +51,7 @@ export default function Login({ onLoginSuccess }) {
           width: "400px",
           height: "400px",
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%)",
+          background: "radial-gradient(circle, rgba(99, 102, 241, 0.08) 0%, transparent 70%)",
           filter: "blur(40px)",
           pointerEvents: "none",
         }}
@@ -66,8 +66,8 @@ export default function Login({ onLoginSuccess }) {
           position: "relative",
           zIndex: 1,
           borderRadius: "20px",
-          border: "1px solid rgba(255, 255, 255, 0.1)",
-          boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 25px rgba(99, 102, 241, 0.15)",
+          border: "1px solid var(--border-color)",
+          boxShadow: "0 20px 45px -10px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0, 0, 0, 0.04)",
         }}
       >
         <div style={{ textAlign: "center", marginBottom: "2rem" }}>
@@ -100,9 +100,9 @@ export default function Login({ onLoginSuccess }) {
             style={{
               padding: "0.875rem 1rem",
               borderRadius: "10px",
-              background: "rgba(239, 68, 68, 0.15)",
-              border: "1px solid rgba(239, 68, 68, 0.35)",
-              color: "#fca5a5",
+              background: "rgba(239, 68, 68, 0.08)",
+              border: "1px solid rgba(239, 68, 68, 0.25)",
+              color: "#dc2626",
               marginBottom: "1.5rem",
               fontSize: "0.875rem",
               display: "flex",
@@ -171,9 +171,9 @@ export default function Login({ onLoginSuccess }) {
                 padding: "0.45rem 0.5rem",
                 fontSize: "0.75rem",
                 fontWeight: 700,
-                color: "#f43f5e",
-                borderColor: "rgba(244, 63, 94, 0.3)",
-                background: "rgba(244, 63, 94, 0.08)",
+                color: "#e11d48",
+                borderColor: "rgba(225, 29, 72, 0.25)",
+                background: "rgba(225, 29, 72, 0.06)",
               }}
               onClick={() => handleQuickLogin("admin", "Admin@123")}
             >
@@ -186,9 +186,9 @@ export default function Login({ onLoginSuccess }) {
                 padding: "0.45rem 0.5rem",
                 fontSize: "0.75rem",
                 fontWeight: 700,
-                color: "#3b82f6",
-                borderColor: "rgba(59, 130, 246, 0.3)",
-                background: "rgba(59, 130, 246, 0.08)",
+                color: "#2563eb",
+                borderColor: "rgba(37, 99, 235, 0.25)",
+                background: "rgba(37, 99, 235, 0.06)",
               }}
               onClick={() => handleQuickLogin("manager", "Manager@123")}
             >
@@ -201,9 +201,9 @@ export default function Login({ onLoginSuccess }) {
                 padding: "0.45rem 0.5rem",
                 fontSize: "0.75rem",
                 fontWeight: 700,
-                color: "#10b981",
-                borderColor: "rgba(16, 185, 129, 0.3)",
-                background: "rgba(16, 185, 129, 0.08)",
+                color: "#059669",
+                borderColor: "rgba(5, 150, 105, 0.25)",
+                background: "rgba(5, 150, 105, 0.06)",
               }}
               onClick={() => handleQuickLogin("sale", "Sale@123")}
             >

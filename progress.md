@@ -170,6 +170,24 @@
   - Frontend Vite build hoàn tất trong 3.75s không có lỗi.
   - Harness Creator audit đạt 100/100 điểm.
 
+### Session 14 (UI Theme Transformation: Clean White / Light Luxury Aesthetic)
+- Chuyển đổi toàn diện giao diện từ Dark Mode sang giao diện **Nền Trắng (Light Theme)** theo yêu cầu người dùng, giữ vững nguyên tắc không thay đổi bất kỳ chức năng hay luồng nghiệp vụ nào.
+- Hệ thống màu sắc thiết kế mới (Design Tokens) trong [frontend/src/index.css](file:///d:/Phuong_Anh_internship_project/Hotel%20Management%20Online/Hotel%20Management%20Online/frontend/src/index.css):
+  - Canvas nền chính `--bg-primary: #f8fafc` kết hợp nền thẻ trắng tinh khiết `--bg-secondary: #ffffff` và `--bg-card: #ffffff`.
+  - Phối màu chữ có độ tương phản cao sắc nét: `--text-main: #0f172a` (Slate 900), `--text-muted: #475569`, `--text-dim: #64748b`.
+  - Đường viền và phân cách tinh tế: `--border-color: #e2e8f0` (Slate 200).
+  - Tông màu thương hiệu sang trọng: Indigo gradient `linear-gradient(135deg, #4f46e5 0%, #6366f1 100%)`.
+- Cập nhật toàn bộ các components và modals:
+  - Header & Navbar: Nền trắng mờ `rgba(255, 255, 255, 0.92)`, bóng đổ nhẹ `0 2px 12px rgba(0, 0, 0, 0.06)`, tiêu đề e-Hotel màu xanh đậm sang trọng.
+  - Footer: Nền trắng sạch sẽ, viền phân cách xám nhạt `#e2e8f0`.
+  - Màn hình Đăng nhập (Login): Thẻ đăng nhập màu trắng, phím đăng nhập nhanh 1-Click hiển thị nổi bật với nền pastel và viền sắc nét.
+  - Cổng Khách hàng (RoomCatalog): Thanh tìm kiếm tồn kho nền trắng, inputs ngày nhận/trả phòng chuyển sang `colorScheme: "light"`, các thẻ phòng nền trắng với hiệu ứng nâng thẻ hover mượt mà, thanh giỏ hàng cố định nổi bật trên nền trắng.
+  - Toàn bộ các hộp thoại (BookingCheckoutModal, BookingLookupModal, CheckinModal, UserManagement): Chuyển lớp phủ overlay sang `rgba(15, 23, 42, 0.5)`, khung modal nền trắng, bảng biểu và form inputs hiển thị rõ ràng, dễ đọc.
+- Kiểm thử và xác minh:
+  - 130/130 bài kiểm thử tích hợp vượt qua 100% (13 test suites).
+  - Vite production build hoàn tất trong 3.05s không có lỗi.
+  - Harness audit đạt điểm tối đa 100/100.
+
 ## Architectural Decisions Locked
 1. **Tech Stack:** Node.js v20+/v24+, JavaScript ES Modules (`"type": "module"`), Express.js v4.21+, Prisma ORM v6.x, PostgreSQL 16+, React.js v18.3+ SPA (Vite + Tailwind CSS).
 2. **Booking Inventory Model:** Đặt phòng online theo hạng phòng (`type` + `size`) và số lượng (`quantity`). Gán phòng vật lý (`101`, `102`...) chỉ thực hiện khi Check-in có khóa bi quan (`FOR UPDATE`).
