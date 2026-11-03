@@ -391,8 +391,9 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                       style={{
                         padding: "1.25rem",
                         borderRadius: "0.75rem",
-                        background: "var(--bg-tertiary)",
-                        border: "1px solid var(--border-color)",
+                        background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                        border: "1px solid rgba(99, 102, 241, 0.22)",
+                        boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                         display: "flex",
                         flexDirection: "column",
                         gap: "1rem",
@@ -670,15 +671,16 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
                 style={{
                   padding: "1.25rem",
                   borderRadius: "0.75rem",
-                  background: "var(--bg-tertiary)",
-                  border: "1px solid var(--border-color)",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                   display: "flex",
                   flexDirection: "column",
                   gap: "0.5rem",
                   fontSize: "0.875rem",
                 }}
               >
-                <div style={{ fontWeight: 700, color: "var(--text-main)", marginBottom: "0.25rem" }}>
+                <div style={{ fontWeight: 700, color: "#4338ca", marginBottom: "0.25rem" }}>
                   Tổng Kết Quyết Toán Check-in
                 </div>
 

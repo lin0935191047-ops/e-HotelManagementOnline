@@ -765,7 +765,8 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                       fontSize: "0.8125rem",
                       color: "var(--text-muted)",
                       padding: "0.75rem",
-                      background: "var(--bg-tertiary)",
+                      background: "rgba(79, 70, 229, 0.05)",
+                      border: "1px solid rgba(79, 70, 229, 0.12)",
                       borderRadius: "8px",
                       marginBottom: "1rem",
                     }}
@@ -829,9 +830,9 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
                             style={{
                               display: "inline-flex",
                               alignItems: "center",
-                              background: "var(--bg-tertiary)",
+                              background: "#f8fafc",
                               borderRadius: "8px",
-                              border: "1px solid var(--border-color)",
+                              border: "1px solid rgba(99, 102, 241, 0.2)",
                               padding: "0 0.25rem",
                             }}
                           >
@@ -1072,20 +1073,20 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
 
             {/* Thông số kỹ thuật & Tiện nghi */}
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem", marginBottom: "1.5rem" }}>
-              <div style={{ padding: "0.85rem", background: "var(--bg-tertiary)", borderRadius: "10px" }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>Sức chứa tiêu chuẩn</div>
+              <div style={{ padding: "0.85rem", background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)", border: "1px solid rgba(99, 102, 241, 0.18)", borderRadius: "10px" }}>
+                <div style={{ fontSize: "0.75rem", color: "#4338ca", fontWeight: 600 }}>Sức chứa tiêu chuẩn</div>
                 <div style={{ fontSize: "0.9375rem", fontWeight: 700, marginTop: "0.25rem" }}>
                   {detailModalCat.maxAdults} Người lớn, {detailModalCat.maxChildren} Trẻ em
                 </div>
               </div>
-              <div style={{ padding: "0.85rem", background: "var(--bg-tertiary)", borderRadius: "10px" }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>Phụ thu trẻ em quá quy định</div>
+              <div style={{ padding: "0.85rem", background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)", border: "1px solid rgba(99, 102, 241, 0.18)", borderRadius: "10px" }}>
+                <div style={{ fontSize: "0.75rem", color: "#4338ca", fontWeight: 600 }}>Phụ thu trẻ em quá quy định</div>
                 <div style={{ fontSize: "0.9375rem", fontWeight: 700, marginTop: "0.25rem", color: "#b45309" }}>
                   {formatCurrency(detailModalCat.extraChildFee)} / trẻ / đêm
                 </div>
               </div>
-              <div style={{ padding: "0.85rem", background: "var(--bg-tertiary)", borderRadius: "10px" }}>
-                <div style={{ fontSize: "0.75rem", color: "var(--text-dim)" }}>Tồn kho thời gian thực</div>
+              <div style={{ padding: "0.85rem", background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)", border: "1px solid rgba(99, 102, 241, 0.18)", borderRadius: "10px" }}>
+                <div style={{ fontSize: "0.75rem", color: "#4338ca", fontWeight: 600 }}>Tồn kho thời gian thực</div>
                 <div
                   style={{
                     fontSize: "0.9375rem",

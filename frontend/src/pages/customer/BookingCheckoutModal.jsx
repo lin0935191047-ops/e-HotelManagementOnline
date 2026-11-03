@@ -376,12 +376,13 @@ export default function BookingCheckoutModal({
               <div
                 style={{
                   padding: "1.25rem",
-                  background: "var(--bg-tertiary)",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
                   borderRadius: "12px",
-                  border: "1px solid var(--border-color)",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                 }}
               >
-                <h4 style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--text-dim)", marginBottom: "0.75rem", textTransform: "uppercase" }}>
+                <h4 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#4338ca", marginBottom: "0.75rem", textTransform: "uppercase" }}>
                   Thông Tin Khách Hàng
                 </h4>
                 <div style={{ fontSize: "0.875rem", lineHeight: 1.8 }}>
@@ -395,12 +396,13 @@ export default function BookingCheckoutModal({
               <div
                 style={{
                   padding: "1.25rem",
-                  background: "var(--bg-tertiary)",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
                   borderRadius: "12px",
-                  border: "1px solid var(--border-color)",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                 }}
               >
-                <h4 style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--text-dim)", marginBottom: "0.75rem", textTransform: "uppercase" }}>
+                <h4 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#4338ca", marginBottom: "0.75rem", textTransform: "uppercase" }}>
                   Xác Nhận Thanh Toán Giả Lập
                 </h4>
                 <div style={{ fontSize: "0.875rem", lineHeight: 1.8 }}>
@@ -429,13 +431,14 @@ export default function BookingCheckoutModal({
             <div
               style={{
                 padding: "1.25rem",
-                background: "var(--bg-tertiary)",
+                background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
                 borderRadius: "12px",
-                border: "1px solid var(--border-color)",
+                border: "1px solid rgba(99, 102, 241, 0.22)",
+                boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                 marginBottom: "2rem",
               }}
             >
-              <h4 style={{ fontSize: "0.875rem", fontWeight: 700, color: "var(--text-dim)", marginBottom: "0.75rem", textTransform: "uppercase" }}>
+              <h4 style={{ fontSize: "0.875rem", fontWeight: 700, color: "#4338ca", marginBottom: "0.75rem", textTransform: "uppercase" }}>
                 Danh Mục Phòng Đã Đặt
               </h4>
               {completedBookingData.booking.items.map((it, idx) => (
@@ -445,14 +448,14 @@ export default function BookingCheckoutModal({
                     display: "flex",
                     justifyContent: "space-between",
                     padding: "0.5rem 0",
-                    borderBottom: idx < completedBookingData.booking.items.length - 1 ? "1px solid var(--border-color)" : "none",
+                    borderBottom: idx < completedBookingData.booking.items.length - 1 ? "1px solid rgba(99, 102, 241, 0.15)" : "none",
                     fontSize: "0.875rem",
                   }}
                 >
                   <div>
                     <strong>{it.quantity} x {it.roomType} - {it.roomSize}</strong> ({formatCurrency(it.unitPrice)} / đêm)
                   </div>
-                  <div style={{ fontWeight: 700 }}>{formatCurrency(it.subtotal)}</div>
+                  <div style={{ fontWeight: 700, color: "#4338ca" }}>{formatCurrency(it.subtotal)}</div>
                 </div>
               ))}
             </div>
@@ -462,18 +465,18 @@ export default function BookingCheckoutModal({
               style={{
                 padding: "1rem",
                 borderRadius: "10px",
-                background: "rgba(99, 102, 241, 0.1)",
+                background: "rgba(99, 102, 241, 0.08)",
                 border: "1px solid rgba(99, 102, 241, 0.25)",
-                color: "#c7d2fe",
+                color: "#3730a3",
                 fontSize: "0.8125rem",
                 marginBottom: "2rem",
                 display: "flex",
                 gap: "0.75rem",
               }}
             >
-              <ShieldCheck size={20} style={{ flexShrink: 0 }} />
+              <ShieldCheck size={20} color="#4f46e5" style={{ flexShrink: 0 }} />
               <div>
-                <strong>Chính sách hủy phòng (SPEC 4.3):</strong> Quý khách được phép hủy phòng trước thời điểm nhận phòng tối thiểu 24 giờ để được hoàn trả <strong>80%</strong> số tiền đã thanh toán vào tài khoản. Khách sạn giữ lại 20% phí hủy.
+                <strong style={{ color: "#312e81" }}>Chính sách hủy phòng (SPEC 4.3):</strong> Quý khách được phép hủy phòng trước thời điểm nhận phòng tối thiểu 24 giờ để được hoàn trả <strong style={{ color: "#059669" }}>80%</strong> số tiền đã thanh toán vào tài khoản. Khách sạn giữ lại 20% phí hủy.
               </div>
             </div>
 
@@ -553,9 +556,10 @@ export default function BookingCheckoutModal({
               <div
                 style={{
                   borderRadius: "12px",
-                  border: "1px solid var(--border-color)",
+                  border: "1px solid rgba(99, 102, 241, 0.2)",
                   overflow: "hidden",
-                  background: "var(--bg-tertiary)",
+                  background: "#ffffff",
+                  boxShadow: "0 2px 6px rgba(0, 0, 0, 0.03)",
                 }}
               >
                 {cartItems.map((item, idx) => (
@@ -824,8 +828,8 @@ export default function BookingCheckoutModal({
                   style={{
                     padding: "1rem 1.25rem",
                     borderRadius: "12px",
-                    border: paymentOption === "FULL_100" ? "2px solid #4f46e5" : "1px solid var(--border-color)",
-                    background: paymentOption === "FULL_100" ? "rgba(79, 70, 229, 0.08)" : "var(--bg-tertiary)",
+                    border: paymentOption === "FULL_100" ? "2px solid #4f46e5" : "1px solid rgba(99, 102, 241, 0.2)",
+                    background: paymentOption === "FULL_100" ? "rgba(79, 70, 229, 0.08)" : "#ffffff",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
@@ -853,8 +857,8 @@ export default function BookingCheckoutModal({
                   style={{
                     padding: "1rem 1.25rem",
                     borderRadius: "12px",
-                    border: paymentOption === "DEPOSIT_50" ? "2px solid #4f46e5" : "1px solid var(--border-color)",
-                    background: paymentOption === "DEPOSIT_50" ? "rgba(79, 70, 229, 0.08)" : "var(--bg-tertiary)",
+                    border: paymentOption === "DEPOSIT_50" ? "2px solid #4f46e5" : "1px solid rgba(99, 102, 241, 0.2)",
+                    background: paymentOption === "DEPOSIT_50" ? "rgba(79, 70, 229, 0.08)" : "#ffffff",
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
@@ -957,8 +961,9 @@ export default function BookingCheckoutModal({
               style={{
                 padding: "1.25rem",
                 borderRadius: "12px",
-                background: "var(--bg-tertiary)",
-                border: "1px solid var(--border-color)",
+                background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                border: "1px solid rgba(99, 102, 241, 0.22)",
+                boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                 marginBottom: "2rem",
               }}
             >
@@ -968,7 +973,7 @@ export default function BookingCheckoutModal({
               </div>
 
               {discountAmount > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.875rem", color: "#34d399" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem", fontSize: "0.875rem", color: "#059669" }}>
                   <span>Giảm giá khuyến mãi:</span>
                   <span>-{formatCurrency(discountAmount)}</span>
                 </div>

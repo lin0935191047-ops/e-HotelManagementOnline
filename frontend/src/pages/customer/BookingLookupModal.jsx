@@ -156,9 +156,9 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
               borderRadius: "9999px",
               fontSize: "0.75rem",
               fontWeight: 700,
-              background: "rgba(107, 114, 128, 0.2)",
-              color: "#9ca3af",
-              border: "1px solid rgba(107, 114, 128, 0.4)",
+              background: "rgba(79, 70, 229, 0.1)",
+              color: "#4338ca",
+              border: "1px solid rgba(79, 70, 229, 0.25)",
               display: "inline-flex",
               alignItems: "center",
               gap: "0.375rem",
@@ -282,16 +282,17 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
           {/* Thanh tìm kiếm mã đơn */}
           <div
             style={{
-              padding: "1rem",
-              borderRadius: "0.75rem",
-              background: "var(--bg-tertiary)",
-              border: "1px solid var(--border-color)",
+              padding: "1.1rem 1.25rem",
+              borderRadius: "0.85rem",
+              background: "linear-gradient(135deg, rgba(79, 70, 229, 0.08) 0%, rgba(99, 102, 241, 0.03) 100%)",
+              border: "1px solid rgba(79, 70, 229, 0.22)",
+              boxShadow: "0 4px 12px rgba(79, 70, 229, 0.04)",
               display: "flex",
               flexDirection: "column",
               gap: "0.75rem",
             }}
           >
-            <label style={{ fontSize: "0.8125rem", fontWeight: 600, color: "var(--text-main)" }}>
+            <label style={{ fontSize: "0.8125rem", fontWeight: 700, color: "#3730a3" }}>
               Nhập mã đặt phòng của bạn (Ví dụ: BK-20261027-1234)
             </label>
             <div style={{ display: "flex", gap: "0.5rem" }}>
@@ -316,11 +317,12 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                     width: "100%",
                     padding: "0.625rem 1rem 0.625rem 2.5rem",
                     borderRadius: "0.5rem",
-                    background: "var(--bg-card)",
-                    border: "1px solid var(--border-color)",
+                    background: "#ffffff",
+                    border: "1px solid rgba(79, 70, 229, 0.25)",
+                    boxShadow: "0 1px 3px rgba(79, 70, 229, 0.06)",
                     color: "var(--text-main)",
                     fontSize: "0.875rem",
-                    fontWeight: 600,
+                    fontWeight: 700,
                     letterSpacing: "0.05em",
                     textTransform: "uppercase",
                   }}
@@ -398,16 +400,55 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
             </div>
           )}
 
+          {/* Hướng dẫn khi chưa tra cứu */}
+          {!booking && !loading && !errorMsg && !cancelSuccessMsg && (
+            <div
+              style={{
+                padding: "2rem 1.5rem",
+                borderRadius: "0.85rem",
+                background: "linear-gradient(135deg, rgba(238, 242, 255, 0.6) 0%, #ffffff 100%)",
+                border: "1px dashed rgba(99, 102, 241, 0.3)",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: "0.75rem",
+              }}
+            >
+              <div
+                style={{
+                  width: "48px",
+                  height: "48px",
+                  borderRadius: "50%",
+                  background: "rgba(79, 70, 229, 0.1)",
+                  color: "#4f46e5",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <Search size={22} />
+              </div>
+              <h3 style={{ fontSize: "1rem", fontWeight: 700, margin: 0, color: "#3730a3" }}>
+                Nhập Mã Đặt Phòng Để Tra Cứu Thông Tin
+              </h3>
+              <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: 0, maxWidth: "480px", lineHeight: 1.6 }}>
+                Mã đơn được cấp ngay sau khi bạn đặt phòng thành công (ví dụ: <strong style={{ color: "#4f46e5" }}>BK-20261103-XXXX</strong>). Quý khách có thể xem lại chi tiết đặt phòng, lịch trình lưu trú hoặc yêu cầu hủy phòng hoàn tiền theo chính sách khách sạn.
+              </p>
+            </div>
+          )}
+
           {/* Nội dung chi tiết đơn đặt phòng */}
           {booking && (
             <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem" }}>
               {/* Thẻ Header Đơn: Mã đơn, Trạng thái, Ngày tạo */}
               <div
                 style={{
-                  padding: "1.25rem",
-                  borderRadius: "0.75rem",
-                  background: "rgba(31, 41, 55, 0.4)",
-                  border: "1px solid var(--border-color)",
+                  padding: "1.25rem 1.5rem",
+                  borderRadius: "0.85rem",
+                  background: "linear-gradient(135deg, rgba(79, 70, 229, 0.1) 0%, rgba(99, 102, 241, 0.04) 100%)",
+                  border: "1px solid rgba(79, 70, 229, 0.22)",
+                  boxShadow: "0 4px 16px rgba(79, 70, 229, 0.05)",
                   display: "flex",
                   flexWrap: "wrap",
                   alignItems: "center",
@@ -416,15 +457,15 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                 }}
               >
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", textTransform: "uppercase" }}>
+                  <div style={{ fontSize: "0.75rem", color: "#4f46e5", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.06em" }}>
                     Mã Đơn Đặt Phòng
                   </div>
                   <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginTop: "0.25rem" }}>
                     <span
                       style={{
-                        fontSize: "1.25rem",
+                        fontSize: "1.35rem",
                         fontWeight: 800,
-                        color: "#a5b4fc",
+                        color: "#3730a3",
                         letterSpacing: "0.05em",
                       }}
                     >
@@ -435,20 +476,23 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                       onClick={() => handleCopyCode(booking.bookingNumber)}
                       title="Sao chép mã"
                       style={{
-                        background: "none",
-                        border: "none",
-                        color: "var(--text-muted)",
+                        background: "rgba(79, 70, 229, 0.1)",
+                        border: "1px solid rgba(79, 70, 229, 0.2)",
+                        borderRadius: "6px",
+                        color: "#4f46e5",
                         cursor: "pointer",
-                        padding: "4px",
+                        padding: "5px 7px",
+                        display: "inline-flex",
+                        alignItems: "center",
                       }}
                     >
-                      {copied ? <Check size={16} color="#10b981" /> : <Copy size={16} />}
+                      {copied ? <Check size={15} color="#059669" /> : <Copy size={15} />}
                     </button>
                   </div>
                 </div>
 
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.25rem" }}>
+                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.25rem", fontWeight: 600 }}>
                     Trạng Thái Đơn
                   </div>
                   {renderStatusBadge(booking.status)}
@@ -466,24 +510,25 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                 {/* Lịch trình lưu trú */}
                 <div
                   style={{
-                    padding: "1rem",
-                    borderRadius: "0.75rem",
-                    background: "var(--bg-tertiary)",
-                    border: "1px solid var(--border-color)",
+                    padding: "1.1rem 1.25rem",
+                    borderRadius: "0.85rem",
+                    background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                    border: "1px solid rgba(99, 102, 241, 0.22)",
+                    boxShadow: "0 2px 8px rgba(99, 102, 241, 0.04)",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "0.8125rem",
-                      fontWeight: 600,
-                      color: "var(--primary)",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      color: "#4338ca",
                       display: "flex",
                       alignItems: "center",
                       gap: "0.5rem",
                       marginBottom: "0.75rem",
                     }}
                   >
-                    <Calendar size={16} />
+                    <Calendar size={17} color="#4f46e5" />
                     <span>Lịch Trình Lưu Trú ({booking.nights} đêm)</span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.8125rem" }}>
@@ -512,14 +557,16 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                     <div
                       style={{
                         marginTop: "0.5rem",
-                        padding: "0.5rem",
-                        borderRadius: "0.375rem",
-                        background: "var(--bg-card)",
+                        padding: "0.5rem 0.75rem",
+                        borderRadius: "0.5rem",
+                        background: policy?.hoursUntilCheckIn >= 24 ? "rgba(16, 185, 129, 0.1)" : "rgba(245, 158, 11, 0.12)",
+                        border: policy?.hoursUntilCheckIn >= 24 ? "1px solid rgba(16, 185, 129, 0.25)" : "1px solid rgba(245, 158, 11, 0.25)",
                         display: "flex",
                         alignItems: "center",
                         gap: "0.5rem",
                         fontSize: "0.75rem",
-                        color: policy?.hoursUntilCheckIn >= 24 ? "#059669" : "#d97706",
+                        fontWeight: 600,
+                        color: policy?.hoursUntilCheckIn >= 24 ? "#047857" : "#b45309",
                       }}
                     >
                       <Clock size={14} />
@@ -535,24 +582,25 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                 {/* Thông tin khách đặt phòng */}
                 <div
                   style={{
-                    padding: "1rem",
-                    borderRadius: "0.75rem",
-                    background: "var(--bg-tertiary)",
-                    border: "1px solid var(--border-color)",
+                    padding: "1.1rem 1.25rem",
+                    borderRadius: "0.85rem",
+                    background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                    border: "1px solid rgba(99, 102, 241, 0.22)",
+                    boxShadow: "0 2px 8px rgba(99, 102, 241, 0.04)",
                   }}
                 >
                   <div
                     style={{
-                      fontSize: "0.8125rem",
-                      fontWeight: 600,
-                      color: "var(--primary)",
+                      fontSize: "0.85rem",
+                      fontWeight: 700,
+                      color: "#4338ca",
                       display: "flex",
                       alignItems: "center",
                       gap: "0.5rem",
                       marginBottom: "0.75rem",
                     }}
                   >
-                    <User size={16} />
+                    <User size={17} color="#4f46e5" />
                     <span>Thông Tin Khách Hàng</span>
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem", fontSize: "0.8125rem" }}>
@@ -579,24 +627,25 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
               {/* Danh sách phòng đã đặt */}
               <div
                 style={{
-                  padding: "1rem",
-                  borderRadius: "0.75rem",
-                  background: "var(--bg-tertiary)",
-                  border: "1px solid var(--border-color)",
+                  padding: "1.1rem 1.25rem",
+                  borderRadius: "0.85rem",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 8px rgba(99, 102, 241, 0.04)",
                 }}
               >
                 <div
                   style={{
-                    fontSize: "0.8125rem",
-                    fontWeight: 600,
-                    color: "var(--primary)",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    color: "#4338ca",
                     display: "flex",
                     alignItems: "center",
                     gap: "0.5rem",
                     marginBottom: "0.75rem",
                   }}
                 >
-                  <Bed size={16} />
+                  <Bed size={17} color="#4f46e5" />
                   <span>Danh Sách Phòng Đã Đặt</span>
                 </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
@@ -604,9 +653,11 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                     <div
                       key={it.id}
                       style={{
-                        padding: "0.75rem",
+                        padding: "0.75rem 1rem",
                         borderRadius: "0.5rem",
-                        background: "var(--bg-card)",
+                        background: "#ffffff",
+                        border: "1px solid rgba(99, 102, 241, 0.15)",
+                        boxShadow: "0 1px 3px rgba(0, 0, 0, 0.03)",
                         display: "flex",
                         justifyContent: "space-between",
                         alignItems: "center",
@@ -614,14 +665,14 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                       }}
                     >
                       <div>
-                        <div style={{ fontWeight: 600, color: "var(--text-main)" }}>
+                        <div style={{ fontWeight: 700, color: "var(--text-main)" }}>
                           {it.categoryName || `${it.roomType} (${it.roomSize})`}
                         </div>
-                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                        <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginTop: "2px" }}>
                           Số lượng: <strong>{it.quantity} phòng</strong> × {it.unitPrice.toLocaleString("vi-VN")}đ/đêm
                         </div>
                       </div>
-                      <div style={{ fontWeight: 700, color: "var(--primary)" }}>
+                      <div style={{ fontWeight: 800, color: "#4338ca", fontSize: "0.9375rem" }}>
                         {it.subtotal.toLocaleString("vi-VN")}đ
                       </div>
                     </div>
@@ -632,10 +683,11 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
               {/* Tóm tắt thanh toán & Khuyến mãi */}
               <div
                 style={{
-                  padding: "1rem",
-                  borderRadius: "0.75rem",
-                  background: "var(--bg-tertiary)",
-                  border: "1px solid var(--border-color)",
+                  padding: "1.1rem 1.25rem",
+                  borderRadius: "0.85rem",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 8px rgba(99, 102, 241, 0.04)",
                   display: "flex",
                   flexDirection: "column",
                   gap: "0.5rem",
@@ -644,16 +696,16 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
               >
                 <div
                   style={{
-                    fontSize: "0.8125rem",
-                    fontWeight: 600,
-                    color: "var(--primary)",
+                    fontSize: "0.85rem",
+                    fontWeight: 700,
+                    color: "#4338ca",
                     display: "flex",
                     alignItems: "center",
                     gap: "0.5rem",
                     marginBottom: "0.5rem",
                   }}
                 >
-                  <CreditCard size={16} />
+                  <CreditCard size={17} color="#4f46e5" />
                   <span>Thông Tin Quyết Toán & Thanh Toán</span>
                 </div>
 
@@ -761,7 +813,8 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                       marginTop: "0.5rem",
                       padding: "0.75rem",
                       borderRadius: "0.5rem",
-                      background: "var(--bg-tertiary)",
+                      background: "#ffffff",
+                      border: "1px solid rgba(220, 38, 38, 0.2)",
                       fontSize: "0.8125rem",
                     }}
                   >
@@ -822,7 +875,8 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                       gap: "0.75rem",
                       padding: "0.75rem",
                       borderRadius: "0.5rem",
-                      background: "var(--bg-tertiary)",
+                      background: "#ffffff",
+                      border: "1px solid rgba(16, 185, 129, 0.25)",
                       fontSize: "0.8125rem",
                     }}
                   >
@@ -958,7 +1012,8 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
               style={{
                 padding: "1rem",
                 borderRadius: "0.5rem",
-                background: "var(--bg-tertiary)",
+                background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                border: "1px solid rgba(99, 102, 241, 0.22)",
                 fontSize: "0.8125rem",
                 display: "flex",
                 flexDirection: "column",

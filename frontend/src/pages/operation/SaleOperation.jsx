@@ -2064,13 +2064,14 @@ export default function SaleOperation() {
               {/* Thông tin khách hàng */}
               <div
                 style={{
-                  padding: "1rem",
-                  background: "rgba(255, 255, 255, 0.02)",
-                  borderRadius: "0.5rem",
-                  border: "1px solid var(--border-color)",
+                  padding: "1rem 1.25rem",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                  borderRadius: "0.75rem",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                 }}
               >
-                <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "0.5rem" }}>
+                <div style={{ fontWeight: 700, color: "#4338ca", marginBottom: "0.5rem" }}>
                   1. Thông Tin Khách Hàng
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.5rem" }}>
@@ -2086,13 +2087,14 @@ export default function SaleOperation() {
               {/* Hạng phòng đặt */}
               <div
                 style={{
-                  padding: "1rem",
-                  background: "rgba(255, 255, 255, 0.02)",
-                  borderRadius: "0.5rem",
-                  border: "1px solid var(--border-color)",
+                  padding: "1rem 1.25rem",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                  borderRadius: "0.75rem",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                 }}
               >
-                <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "0.5rem" }}>
+                <div style={{ fontWeight: 700, color: "#4338ca", marginBottom: "0.5rem" }}>
                   2. Hạng Phòng Đặt
                 </div>
                 {detailBooking.items?.map((it) => (
@@ -2100,7 +2102,7 @@ export default function SaleOperation() {
                     <span>
                       {it.quantity}x {it.roomType} ({it.roomSize === "DOUBLE" ? "Phòng Đôi" : "Phòng Đơn"})
                     </span>
-                    <span>{formatCurrency(Number(it.unitPrice) * it.quantity * detailBooking.nights)}</span>
+                    <strong style={{ color: "#4338ca" }}>{formatCurrency(Number(it.unitPrice) * it.quantity * detailBooking.nights)}</strong>
                   </div>
                 ))}
               </div>
@@ -2109,13 +2111,14 @@ export default function SaleOperation() {
               {detailBooking.assignments && detailBooking.assignments.length > 0 && (
                 <div
                   style={{
-                    padding: "1rem",
-                    background: "rgba(59, 130, 246, 0.05)",
-                    borderRadius: "0.5rem",
-                    border: "1px solid rgba(59, 130, 246, 0.2)",
+                    padding: "1rem 1.25rem",
+                    background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                    borderRadius: "0.75rem",
+                    border: "1px solid rgba(59, 130, 246, 0.25)",
+                    boxShadow: "0 2px 6px rgba(59, 130, 246, 0.04)",
                   }}
                 >
-                  <div style={{ fontWeight: 700, color: "#60a5fa", marginBottom: "0.5rem" }}>
+                  <div style={{ fontWeight: 700, color: "#2563eb", marginBottom: "0.5rem" }}>
                     3. Phòng Vật Lý & Khách Lưu Trú
                   </div>
                   <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
@@ -2124,12 +2127,14 @@ export default function SaleOperation() {
                         key={as.id}
                         style={{
                           padding: "0.75rem",
-                          background: "rgba(0, 0, 0, 0.2)",
-                          borderRadius: "0.375rem",
+                          background: "#ffffff",
+                          border: "1px solid rgba(99, 102, 241, 0.15)",
+                          boxShadow: "0 1px 3px rgba(0, 0, 0, 0.03)",
+                          borderRadius: "0.5rem",
                         }}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.35rem" }}>
-                          <strong style={{ color: "#a5b4fc" }}>
+                          <strong style={{ color: "#3730a3" }}>
                             Phòng {as.roomId} ({as.room?.type} {as.room?.size})
                           </strong>
                           <span style={{ color: "var(--text-muted)" }}>
@@ -2154,13 +2159,14 @@ export default function SaleOperation() {
               {/* Quyết toán tài chính */}
               <div
                 style={{
-                  padding: "1rem",
-                  background: "rgba(255, 255, 255, 0.02)",
-                  borderRadius: "0.5rem",
-                  border: "1px solid var(--border-color)",
+                  padding: "1rem 1.25rem",
+                  background: "linear-gradient(135deg, rgba(238, 242, 255, 0.7) 0%, #ffffff 100%)",
+                  borderRadius: "0.75rem",
+                  border: "1px solid rgba(99, 102, 241, 0.22)",
+                  boxShadow: "0 2px 6px rgba(99, 102, 241, 0.04)",
                 }}
               >
-                <div style={{ fontWeight: 700, color: "#a5b4fc", marginBottom: "0.5rem" }}>
+                <div style={{ fontWeight: 700, color: "#4338ca", marginBottom: "0.5rem" }}>
                   4. Quyết Toán Tài Chính
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
@@ -2169,7 +2175,7 @@ export default function SaleOperation() {
                 </div>
                 <div style={{ display: "flex", justifyContent: "space-between" }}>
                   <span>Phụ thu trẻ em:</span>
-                  <span style={{ color: detailBooking.extraChildrenFee > 0 ? "#fbbf24" : "var(--text-main)" }}>
+                  <span style={{ color: detailBooking.extraChildrenFee > 0 ? "#b45309" : "var(--text-main)" }}>
                     +{formatCurrency(detailBooking.extraChildrenFee)}
                   </span>
                 </div>
@@ -2177,7 +2183,7 @@ export default function SaleOperation() {
                   <span>Tiền dịch vụ phát sinh:</span>
                   <span>+{formatCurrency(detailBooking.totalServiceFee)}</span>
                 </div>
-                <div style={{ display: "flex", justifyContent: "space-between", color: "#10b981" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#059669" }}>
                   <span>Số tiền đã thanh toán trước:</span>
                   <span>-{formatCurrency(detailBooking.prepaidBookingValue)}</span>
                 </div>
@@ -2191,7 +2197,7 @@ export default function SaleOperation() {
                   }}
                 >
                   <span>Còn lại thanh toán:</span>
-                  <span style={{ color: "#fbbf24" }}>{formatCurrency(detailBooking.remainingPayable)}</span>
+                  <span style={{ color: "#d97706" }}>{formatCurrency(detailBooking.remainingPayable)}</span>
                 </div>
               </div>
             </div>
