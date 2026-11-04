@@ -1,3 +1,8 @@
+//UseState là một React Hook cho phép tạo và quản lý trạng thái (State) bên trong 1 hàm Component. Nó giúp React render lại khi cập nhật thay đổi mới của dữ liệu
+//UseEffect là một React Hook giúp thực hiện các hành động phụ (side-effects) bên trong một hàm Component
+//Side-effect: Là bất kỳ hành động nào tương tác hoặc làm thay đổi thế giới bên ngoài phạm vi render của Component
+//Export: xuất(cho phép các file khác lấy dữ liệu)
+//Import: nhập
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
@@ -625,8 +630,8 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
               cat.type === "VIP"
                 ? { background: "rgba(245, 158, 11, 0.15)", color: "#fbbf24", border: "1px solid rgba(245, 158, 11, 0.3)" }
                 : cat.type === "DELUX"
-                ? { background: "rgba(99, 102, 241, 0.15)", color: "#a5b4fc", border: "1px solid rgba(99, 102, 241, 0.3)" }
-                : { background: "rgba(16, 185, 129, 0.15)", color: "#34d399", border: "1px solid rgba(16, 185, 129, 0.3)" };
+                  ? { background: "rgba(99, 102, 241, 0.15)", color: "#a5b4fc", border: "1px solid rgba(99, 102, 241, 0.3)" }
+                  : { background: "rgba(16, 185, 129, 0.15)", color: "#34d399", border: "1px solid rgba(16, 185, 129, 0.3)" };
 
             return (
               <div

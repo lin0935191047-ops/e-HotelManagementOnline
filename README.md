@@ -3,6 +3,8 @@
 > **Hệ thống Quản lý và Đặt phòng Khách sạn Trực tuyến Toàn diện (Hotel Management & Online Booking System)**  
 > Được xây dựng theo kiến trúc đa tầng hiện đại (**Clean Layered Architecture**), tuân thủ phân quyền độc lập nghiêm ngặt (**Strict Disjoint RBAC**), kiểm soát tương tranh khóa bi quan (**Pessimistic Concurrency Control**), tích hợp đầy đủ 12 module nghiệp vụ và đạt độ phủ kiểm thử tự động 100% (**130/130 Unit & Integration Tests PASS**).
 
+> 🧭 **Dành cho Thực tập sinh & Báo cáo đồ án:** Đọc ngay tệp hướng dẫn chi tiết luồng nghiệp vụ và cách đọc hiểu code từ A-Z tại: [**HUONG_DAN_LUONG_VA_DOC_CODE.md**](HUONG_DAN_LUONG_VA_DOC_CODE.md)
+
 ---
 
 ## 📑 Mục Lục
