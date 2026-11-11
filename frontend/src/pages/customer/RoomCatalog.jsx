@@ -2,7 +2,7 @@
 //UseEffect là một React Hook giúp thực hiện các hành động phụ (side-effects) bên trong một hàm Component
 //Side-effect: Là bất kỳ hành động nào tương tác hoặc làm thay đổi thế giới bên ngoài phạm vi render của Component
 //Export: xuất(cho phép các file khác lấy dữ liệu)
-//Import: nhập
+//Import: nhập      
 import React, { useState, useEffect } from "react";
 import {
   Calendar,
@@ -167,13 +167,14 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
       return;
     }
 
+    // Cập nhật giỏ hàng với dữ liệu đã có
     setCartItems((prevItems) => {
       const existingIdx = prevItems.findIndex(
         (it) => it.roomType === cat.type && it.roomSize === cat.size,
       );
-
+      // Trường hợp 1: Phòng đã có trong giỏ hàng
+      // Cập nhật số lượng
       if (existingIdx >= 0) {
-        // Cập nhật số lượng
         const updated = [...prevItems];
         const newQty = Math.min(cat.availableQuota, updated[existingIdx].quantity + qty);
         updated[existingIdx] = {
@@ -181,8 +182,10 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
           quantity: newQty,
         };
         return updated;
-      } else {
+
+        // Trường hợp 2: Phòng chưa có giỏ hàng
         // Thêm mới vào giỏ
+      } else {
         return [
           ...prevItems,
           {
@@ -222,7 +225,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
     });
   };
 
-  // Xóa mục khỏi giỏ hàng
+  // Xóa 1 phòng  khỏi giỏ hàng
   const handleRemoveCartItem = (item) => {
     setCartItems((prev) =>
       prev.filter(
@@ -251,6 +254,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
     (acc, it) => acc + it.quantity * it.unitPrice * nights,
     0,
   );
+  // Tính tổng số phòng
   const cartTotalRooms = cartItems.reduce((acc, it) => acc + it.quantity, 0);
 
   return (
