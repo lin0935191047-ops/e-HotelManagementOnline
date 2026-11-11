@@ -15,6 +15,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
+import { formatLocalDateToInput, formatDateShort, getTodayLocalDateString } from "../../utils/date.js";
 
 const DISCOUNT_TYPES = [
   { value: "PERCENTAGE", label: "Phần trăm (%)" },
@@ -88,23 +89,18 @@ export default function PromotionSetup() {
 
   const toInputDate = (isoStr) => {
     if (!isoStr) return "";
-    return new Date(isoStr).toISOString().split("T")[0];
+    return formatLocalDateToInput(isoStr);
   };
 
   const formatDateVN = (isoStr) => {
     if (!isoStr) return "—";
-    const d = new Date(isoStr);
-    return d.toLocaleDateString("vi-VN", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    return formatDateShort(isoStr);
   };
 
   const handleOpenCreateModal = () => {
     setEditingPromotion(null);
-    const today = new Date().toISOString().split("T")[0];
-    const nextMonth = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+    const today = getTodayLocalDateString();
+    const nextMonth = formatLocalDateToInput(new Date(Date.now() + 30 * 86400000));
 
     setFormData({
       code: "",

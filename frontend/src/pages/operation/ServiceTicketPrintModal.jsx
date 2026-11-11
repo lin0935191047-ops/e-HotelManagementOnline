@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { Printer, X, CheckCircle, Tag, Building2, Phone, Mail, User, Bed, Calendar } from "lucide-react";
+import { formatDateTimeDisplay } from "../../utils/date.js";
 
 // Hàm chuyển số thành chữ tiền tệ tiếng Việt cơ bản
 function convertNumberToWords(amount) {
@@ -24,14 +25,7 @@ const formatCurrency = (amount) => {
 
 const formatDateTime = (dateStr) => {
   if (!dateStr) return "---";
-  const d = new Date(dateStr);
-  return d.toLocaleString("vi-VN", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+  return formatDateTimeDisplay(dateStr);
 };
 
 export default function ServiceTicketPrintModal({ ticket, onClose, autoPrint = false }) {

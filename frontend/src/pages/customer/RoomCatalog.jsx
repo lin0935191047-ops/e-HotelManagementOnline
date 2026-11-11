@@ -28,6 +28,11 @@ import {
 import { apiRequest } from "../../api/client.js";
 import BookingCheckoutModal from "./BookingCheckoutModal.jsx";
 import BookingLookupModal from "./BookingLookupModal.jsx";
+import {
+  formatDateDisplay,
+  getTodayLocalDateString,
+  getTomorrowLocalDateString,
+} from "../../utils/date.js";
 
 // Định dạng tiền tệ VND
 const formatCurrency = (amount) => {
@@ -37,35 +42,10 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
-// Định dạng ngày hiển thị
-const formatDateDisplay = (dateString) => {
-  if (!dateString) return "";
-  const d = new Date(dateString);
-  return d.toLocaleDateString("vi-VN", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
-
-// Lấy ngày hôm nay dạng YYYY-MM-DD
-const getTodayString = () => {
-  const today = new Date();
-  return today.toISOString().split("T")[0];
-};
-
-// Lấy ngày mai dạng YYYY-MM-DD
-const getTomorrowString = () => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  return tomorrow.toISOString().split("T")[0];
-};
-
 export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking }) {
-  // Bộ lọc tìm kiếm ngày và loại phòng
-  const [fromDate, setFromDate] = useState(getTodayString());
-  const [toDate, setToDate] = useState(getTomorrowString());
+  // Bộ lọc tìm kiếm ngày và loại phòng theo giờ địa phương
+  const [fromDate, setFromDate] = useState(getTodayLocalDateString());
+  const [toDate, setToDate] = useState(getTomorrowLocalDateString());
   const [selectedType, setSelectedType] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
 
@@ -415,14 +395,13 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
               <input
                 type="date"
                 className="input-field"
-                min={getTodayString()}
+                min={getTodayLocalDateString()}
                 value={fromDate}
                 onChange={(e) => {
-                  setFromDate(e.target.value);
-                  if (new Date(e.target.value) >= new Date(toDate)) {
-                    const nextDay = new Date(e.target.value);
-                    nextDay.setDate(nextDay.getDate() + 1);
-                    setToDate(nextDay.toISOString().split("T")[0]);
+                  const newFrom = e.target.value;
+                  setFromDate(newFrom);
+                  if (newFrom && toDate && newFrom >= toDate) {
+                    setToDate(getTomorrowLocalDateString(newFrom));
                   }
                 }}
                 required
@@ -449,7 +428,7 @@ export default function RoomCatalog({ onNavigateToLogin, onSelectRoomForBooking 
               <input
                 type="date"
                 className="input-field"
-                min={fromDate || getTodayString()}
+                min={fromDate || getTodayLocalDateString()}
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
                 required

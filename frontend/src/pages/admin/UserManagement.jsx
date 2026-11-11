@@ -14,6 +14,7 @@ import {
   X,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
+import { formatDateTimeDisplay } from "../../utils/date.js";
 
 export default function UserManagement({ currentLoggedUser }) {
   const [users, setUsers] = useState([]);
@@ -142,8 +143,7 @@ export default function UserManagement({ currentLoggedUser }) {
 
   const formatLastActive = (isoString) => {
     if (!isoString) return "Chưa đăng nhập";
-    const d = new Date(isoString);
-    return `${d.toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })} ${d.toLocaleDateString("vi-VN")}`;
+    return formatDateTimeDisplay(isoString);
   };
 
   return (

@@ -22,6 +22,7 @@ import {
   Search,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
+import { formatDateDisplay } from "../../utils/date.js";
 
 // Định dạng tiền tệ VND
 const formatCurrency = (amount) => {
@@ -31,17 +32,8 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
-// Định dạng ngày
-const formatDate = (dateStr) => {
-  if (!dateStr) return "";
-  const d = new Date(dateStr);
-  return d.toLocaleDateString("vi-VN", {
-    weekday: "short",
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-};
+// Định dạng ngày theo giờ địa phương
+const formatDate = (dateStr) => formatDateDisplay(dateStr);
 
 export default function BookingCheckoutModal({
   cartItems,

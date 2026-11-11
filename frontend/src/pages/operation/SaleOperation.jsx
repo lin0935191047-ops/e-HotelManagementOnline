@@ -33,6 +33,12 @@ import ServiceUsageModal from "./ServiceUsageModal.jsx";
 import ServiceTicketPrintModal from "./ServiceTicketPrintModal.jsx";
 import CheckoutModal from "./CheckoutModal.jsx";
 import InvoicePrintModal from "./InvoicePrintModal.jsx";
+import {
+  formatLocalDateToInput,
+  getTodayLocalDateString,
+  formatDateShort,
+  formatDateTimeDisplay,
+} from "../../utils/date.js";
 
 // Định dạng tiền tệ VND
 const formatCurrency = (amount) => {
@@ -936,8 +942,8 @@ export default function SaleOperation() {
                         </td>
                         <td style={{ padding: "1rem" }}>
                           <div style={{ fontSize: "0.8125rem" }}>
-                            {new Date(b.fromDate).toLocaleDateString("vi-VN")} →{" "}
-                            {new Date(b.toDate).toLocaleDateString("vi-VN")}
+                            {formatDateShort(b.fromDate)} →{" "}
+                            {formatDateShort(b.toDate)}
                           </div>
                           <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>{b.nights} đêm</div>
                         </td>
@@ -1600,7 +1606,7 @@ export default function SaleOperation() {
                 <button
                   type="button"
                   onClick={() => {
-                    const todayStr = new Date().toISOString().split("T")[0];
+                    const todayStr = getTodayLocalDateString();
                     setReportFromDate(todayStr);
                     setReportToDate(todayStr);
                     fetchRevenueReport(todayStr, todayStr);
@@ -1615,8 +1621,8 @@ export default function SaleOperation() {
                   type="button"
                   onClick={() => {
                     const now = new Date();
-                    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
-                    const todayStr = now.toISOString().split("T")[0];
+                    const firstDay = formatLocalDateToInput(new Date(now.getFullYear(), now.getMonth(), 1));
+                    const todayStr = getTodayLocalDateString();
                     setReportFromDate(firstDay);
                     setReportToDate(todayStr);
                     fetchRevenueReport(firstDay, todayStr);
@@ -2079,8 +2085,8 @@ export default function SaleOperation() {
                   <div>SĐT: <strong>{detailBooking.customerPhone}</strong></div>
                   <div>Email: <strong>{detailBooking.customerEmail}</strong></div>
                   <div>CCCD: <strong>{detailBooking.customerCccd}</strong></div>
-                  <div>Ngày nhận: {new Date(detailBooking.fromDate).toLocaleDateString("vi-VN")}</div>
-                  <div>Ngày trả: {new Date(detailBooking.toDate).toLocaleDateString("vi-VN")} ({detailBooking.nights} đêm)</div>
+                  <div>Ngày nhận: {formatDateShort(detailBooking.fromDate)}</div>
+                  <div>Ngày trả: {formatDateShort(detailBooking.toDate)} ({detailBooking.nights} đêm)</div>
                 </div>
               </div>
 

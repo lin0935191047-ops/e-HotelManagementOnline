@@ -22,6 +22,7 @@ import {
   Check,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
+import { formatDateDisplay, formatDateTimeDisplay } from "../../utils/date.js";
 
 export default function BookingLookupModal({ isOpen, onClose, initialBookingNumber = "" }) {
   const [bookingNumber, setBookingNumber] = useState(initialBookingNumber);
@@ -535,23 +536,13 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ color: "var(--text-muted)" }}>Nhận phòng:</span>
                       <strong style={{ color: "var(--text-main)" }}>
-                        {new Date(booking.fromDate).toLocaleDateString("vi-VN", {
-                          weekday: "short",
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {formatDateDisplay(booking.fromDate)}
                       </strong>
                     </div>
                     <div style={{ display: "flex", justifyContent: "space-between" }}>
                       <span style={{ color: "var(--text-muted)" }}>Trả phòng:</span>
                       <strong style={{ color: "var(--text-main)" }}>
-                        {new Date(booking.toDate).toLocaleDateString("vi-VN", {
-                          weekday: "short",
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {formatDateDisplay(booking.toDate)}
                       </strong>
                     </div>
                     <div
@@ -801,7 +792,7 @@ export default function BookingLookupModal({ isOpen, onClose, initialBookingNumb
                     Thời điểm hủy:{" "}
                     <strong>
                       {booking.cancelledAt
-                        ? new Date(booking.cancelledAt).toLocaleString("vi-VN")
+                        ? formatDateTimeDisplay(booking.cancelledAt)
                         : "N/A"}
                     </strong>
                   </div>

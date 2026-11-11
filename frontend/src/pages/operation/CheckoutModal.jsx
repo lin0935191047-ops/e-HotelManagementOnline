@@ -15,6 +15,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
+import { formatDateShort } from "../../utils/date.js";
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -126,8 +127,8 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
               <div>
                 <span className="text-slate-500 block">Lịch trình lưu trú:</span>
                 <span className="font-semibold text-slate-800">
-                  {new Date(booking.fromDate).toLocaleDateString("vi-VN")} →{" "}
-                  {new Date(booking.toDate).toLocaleDateString("vi-VN")}
+                  {formatDateShort(booking.fromDate)} →{" "}
+                  {formatDateShort(booking.toDate)}
                 </span>
                 <span className="text-blue-600 font-bold block">
                   {previewData?.booking?.nights || booking.nights || 1} đêm

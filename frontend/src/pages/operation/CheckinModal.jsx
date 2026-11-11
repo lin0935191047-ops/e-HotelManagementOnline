@@ -16,6 +16,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
+import { formatDateShort } from "../../utils/date.js";
 
 // Định dạng tiền tệ VND
 const formatCurrency = (amount) => {
@@ -326,7 +327,7 @@ export default function CheckinModal({ booking, onClose, onSuccess }) {
               </h2>
               <p style={{ fontSize: "0.75rem", color: "var(--text-muted)", margin: "0.125rem 0 0" }}>
                 Đơn đặt: <strong style={{ color: "#a5b4fc" }}>{booking?.bookingNumber}</strong> • Khách hàng:{" "}
-                <strong>{booking?.customerName}</strong> • {nights} đêm ({booking?.fromDate ? new Date(booking.fromDate).toLocaleDateString("vi-VN") : ""} - {booking?.toDate ? new Date(booking.toDate).toLocaleDateString("vi-VN") : ""})
+                <strong>{booking?.customerName}</strong> • {nights} đêm ({booking?.fromDate ? formatDateShort(booking.fromDate) : ""} - {booking?.toDate ? formatDateShort(booking.toDate) : ""})
               </p>
             </div>
           </div>
