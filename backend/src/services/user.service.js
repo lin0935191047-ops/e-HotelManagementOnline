@@ -2,7 +2,7 @@ import bcrypt from "bcryptjs";
 import { prisma } from "../common/prisma.js";
 import { AppError, ErrorCodes } from "../common/errors.js";
 
-const VALID_ROLES = ["ADMIN", "MANAGER", "SALE"];
+const VALID_ROLES = ["ADMIN", "MANAGER", "SALE", "CUSTOMER"];
 
 export class UserService {
   /**

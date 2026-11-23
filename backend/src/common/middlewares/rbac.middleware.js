@@ -2,10 +2,9 @@ import { AppError, ErrorCodes } from "../errors.js";
 
 /**
  * Middleware phân quyền khép kín nghiêm ngặt (Strict Disjoint RBAC)
- * Tuyệt đối không cho phép kế thừa quyền: ADMIN chỉ được vào admin, MANAGER chỉ setup, SALE chỉ operation.
- * @param {string} allowedRole - Vai trò được phép duy nhất ('ADMIN' | 'MANAGER' | 'SALE')
+ * @param {...string} allowedRoles - Vai trò hoặc danh sách vai trò được phép
  */
-export function requireRole(allowedRole) {
+export function requireRole(...allowedRoles) {
   return (req, res, next) => {
     if (!req.user) {
       return next(
@@ -17,11 +16,11 @@ export function requireRole(allowedRole) {
       );
     }
 
-    if (req.user.role !== allowedRole) {
+    if (!allowedRoles.includes(req.user.role)) {
       return next(
         new AppError(
           ErrorCodes.FORBIDDEN_ACCESS,
-          `Truy cập bị từ chối: Vai trò '${req.user.role}' không có quyền truy cập tài nguyên của '${allowedRole}'.`,
+          `Truy cập bị từ chối: Vai trò '${req.user.role}' không có quyền truy cập tài nguyên của '${allowedRoles.join(", ")}'.`,
           403,
         ),
       );

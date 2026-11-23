@@ -14,6 +14,24 @@ export class AuthController {
     }
   }
 
+  static async register(req, res, next) {
+    try {
+      const { username, password, fullName } = req.body || {};
+      const result = await AuthService.registerCustomer({
+        username,
+        password,
+        fullName,
+      });
+      return res.status(201).json({
+        success: true,
+        message: "Đăng ký tài khoản khách hàng và khởi tạo ví thành công.",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async getMe(req, res, next) {
     try {
       const profile = await AuthService.getProfile(req.user.id);
