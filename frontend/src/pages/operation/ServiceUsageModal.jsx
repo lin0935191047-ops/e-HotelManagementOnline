@@ -11,6 +11,10 @@ import {
   Minus,
   Sparkles,
   Info,
+  Calendar,
+  CreditCard,
+  Phone,
+  Tag,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 
@@ -52,7 +56,6 @@ export default function ServiceUsageModal({
 
         if (roomsRes.success && Array.isArray(roomsRes.data)) {
           setOccupiedRooms(roomsRes.data);
-          // Nếu có initialRoomId thì chọn, nếu không thì chọn phòng đầu tiên
           if (initialRoomId) {
             setSelectedRoomId(initialRoomId);
           } else if (roomsRes.data.length > 0) {
@@ -117,7 +120,6 @@ export default function ServiceUsageModal({
       });
 
       if (res.success && res.data) {
-        // Gọi callback với dữ liệu phiếu vừa tạo
         if (onTicketCreated) {
           onTicketCreated(res.data);
         }
@@ -130,97 +132,309 @@ export default function ServiceUsageModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-60 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-xl w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-700 to-indigo-800 text-white px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-white/10 rounded-lg">
-              <Coffee className="w-5 h-5 text-white" />
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: "rgba(15, 23, 42, 0.65)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        overflowY: "auto",
+        animation: "fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !submitting) onClose();
+      }}
+    >
+      <div
+        className="glass-card"
+        style={{
+          width: "100%",
+          maxWidth: "580px",
+          background: "#ffffff",
+          borderRadius: "20px",
+          border: "1px solid var(--border-color)",
+          boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+          overflow: "hidden",
+          animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header Luxury Gradient */}
+        <div
+          style={{
+            background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)",
+            color: "#ffffff",
+            padding: "1.25rem 1.75rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Ambient decorative glow */}
+          <div
+            style={{
+              position: "absolute",
+              right: "-20px",
+              top: "-20px",
+              width: "120px",
+              height: "120px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", position: "relative", zIndex: 1 }}>
+            <div
+              style={{
+                width: "44px",
+                height: "44px",
+                borderRadius: "12px",
+                background: "rgba(255, 255, 255, 0.15)",
+                backdropFilter: "blur(6px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#ffffff",
+                boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+              }}
+            >
+              <Coffee size={22} />
             </div>
             <div>
-              <h3 className="font-bold text-lg">Đăng Ký Sử Dụng Dịch Vụ Phòng</h3>
-              <p className="text-xs text-blue-100">
-                Ghi nhận dịch vụ và xuất phiếu in xác nhận cho khách
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>
+                  Đăng Ký Sử Dụng Dịch Vụ Phòng
+                </h3>
+                <span
+                  style={{
+                    fontSize: "0.65rem",
+                    padding: "0.15rem 0.5rem",
+                    borderRadius: "6px",
+                    background: "rgba(245, 158, 11, 0.2)",
+                    color: "#fef3c7",
+                    border: "1px solid rgba(245, 158, 11, 0.35)",
+                    fontWeight: 700,
+                  }}
+                >
+                  5★ LUXURY
+                </span>
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.75)", margin: "0.2rem 0 0 0" }}>
+                Ghi nhận dịch vụ và xuất phiếu in xác nhận cho khách lưu trú
               </p>
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 text-blue-100 hover:text-white hover:bg-white/10 rounded-lg transition"
+            disabled={submitting}
+            style={{
+              background: "rgba(255, 255, 255, 0.12)",
+              border: "none",
+              borderRadius: "10px",
+              padding: "0.5rem",
+              color: "#ffffff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "background 0.2s",
+              position: "relative",
+              zIndex: 1,
+            }}
+            title="Đóng"
           >
-            <X className="w-5 h-5" />
+            <X size={18} />
           </button>
         </div>
 
         {/* Form Body */}
         {loading ? (
-          <div className="p-8 text-center text-slate-500">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-3"></div>
-            <p className="text-sm">Đang tải danh sách phòng và dịch vụ...</p>
+          <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                border: "3px solid #e2e8f0",
+                borderTopColor: "var(--primary)",
+                borderRadius: "50%",
+                margin: "0 auto 1rem",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+            <p style={{ fontSize: "0.875rem", fontWeight: 600 }}>Đang tải danh sách phòng và bảng giá dịch vụ...</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-5">
+          <form onSubmit={handleSubmit} style={{ padding: "1.75rem", display: "flex", flexDirection: "column", gap: "1.25rem" }}>
             {errorMsg && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <div
+                style={{
+                  padding: "0.875rem 1rem",
+                  borderRadius: "10px",
+                  background: "rgba(239, 68, 68, 0.08)",
+                  border: "1px solid rgba(239, 68, 68, 0.25)",
+                  color: "#dc2626",
+                  fontSize: "0.85rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <AlertCircle size={18} />
                 <span>{errorMsg}</span>
               </div>
             )}
 
-            {/* Chọn số phòng đang OCCUPIED */}
+            {/* Bước 1: Chọn phòng */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                1. Chọn phòng lưu trú (Chỉ các phòng đang OCCUPIED) *
+              <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                <span
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "var(--primary-gradient)",
+                    color: "white",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.75rem",
+                    fontWeight: 800,
+                  }}
+                >
+                  1
+                </span>
+                <span>Chọn phòng lưu trú (Phòng đang ở - OCCUPIED) *</span>
               </label>
+
               {occupiedRooms.length === 0 ? (
-                <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-xs">
+                <div
+                  style={{
+                    padding: "0.875rem 1rem",
+                    borderRadius: "10px",
+                    background: "rgba(245, 158, 11, 0.08)",
+                    border: "1px solid rgba(245, 158, 11, 0.25)",
+                    color: "#b45309",
+                    fontSize: "0.8125rem",
+                  }}
+                >
                   Hiện không có phòng nào đang ở trạng thái OCCUPIED (Đang có khách lưu trú).
                   Vui lòng làm thủ tục Check-in trước khi đăng ký dịch vụ.
                 </div>
               ) : (
                 <select
+                  className="form-select"
                   value={selectedRoomId}
                   onChange={(e) => setSelectedRoomId(e.target.value)}
-                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
                   required
+                  style={{
+                    fontSize: "0.875rem",
+                    fontWeight: 600,
+                    padding: "0.75rem 1rem",
+                    borderRadius: "10px",
+                  }}
                 >
                   {occupiedRooms.map((r) => (
                     <option key={r.roomId} value={r.roomId}>
-                      Phòng {r.roomId} ({r.type} - {r.size}) — {r.customerName || "Khách"} [
-                      {r.bookingNumber}]
+                      Phòng {r.roomId} ({r.type} - {r.size}) — {r.customerName || "Khách"} [{r.bookingNumber}]
                     </option>
                   ))}
                 </select>
               )}
 
-              {/* Thông tin nhanh của phòng đang chọn */}
+              {/* Thông tin nhanh phòng */}
               {selectedRoom && (
-                <div className="mt-2 p-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600 flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Bed className="w-4 h-4 text-blue-600" />
+                <div
+                  style={{
+                    marginTop: "0.6rem",
+                    padding: "0.75rem 1rem",
+                    borderRadius: "10px",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-color)",
+                    display: "flex",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: "0.5rem",
+                    fontSize: "0.8125rem",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
+                    <Bed size={16} color="var(--primary)" />
                     <span>
-                      <strong className="text-slate-800">Khách lưu trú:</strong>{" "}
-                      {selectedRoom.customerName} ({selectedRoom.customerPhone || "N/A"})
+                      <strong style={{ color: "var(--text-main)" }}>Khách lưu trú:</strong>{" "}
+                      {selectedRoom.customerName}
                     </span>
+                    {selectedRoom.customerPhone && (
+                      <span style={{ color: "var(--text-dim)", fontFamily: "monospace" }}>
+                        ({selectedRoom.customerPhone})
+                      </span>
+                    )}
                   </div>
-                  <span className="px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded text-[11px] font-semibold">
-                    Đang ở (OCCUPIED)
+                  <span
+                    style={{
+                      padding: "0.2rem 0.55rem",
+                      borderRadius: "6px",
+                      background: "rgba(16, 185, 129, 0.12)",
+                      color: "#059669",
+                      fontWeight: 700,
+                      fontSize: "0.75rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                    }}
+                  >
+                    <CheckCircle size={12} /> Đang ở (OCCUPIED)
                   </span>
                 </div>
               )}
             </div>
 
-            {/* Chọn Dịch Vụ */}
+            {/* Bước 2: Chọn Dịch Vụ */}
             <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                2. Chọn dịch vụ sử dụng *
+              <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                <span
+                  style={{
+                    width: "20px",
+                    height: "20px",
+                    borderRadius: "50%",
+                    background: "var(--primary-gradient)",
+                    color: "white",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "0.75rem",
+                    fontWeight: 800,
+                  }}
+                >
+                  2
+                </span>
+                <span>Chọn dịch vụ khách sạn yêu cầu *</span>
               </label>
+
               <select
+                className="form-select"
                 value={selectedServiceId}
                 onChange={(e) => setSelectedServiceId(e.target.value)}
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:bg-white transition"
                 required
+                style={{
+                  fontSize: "0.875rem",
+                  fontWeight: 600,
+                  padding: "0.75rem 1rem",
+                  borderRadius: "10px",
+                }}
               >
                 {services.map((s) => (
                   <option key={s.serviceId} value={s.serviceId}>
@@ -230,98 +444,203 @@ export default function ServiceUsageModal({
               </select>
 
               {selectedService && selectedService.description && (
-                <p className="mt-1 text-xs text-slate-500 italic">
+                <p style={{ marginTop: "0.35rem", fontSize: "0.785rem", color: "var(--text-dim)", fontStyle: "italic" }}>
                   {selectedService.description}
                 </p>
               )}
             </div>
 
-            {/* Số lượng & Đơn giá */}
-            <div className="grid grid-cols-2 gap-4">
+            {/* Bước 3: Số lượng & Đơn giá */}
+            <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: "1rem" }}>
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
-                  3. Số lượng ({selectedService?.unit || "Lượt"}) *
+                <label className="form-label" style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.5rem" }}>
+                  <span
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      borderRadius: "50%",
+                      background: "var(--primary-gradient)",
+                      color: "white",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "0.75rem",
+                      fontWeight: 800,
+                    }}
+                  >
+                    3
+                  </span>
+                  <span>Số lượng ({selectedService?.unit || "Lượt"}) *</span>
                 </label>
-                <div className="flex items-center border border-slate-300 rounded-lg bg-slate-50 overflow-hidden">
+
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    border: "1px solid var(--border-color)",
+                    borderRadius: "10px",
+                    background: "var(--bg-secondary)",
+                    overflow: "hidden",
+                  }}
+                >
                   <button
                     type="button"
                     onClick={() => handleQuantityChange(-1)}
                     disabled={quantity <= 1}
-                    className="p-2.5 text-slate-600 hover:bg-slate-200 disabled:opacity-40 transition"
+                    style={{
+                      padding: "0.7rem 0.9rem",
+                      background: "transparent",
+                      border: "none",
+                      color: quantity <= 1 ? "#cbd5e1" : "var(--text-main)",
+                      cursor: quantity <= 1 ? "not-allowed" : "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "background 0.15s",
+                    }}
                   >
-                    <Minus className="w-4 h-4" />
+                    <Minus size={16} />
                   </button>
+
                   <input
                     type="number"
                     min="1"
                     max="999"
                     value={quantity}
-                    onChange={(e) =>
-                      setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))
-                    }
-                    className="w-full text-center bg-transparent py-2 text-sm font-bold text-slate-900 focus:outline-none"
+                    onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value, 10) || 1))}
                     required
+                    style={{
+                      width: "100%",
+                      textAlign: "center",
+                      background: "transparent",
+                      border: "none",
+                      fontWeight: 800,
+                      fontSize: "1.05rem",
+                      color: "var(--text-main)",
+                      outline: "none",
+                    }}
                   />
+
                   <button
                     type="button"
                     onClick={() => handleQuantityChange(1)}
-                    className="p-2.5 text-slate-600 hover:bg-slate-200 transition"
+                    style={{
+                      padding: "0.7rem 0.9rem",
+                      background: "transparent",
+                      border: "none",
+                      color: "var(--text-main)",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      transition: "background 0.15s",
+                    }}
                   >
-                    <Plus className="w-4 h-4" />
+                    <Plus size={16} />
                   </button>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                <label className="form-label" style={{ marginBottom: "0.5rem" }}>
                   Đơn giá niêm yết
                 </label>
-                <div className="px-3.5 py-2.5 bg-slate-100 border border-slate-200 rounded-lg text-sm font-semibold text-slate-700">
+                <div
+                  style={{
+                    padding: "0.75rem 1rem",
+                    borderRadius: "10px",
+                    background: "var(--bg-secondary)",
+                    border: "1px solid var(--border-color)",
+                    fontSize: "0.9375rem",
+                    fontWeight: 700,
+                    color: "var(--text-muted)",
+                    textAlign: "right",
+                  }}
+                >
                   {formatCurrency(unitPrice)}
                 </div>
               </div>
             </div>
 
-            {/* Box Tổng tiền & Quyết toán */}
-            <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs font-medium text-blue-900">
+            {/* Box Tổng Tiền & Ghi Nhận */}
+            <div
+              style={{
+                borderRadius: "14px",
+                background: "linear-gradient(135deg, rgba(79, 70, 229, 0.06) 0%, rgba(99, 102, 241, 0.12) 100%)",
+                border: "1px solid rgba(79, 70, 229, 0.2)",
+                padding: "1.25rem",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.5rem" }}>
+                <span style={{ fontSize: "0.875rem", fontWeight: 700, color: "#4338ca", textTransform: "uppercase", letterSpacing: "0.03em" }}>
                   Thành tiền phiếu dịch vụ:
                 </span>
-                <span className="text-xl font-extrabold text-blue-800">
+                <span style={{ fontSize: "1.5rem", fontWeight: 900, color: "#312e81", letterSpacing: "-0.02em" }}>
                   {formatCurrency(totalPrice)}
                 </span>
               </div>
-              <div className="text-[11px] text-blue-700 flex items-start space-x-1.5 pt-2 border-t border-blue-200/60">
-                <Info className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" />
+
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "flex-start",
+                  gap: "0.5rem",
+                  paddingTop: "0.6rem",
+                  borderTop: "1px solid rgba(79, 70, 229, 0.15)",
+                  fontSize: "0.775rem",
+                  color: "#4338ca",
+                  lineHeight: 1.45,
+                }}
+              >
+                <Info size={15} style={{ flexShrink: 0, marginTop: "2px" }} />
                 <span>
-                  Khoản này sẽ tự động ghi nợ vào đơn đặt phòng và quyết toán khi khách làm thủ tục Check-out.
+                  Khoản này sẽ tự động ghi nợ vào đơn đặt phòng và quyết toán khi khách làm thủ tục Check-out. Nếu khách hàng đã kích hoạt <strong>Auto-Debit ví nội bộ</strong>, hệ thống sẽ tự động trừ ví khi dịch vụ hoàn thành (COMPLETED).
                 </span>
               </div>
             </div>
 
             {/* Actions */}
-            <div className="pt-2 flex items-center justify-end space-x-3">
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "0.5rem" }}>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-medium rounded-lg transition"
+                disabled={submitting}
+                className="btn btn-secondary"
+                style={{ padding: "0.7rem 1.25rem", fontSize: "0.875rem" }}
               >
                 Hủy bỏ
               </button>
+
               <button
                 type="submit"
                 disabled={submitting || occupiedRooms.length === 0}
-                className="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-300 text-white text-sm font-bold rounded-lg flex items-center space-x-2 shadow transition"
+                className="btn btn-primary"
+                style={{
+                  padding: "0.7rem 1.5rem",
+                  fontSize: "0.875rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  boxShadow: "0 4px 14px rgba(79, 70, 229, 0.4)",
+                }}
               >
                 {submitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        border: "2px solid #ffffff",
+                        borderTopColor: "transparent",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    />
                     <span>Đang lập phiếu...</span>
                   </>
                 ) : (
                   <>
-                    <Printer className="w-4 h-4" />
+                    <Printer size={16} />
                     <span>Lập Phiếu & In Ngay</span>
                   </>
                 )}
@@ -333,4 +652,3 @@ export default function ServiceUsageModal({
     </div>
   );
 }
-
