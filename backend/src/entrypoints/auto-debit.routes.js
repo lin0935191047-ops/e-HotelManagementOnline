@@ -95,4 +95,21 @@ router.post(
   AutoDebitController.batchProcessDueDebts,
 );
 
+// ==========================================
+// 6. AUTO-DEBIT BR-02 ROUTES (SERVICES COMPLETED)
+// ==========================================
+// Kích hoạt / thực thi Auto-Debit BR-02 cho phiếu dịch vụ
+router.post(
+  "/services/:ticketId/process-br02",
+  requireRole("CUSTOMER", "ADMIN", "SALE"),
+  AutoDebitController.processServiceBR02,
+);
+
+// Xem trạng thái thanh toán & Auto-Debit của phiếu dịch vụ
+router.get(
+  "/services/:ticketId/auto-debit-status",
+  requireRole("CUSTOMER", "ADMIN", "SALE", "MANAGER"),
+  AutoDebitController.getServiceAutoDebitStatus,
+);
+
 export default router;

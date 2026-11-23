@@ -1,5 +1,6 @@
 import { prisma } from "../common/prisma.js";
 import { AppError, ErrorCodes } from "../common/errors.js";
+import { AutoDebitService } from "./auto-debit.service.js";
 import ExcelJS from "exceljs";
 import PDFDocument from "pdfkit";
 
@@ -808,7 +809,7 @@ export class OperationService {
    * FEAT-10: Tạo phiếu sử dụng dịch vụ cho phòng đang ở
    * Bọc trong Interactive Transaction với khóa bi quan FOR UPDATE
    */
-  static async createServiceUsage({ roomId, serviceId, quantity = 1 }) {
+  static async createServiceUsage({ roomId, serviceId, quantity = 1, status = "COMPLETED" }) {
     if (!roomId || typeof roomId !== "string" || roomId.trim() === "") {
       throw new AppError(
         ErrorCodes.VALIDATION_FAILED,
@@ -837,7 +838,7 @@ export class OperationService {
       );
     }
 
-    return await prisma.$transaction(async (tx) => {
+    const result = await prisma.$transaction(async (tx) => {
       // 1. Khóa bi quan phòng vật lý bằng SELECT ... FOR UPDATE
       const lockedRooms = await tx.$queryRaw`
         SELECT room_id, status FROM rooms
@@ -913,6 +914,7 @@ export class OperationService {
       const ticketId = `TK-${yyyy}${mm}${dd}-${randomSuffix}`;
 
       // 6. Lưu ServiceUsage
+      const cleanStatus = status ? String(status).toUpperCase() : "COMPLETED";
       const createdTicket = await tx.serviceUsage.create({
         data: {
           ticketId,
@@ -922,6 +924,7 @@ export class OperationService {
           quantity: quantityNum,
           unitPrice,
           totalPrice,
+          status: cleanStatus,
         },
         include: {
           service: true,
@@ -952,6 +955,84 @@ export class OperationService {
         })),
       };
     });
+
+    // FEAT-13.5: Kích hoạt Auto-Debit BR-02 nếu trạng thái là COMPLETED
+    let autoDebit = null;
+    const finalStatus = status ? String(status).toUpperCase() : "COMPLETED";
+    if (finalStatus === "COMPLETED") {
+      autoDebit = await AutoDebitService.triggerBR02ForService(result.ticketId);
+    }
+
+    return {
+      ...result,
+      status: finalStatus,
+      isPaid: autoDebit?.isPaid || false,
+      autoDebit,
+    };
+  }
+
+  /**
+   * FEAT-13.5: Cập nhật trạng thái phiếu dịch vụ (PENDING -> IN_PROGRESS -> COMPLETED / CANCELLED)
+   * Tự động kích hoạt quy tắc Auto-Debit BR-02 khi chuyển sang COMPLETED
+   */
+  static async updateServiceTicketStatus({ ticketId, status }) {
+    if (!ticketId || typeof ticketId !== "string" || ticketId.trim() === "") {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Vui lòng chỉ định mã phiếu dịch vụ (ticketId).",
+        400,
+      );
+    }
+
+    const cleanTicketId = ticketId.trim();
+    const cleanStatus = String(status || "").toUpperCase();
+
+    if (!["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"].includes(cleanStatus)) {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Trạng thái dịch vụ không hợp lệ (chỉ chấp nhận PENDING, IN_PROGRESS, COMPLETED hoặc CANCELLED).",
+        400,
+      );
+    }
+
+    const ticket = await prisma.serviceUsage.findUnique({
+      where: { ticketId: cleanTicketId },
+      include: {
+        service: true,
+        booking: true,
+      },
+    });
+
+    if (!ticket) {
+      throw new AppError(
+        ErrorCodes.RESOURCE_NOT_FOUND,
+        `Không tìm thấy phiếu dịch vụ với mã ${cleanTicketId}.`,
+        404,
+      );
+    }
+
+    const updated = await prisma.serviceUsage.update({
+      where: { ticketId: cleanTicketId },
+      data: { status: cleanStatus },
+      include: {
+        service: true,
+        booking: true,
+      },
+    });
+
+    let autoDebitResult = null;
+    if (cleanStatus === "COMPLETED" && !updated.isPaid) {
+      autoDebitResult = await AutoDebitService.triggerBR02ForService(cleanTicketId);
+    }
+
+    return {
+      ticketId: updated.ticketId,
+      status: updated.status,
+      isPaid: autoDebitResult?.isPaid || updated.isPaid,
+      serviceName: updated.service.serviceName,
+      totalPrice: Number(updated.totalPrice),
+      autoDebit: autoDebitResult,
+    };
   }
 
   /**

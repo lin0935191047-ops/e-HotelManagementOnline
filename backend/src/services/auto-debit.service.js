@@ -1,6 +1,7 @@
 import { prisma } from "../common/prisma.js";
 import { AppError, ErrorCodes } from "../common/errors.js";
 import { WalletService } from "./wallet.service.js";
+import { DebtService } from "./debt.service.js";
 
 export const CURRENT_TERMS_VERSION = "v1.0";
 export const TERMS_CONTENT = `ĐIỀU KHOẢN VÀ ĐIỀU KIỆN SỬ DỤNG DỊCH VỤ AUTO-DEBIT (VÍ NỘI BỘ e-HOTEL)
@@ -356,5 +357,376 @@ export class AutoDebitService {
         updatedAt: updated.updatedAt,
       };
     });
+  }
+
+  /**
+   * FEAT-13.5: Auto-Debit BR-02 — Tự động khấu trừ chi phí dịch vụ khi trạng thái COMPLETED
+   * 
+   * Quy tắc nghiệp vụ BR-02:
+   * 1. Khi dịch vụ chuyển sang trạng thái COMPLETED:
+   * 2. Nếu đơn phòng có liên kết tài khoản thành viên (customerId):
+   *    a. Nếu Auto-Debit KHÔNG ACTIVE hoặc ví bị LOCKED:
+   *       Tự động ghi nhận khoản phí vào bảng Debt (loại SERVICE_FEE, status UNPAID).
+   *    b. Nếu Auto-Debit ACTIVE và ví ACTIVE:
+   *       - Dùng Pessimistic Locking (SELECT ... FOR UPDATE) trên bảng wallets.
+   *       - QUY TẮC CỐT LÕI SRS: TUYỆT ĐỐI KHÔNG TRỪ TIỀN MỘT PHẦN:
+   *         * Nếu số dư ví < tổng tiền dịch vụ:
+   *           VÍ GIỮ NGUYÊN 100% SỐ DƯ (không trừ 1 xu).
+   *           Tự động ghi nhận khoản phí vào bảng Debt (loại SERVICE_FEE, status UNPAID).
+   *         * Nếu số dư ví >= tổng tiền dịch vụ:
+   *           Khấu trừ đúng số tiền totalPrice từ ví.
+   *           Sinh WalletTransaction loại AUTO_DEBIT_SERVICE.
+   *           Cập nhật ServiceUsage.isPaid = true.
+   *           Nếu trước đó có Debt gắn với ticketId này thì chuyển sang PAID.
+   */
+  static async triggerBR02ForService(ticketId) {
+    if (!ticketId || typeof ticketId !== "string" || ticketId.trim() === "") {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Vui lòng chỉ định mã phiếu dịch vụ (ticketId).",
+        400,
+      );
+    }
+
+    const cleanTicketId = ticketId.trim();
+
+    const ticket = await prisma.serviceUsage.findUnique({
+      where: { ticketId: cleanTicketId },
+      include: {
+        service: true,
+        booking: {
+          include: {
+            customer: {
+              include: {
+                wallet: true,
+                autoDebitSetting: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!ticket) {
+      throw new AppError(
+        ErrorCodes.RESOURCE_NOT_FOUND,
+        `Không tìm thấy phiếu dịch vụ với mã ${cleanTicketId}.`,
+        404,
+      );
+    }
+
+    if (ticket.isPaid) {
+      return {
+        ticketId: ticket.ticketId,
+        autoDebited: false,
+        isPaid: true,
+        message: "Phiếu dịch vụ này đã được thanh toán trước đó.",
+      };
+    }
+
+    if (ticket.status !== "COMPLETED") {
+      return {
+        ticketId: ticket.ticketId,
+        autoDebited: false,
+        isPaid: false,
+        status: ticket.status,
+        message: "Phiếu dịch vụ chưa ở trạng thái COMPLETED, không kích hoạt Auto-Debit BR-02.",
+      };
+    }
+
+    const customer = ticket.booking?.customer;
+
+    // Trường hợp 1: Booking không gắn tài khoản thành viên (khách vãng lai)
+    if (!customer) {
+      return {
+        ticketId: ticket.ticketId,
+        autoDebited: false,
+        isPaid: false,
+        hasCustomerAccount: false,
+        message: "Khách hàng không có tài khoản thành viên e-Hotel. Phí dịch vụ sẽ quyết toán tại quầy khi Check-out.",
+      };
+    }
+
+    const autoDebitSetting = customer.autoDebitSetting;
+    const wallet = customer.wallet || (await WalletService.getOrCreateWallet(customer.id));
+    const totalPrice = Number(ticket.totalPrice);
+
+    // Trường hợp 2: Khách hàng chưa kích hoạt Auto-Debit (NOT ACTIVE) hoặc ví bị khóa (LOCKED)
+    const isAutoDebitActive = autoDebitSetting && autoDebitSetting.status === "ACTIVE";
+    const isWalletLocked = wallet.status === "LOCKED";
+
+    if (!isAutoDebitActive || isWalletLocked) {
+      // Ghi nhận công nợ (Debt)
+      let existingDebt = await prisma.debt.findFirst({
+        where: { ticketId: ticket.ticketId },
+      });
+
+      if (!existingDebt) {
+        existingDebt = await DebtService.createDebt({
+          userId: customer.id,
+          type: "SERVICE_FEE",
+          amount: totalPrice,
+          dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+          bookingId: ticket.bookingId,
+          ticketId: ticket.ticketId,
+          note: `Công nợ dịch vụ tự động tạo do ${!isAutoDebitActive ? "Auto-Debit chưa ACTIVE" : "Ví bị khóa"}`,
+        });
+      }
+
+      return {
+        ticketId: ticket.ticketId,
+        autoDebited: false,
+        isPaid: false,
+        debtCreated: true,
+        debtCode: existingDebt.debtCode,
+        reason: !isAutoDebitActive ? "AUTO_DEBIT_NOT_ACTIVE" : "WALLET_LOCKED",
+        message: "Auto-Debit không khả dụng. Khoản phí dịch vụ đã được tự động ghi nhận vào Công nợ (Debt).",
+      };
+    }
+
+    // Trường hợp 3: Đủ điều kiện Auto-Debit -> Thực hiện khấu trừ nguyên tử với Pessimistic Locking
+    return await prisma.$transaction(async (tx) => {
+      const lockedWallets = await tx.$queryRaw`
+        SELECT id, wallet_number, balance, status 
+        FROM wallets 
+        WHERE id = ${wallet.id} 
+        FOR UPDATE
+      `;
+
+      if (!lockedWallets || lockedWallets.length === 0) {
+        throw new AppError(
+          ErrorCodes.WALLET_NOT_FOUND,
+          "Không tìm thấy ví nội bộ khi khóa giao dịch.",
+          404,
+        );
+      }
+
+      const currentWallet = lockedWallets[0];
+
+      if (currentWallet.status === "LOCKED") {
+        let existingDebt = await tx.debt.findFirst({
+          where: { ticketId: ticket.ticketId },
+        });
+        if (!existingDebt) {
+          const debtCode = DebtService.generateDebtCode();
+          existingDebt = await tx.debt.create({
+            data: {
+              debtCode,
+              userId: customer.id,
+              walletId: wallet.id,
+              bookingId: ticket.bookingId,
+              ticketId: ticket.ticketId,
+              type: "SERVICE_FEE",
+              amount: totalPrice,
+              paidAmount: 0,
+              status: "UNPAID",
+              dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+              note: "Công nợ dịch vụ tự động tạo do ví bị khóa tại thời điểm thanh toán",
+            },
+          });
+        }
+        return {
+          ticketId: ticket.ticketId,
+          autoDebited: false,
+          isPaid: false,
+          debtCreated: true,
+          debtCode: existingDebt.debtCode,
+          reason: "WALLET_LOCKED",
+          message: "Ví bị khóa tại thời điểm thanh toán. Đã chuyển thành công nợ.",
+        };
+      }
+
+      const currentBalance = Number(currentWallet.balance);
+
+      // QUY TẮC CỐT LÕI SRS: TUYỆT ĐỐI KHÔNG TRỪ TIỀN MỘT PHẦN
+      if (currentBalance < totalPrice) {
+        // VÍ KHÔNG BỊ TRỪ DÙ CHỈ 1 ĐỒNG!
+        let existingDebt = await tx.debt.findFirst({
+          where: { ticketId: ticket.ticketId },
+        });
+
+        if (!existingDebt) {
+          const debtCode = DebtService.generateDebtCode();
+          existingDebt = await tx.debt.create({
+            data: {
+              debtCode,
+              userId: customer.id,
+              walletId: wallet.id,
+              bookingId: ticket.bookingId,
+              ticketId: ticket.ticketId,
+              type: "SERVICE_FEE",
+              amount: totalPrice,
+              paidAmount: 0,
+              status: "UNPAID",
+              dueDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+              note: `Công nợ dịch vụ tự động tạo do số dư ví (${currentBalance.toLocaleString()} VND) không đủ thanh toán Auto-Debit BR-02 (${totalPrice.toLocaleString()} VND)`,
+            },
+          });
+        }
+
+        return {
+          ticketId: ticket.ticketId,
+          autoDebited: false,
+          isPaid: false,
+          debtCreated: true,
+          debtCode: existingDebt.debtCode,
+          reason: "INSUFFICIENT_WALLET_BALANCE",
+          walletBalance: currentBalance,
+          amountRequired: totalPrice,
+          shortage: totalPrice - currentBalance,
+          message: `Số dư ví (${currentBalance.toLocaleString()} VND) không đủ để thanh toán toàn bộ chi phí dịch vụ (${totalPrice.toLocaleString()} VND). Quy tắc Auto-Debit tuyệt đối không trừ một phần. Khoản phí đã được ghi nhận vào Công nợ (Debt).`,
+        };
+      }
+
+      // ĐỦ SỐ DƯ: Khấu trừ 100%
+      const balanceAfter = currentBalance - totalPrice;
+
+      await tx.wallet.update({
+        where: { id: wallet.id },
+        data: {
+          balance: balanceAfter,
+          updatedAt: new Date(),
+        },
+      });
+
+      const transactionNo = WalletService.generateTransactionNo();
+
+      const txRecord = await tx.walletTransaction.create({
+        data: {
+          transactionNo,
+          walletId: wallet.id,
+          type: "AUTO_DEBIT_SERVICE",
+          amount: totalPrice,
+          balanceBefore: currentBalance,
+          balanceAfter,
+          status: "SUCCESS",
+          description: `Tự động thanh toán chi phí dịch vụ ${ticket.service.serviceName} (${ticket.ticketId}) theo quy tắc BR-02`,
+          metadata: {
+            rule: "BR-02",
+            ticketId: ticket.ticketId,
+            serviceId: ticket.serviceId,
+            serviceName: ticket.service.serviceName,
+            bookingId: ticket.bookingId,
+            quantity: ticket.quantity,
+            unitPrice: Number(ticket.unitPrice),
+            totalPrice,
+            paidAt: new Date().toISOString(),
+          },
+        },
+      });
+
+      // Cập nhật ServiceUsage: isPaid = true
+      await tx.serviceUsage.update({
+        where: { ticketId: ticket.ticketId },
+        data: {
+          isPaid: true,
+          status: "COMPLETED",
+        },
+      });
+
+      // Nếu trước đó có nợ gắn với ticketId, cập nhật sang PAID
+      await tx.debt.updateMany({
+        where: { ticketId: ticket.ticketId, status: { in: ["UNPAID", "OVERDUE"] } },
+        data: {
+          status: "PAID",
+          paidAmount: totalPrice,
+          paidAt: new Date(),
+        },
+      });
+
+      return {
+        ticketId: ticket.ticketId,
+        autoDebited: true,
+        isPaid: true,
+        amountDeducted: totalPrice,
+        balanceBefore: currentBalance,
+        balanceAfter,
+        transactionNo: txRecord.transactionNo,
+        serviceName: ticket.service.serviceName,
+        message: `Thanh toán tự động BR-02 thành công ${totalPrice.toLocaleString()} VND cho dịch vụ ${ticket.service.serviceName}.`,
+      };
+    });
+  }
+
+  /**
+   * Xem trạng thái Auto-Debit của phiếu dịch vụ
+   */
+  static async getServiceAutoDebitStatus(ticketId) {
+    if (!ticketId) {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Vui lòng chỉ định mã phiếu dịch vụ.",
+        400,
+      );
+    }
+
+    const cleanTicketId = ticketId.trim();
+
+    const ticket = await prisma.serviceUsage.findUnique({
+      where: { ticketId: cleanTicketId },
+      include: {
+        service: true,
+        booking: {
+          include: {
+            customer: {
+              include: {
+                wallet: true,
+                autoDebitSetting: true,
+              },
+            },
+          },
+        },
+        debts: true,
+      },
+    });
+
+    if (!ticket) {
+      throw new AppError(
+        ErrorCodes.RESOURCE_NOT_FOUND,
+        `Không tìm thấy phiếu dịch vụ ${cleanTicketId}.`,
+        404,
+      );
+    }
+
+    const tx = await prisma.walletTransaction.findFirst({
+      where: {
+        type: "AUTO_DEBIT_SERVICE",
+        description: { contains: cleanTicketId },
+      },
+    });
+
+    return {
+      ticketId: ticket.ticketId,
+      serviceId: ticket.serviceId,
+      serviceName: ticket.service.serviceName,
+      status: ticket.status,
+      isPaid: ticket.isPaid,
+      totalPrice: Number(ticket.totalPrice),
+      bookingId: ticket.bookingId,
+      hasCustomerAccount: !!ticket.booking.customerId,
+      customer: ticket.booking.customer
+        ? {
+            id: ticket.booking.customer.id,
+            username: ticket.booking.customer.username,
+            autoDebitStatus: ticket.booking.customer.autoDebitSetting?.status || "NOT_ENABLED",
+            walletBalance: Number(ticket.booking.customer.wallet?.balance || 0),
+          }
+        : null,
+      debt: ticket.debts[0]
+        ? {
+            debtCode: ticket.debts[0].debtCode,
+            amount: Number(ticket.debts[0].amount),
+            status: ticket.debts[0].status,
+          }
+        : null,
+      transaction: tx
+        ? {
+            transactionNo: tx.transactionNo,
+            amount: Number(tx.amount),
+            status: tx.status,
+            createdAt: tx.createdAt,
+          }
+        : null,
+    };
   }
 }

@@ -233,4 +233,43 @@ export class AutoDebitController {
       next(error);
     }
   }
+
+  // ==========================================
+  // FEAT-13.5: Auto-Debit BR-02 (Completed Service Fee)
+  // ==========================================
+
+  /**
+   * Thực thi Auto-Debit BR-02 cho phiếu dịch vụ đã COMPLETED
+   * POST /api/auto-debit/services/:ticketId/process-br02
+   */
+  static async processServiceBR02(req, res, next) {
+    try {
+      const { ticketId } = req.params;
+      const data = await AutoDebitService.triggerBR02ForService(ticketId);
+      return res.status(200).json({
+        success: true,
+        message: data.message,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Xem trạng thái Auto-Debit của phiếu dịch vụ
+   * GET /api/auto-debit/services/:ticketId/auto-debit-status
+   */
+  static async getServiceAutoDebitStatus(req, res, next) {
+    try {
+      const { ticketId } = req.params;
+      const data = await AutoDebitService.getServiceAutoDebitStatus(ticketId);
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
 }

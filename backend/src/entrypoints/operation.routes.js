@@ -29,6 +29,7 @@ router.get("/services/catalog", OperationController.getServicesCatalog);
 router.get("/services/tickets", OperationController.listServiceTickets);
 router.get("/services/tickets/:ticketId", OperationController.getServiceTicket);
 router.post("/services/usage", OperationController.createServiceUsage);
+router.put("/services/tickets/:ticketId/status", OperationController.updateServiceTicketStatus);
 
 // FEAT-11: Check-out, Invoice Calculation & HTML Invoice Printing
 router.get("/bookings/:id/checkout-preview", OperationController.previewCheckout);

@@ -113,16 +113,40 @@ export class OperationController {
    */
   static async createServiceUsage(req, res, next) {
     try {
-      const { roomId, serviceId, quantity } = req.body;
+      const { roomId, serviceId, quantity, status } = req.body;
       const data = await OperationService.createServiceUsage({
         roomId,
         serviceId,
         quantity,
+        status,
       });
 
       return res.status(201).json({
         success: true,
         message: "Lập phiếu sử dụng dịch vụ thành công.",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-13.5: Cập nhật trạng thái phiếu dịch vụ và tự động Auto-Debit BR-02 khi COMPLETED
+   * PUT /api/operation/services/tickets/:ticketId/status
+   */
+  static async updateServiceTicketStatus(req, res, next) {
+    try {
+      const { ticketId } = req.params;
+      const { status } = req.body;
+      const data = await OperationService.updateServiceTicketStatus({
+        ticketId,
+        status,
+      });
+
+      return res.json({
+        success: true,
+        message: `Cập nhật trạng thái phiếu dịch vụ ${ticketId} thành công: ${data.status}`,
         data,
       });
     } catch (error) {
