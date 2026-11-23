@@ -6,13 +6,13 @@ import {
   CheckCircle,
   FileText,
   DollarSign,
-  Coffee,
   Bed,
-  Users,
-  Calendar,
-  Clock,
-  Printer,
+  Tag,
   ShieldAlert,
+  CreditCard,
+  Building2,
+  Calendar,
+  Wallet,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 import { formatDateShort } from "../../utils/date.js";
@@ -24,14 +24,20 @@ const formatCurrency = (amount) => {
   }).format(amount || 0);
 };
 
-export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
+export default function CheckoutModal({
+  booking,
+  onClose,
+  onCheckoutSuccess,
+}) {
+  const [previewData, setPreviewData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState(null);
-  const [previewData, setPreviewData] = useState(null);
 
+  // Tải bảng tính quyết toán hóa đơn (Preview Checkout)
   useEffect(() => {
-    async function loadPreview() {
+    async function fetchPreview() {
+      if (!booking || !booking.id) return;
       try {
         setLoading(true);
         setErrorMsg(null);
@@ -40,22 +46,20 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
           setPreviewData(res.data);
         }
       } catch (err) {
-        setErrorMsg(err.message || "Không thể tải thông tin quyết toán Check-out.");
+        setErrorMsg(err.message || "Không thể tải trước thông tin quyết toán.");
       } finally {
         setLoading(false);
       }
     }
 
-    if (booking?.id) {
-      loadPreview();
-    }
-  }, [booking?.id]);
+    fetchPreview();
+  }, [booking]);
 
   const handleConfirmCheckout = async () => {
+    if (!booking || !booking.id) return;
     try {
       setSubmitting(true);
       setErrorMsg(null);
-
       const res = await apiRequest(`/api/operation/bookings/${booking.id}/check-out`, {
         method: "POST",
       });
@@ -66,7 +70,7 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
         }
       }
     } catch (err) {
-      setErrorMsg(err.message || "Không thể hoàn tất thủ tục Check-out.");
+      setErrorMsg(err.message || "Không thể thực hiện thủ tục Check-out.");
     } finally {
       setSubmitting(false);
     }
@@ -79,70 +83,179 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
   const services = previewData?.services || [];
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-60 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: "rgba(15, 23, 42, 0.65)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        overflowY: "auto",
+        animation: "fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !submitting) onClose();
+      }}
+    >
+      <div
+        className="glass-card"
+        style={{
+          width: "100%",
+          maxWidth: "640px",
+          maxHeight: "92vh",
+          background: "#ffffff",
+          borderRadius: "20px",
+          border: "1px solid var(--border-color)",
+          boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
-        <div className="bg-gradient-to-r from-amber-600 to-orange-700 text-white px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-white/10 rounded-lg">
-              <LogOut className="w-5 h-5 text-white" />
+        <div
+          style={{
+            background: "linear-gradient(135deg, #b45309 0%, #d97706 60%, #f59e0b 100%)",
+            color: "#ffffff",
+            padding: "1.25rem 1.75rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.85rem" }}>
+            <div
+              style={{
+                width: "42px",
+                height: "42px",
+                borderRadius: "12px",
+                background: "rgba(255, 255, 255, 0.2)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#ffffff",
+              }}
+            >
+              <LogOut size={22} />
             </div>
             <div>
-              <h3 className="font-bold text-lg">Thủ Tục Check-out & Quyết Toán Hóa Đơn</h3>
-              <p className="text-xs text-amber-100">
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>
+                Thủ Tục Check-out & Quyết Toán Hóa Đơn
+              </h3>
+              <p style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.85)", margin: "0.2rem 0 0 0" }}>
                 Đơn #{booking.bookingNumber} — Khách hàng: {booking.customerName}
               </p>
             </div>
           </div>
+
           <button
+            type="button"
             onClick={onClose}
-            className="p-1.5 text-amber-100 hover:text-white hover:bg-white/10 rounded-lg transition"
+            disabled={submitting}
+            style={{
+              background: "rgba(255, 255, 255, 0.15)",
+              border: "none",
+              borderRadius: "10px",
+              padding: "0.5rem",
+              color: "#ffffff",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
           >
-            <X className="w-5 h-5" />
+            <X size={18} />
           </button>
         </div>
 
         {/* Body */}
         {loading ? (
-          <div className="p-10 text-center text-slate-500">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-amber-600 mx-auto mb-3"></div>
-            <p className="text-sm">Đang tải bảng tính quyết toán tài chính Check-out...</p>
+          <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
+            <div
+              style={{
+                width: "36px",
+                height: "36px",
+                border: "3px solid #e2e8f0",
+                borderTopColor: "#d97706",
+                borderRadius: "50%",
+                margin: "0 auto 1rem",
+                animation: "spin 1s linear infinite",
+              }}
+            />
+            <p style={{ fontSize: "0.875rem", fontWeight: 600 }}>Đang tải bảng tính quyết toán tài chính Check-out...</p>
           </div>
         ) : (
-          <div className="p-6 overflow-y-auto flex-1 space-y-5 text-slate-900">
+          <div style={{ padding: "1.5rem", overflowY: "auto", flex: 1, display: "flex", flexDirection: "column", gap: "1.25rem", color: "#0f172a" }}>
             {errorMsg && (
-              <div className="p-3.5 bg-red-50 border border-red-200 rounded-lg text-red-700 text-xs flex items-center space-x-2">
-                <AlertCircle className="w-4 h-4 flex-shrink-0" />
+              <div
+                style={{
+                  padding: "0.875rem 1rem",
+                  borderRadius: "10px",
+                  background: "rgba(239, 68, 68, 0.08)",
+                  border: "1px solid rgba(239, 68, 68, 0.25)",
+                  color: "#dc2626",
+                  fontSize: "0.85rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+              >
+                <AlertCircle size={18} />
                 <span>{errorMsg}</span>
               </div>
             )}
 
             {/* Tóm tắt thông tin phòng & khách */}
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs grid grid-cols-2 gap-3">
+            <div
+              style={{
+                background: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "12px",
+                padding: "1rem",
+                fontSize: "0.8125rem",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "0.75rem",
+              }}
+            >
               <div>
-                <span className="text-slate-500 block">Khách đại diện:</span>
-                <span className="font-bold text-slate-800 text-sm">{booking.customerName}</span>
-                <span className="text-slate-500 block">{booking.customerPhone}</span>
+                <span style={{ color: "#64748b", display: "block" }}>Khách đại diện:</span>
+                <span style={{ fontWeight: 800, fontSize: "0.9375rem", color: "#0f172a" }}>{booking.customerName}</span>
+                <span style={{ color: "#64748b", display: "block", fontFamily: "monospace" }}>{booking.customerPhone}</span>
               </div>
               <div>
-                <span className="text-slate-500 block">Lịch trình lưu trú:</span>
-                <span className="font-semibold text-slate-800">
-                  {formatDateShort(booking.fromDate)} →{" "}
-                  {formatDateShort(booking.toDate)}
+                <span style={{ color: "#64748b", display: "block" }}>Lịch trình lưu trú:</span>
+                <span style={{ fontWeight: 700, color: "#0f172a" }}>
+                  {formatDateShort(booking.fromDate)} → {formatDateShort(booking.toDate)}
                 </span>
-                <span className="text-blue-600 font-bold block">
+                <span style={{ color: "#2563eb", fontWeight: 800, display: "block" }}>
                   {previewData?.booking?.nights || booking.nights || 1} đêm
                 </span>
               </div>
-              <div className="col-span-2 pt-2 border-t border-slate-200">
-                <span className="text-slate-500 block mb-1">
-                  Các phòng vật lý sẽ được giải phóng về trạng thái AVAILABLE:
+              <div style={{ gridColumn: "span 2", paddingTop: "0.5rem", borderTop: "1px solid #e2e8f0" }}>
+                <span style={{ color: "#64748b", display: "block", marginBottom: "0.35rem" }}>
+                  Các phòng vật lý sẽ được giải phóng:
                 </span>
-                <div className="flex flex-wrap gap-2">
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.5rem" }}>
                   {rooms.map((r) => (
                     <span
                       key={r.roomId}
-                      className="px-2.5 py-1 bg-white border border-slate-300 rounded font-bold text-blue-700"
+                      style={{
+                        padding: "0.25rem 0.6rem",
+                        background: "#ffffff",
+                        border: "1px solid #cbd5e1",
+                        borderRadius: "6px",
+                        fontWeight: 700,
+                        color: "#2563eb",
+                        fontSize: "0.75rem",
+                      }}
                     >
                       Phòng {r.roomId} ({r.type} {r.size})
                     </span>
@@ -151,62 +264,61 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
               </div>
             </div>
 
-            {/* Bảng chi tiết quyết toán tài chính */}
-            <div className="space-y-3">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+            {/* Chi tiết các khoản quyết toán */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.6rem" }}>
+              <h4 style={{ fontSize: "0.75rem", fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.05em", color: "#475569", margin: 0 }}>
                 Chi Tiết Các Khoản Quyết Toán
               </h4>
 
               {/* 1. Tiền phòng */}
-              <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs flex justify-between items-center">
+              <div style={{ padding: "0.75rem 1rem", background: "#f8fafc", border: "1px solid #e2e8f0", borderRadius: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8125rem" }}>
                 <div>
-                  <span className="font-bold text-slate-800">1. Tiền phòng lưu trú:</span>
-                  <span className="text-slate-500 block text-[11px]">
-                    Đã áp dụng chiết khấu khuyến mãi (nếu có)
-                  </span>
+                  <span style={{ fontWeight: 700, color: "#0f172a" }}>1. Tiền phòng lưu trú:</span>
+                  <span style={{ fontSize: "0.75rem", color: "#64748b", display: "block" }}>Đã áp dụng chiết khấu khuyến mãi (nếu có)</span>
                 </div>
-                <span className="font-extrabold text-sm text-slate-900">
+                <span style={{ fontWeight: 800, fontSize: "0.9375rem" }}>
                   {formatCurrency(breakdown.netRoomFee)}
                 </span>
               </div>
 
               {/* 2. Phụ thu trẻ em */}
-              <div className="p-3 bg-amber-50/60 border border-amber-200 rounded-lg text-xs flex justify-between items-center">
+              <div style={{ padding: "0.75rem 1rem", background: "rgba(245, 158, 11, 0.08)", border: "1px solid rgba(245, 158, 11, 0.25)", borderRadius: "10px", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "0.8125rem" }}>
                 <div>
-                  <span className="font-bold text-amber-900">2. Phụ thu trẻ em vượt tiêu chuẩn:</span>
-                  <span className="text-amber-700 block text-[11px]">
-                    {breakdown.extraChildrenFee > 0
-                      ? "Tự động tính theo công thức SPEC 4.4 lúc Check-in"
-                      : "Không phát sinh phụ thu"}
+                  <span style={{ fontWeight: 700, color: "#92400e" }}>2. Phụ thu trẻ em vượt tiêu chuẩn:</span>
+                  <span style={{ fontSize: "0.75rem", color: "#b45309", display: "block" }}>
+                    {breakdown.extraChildrenFee > 0 ? "Tự động tính theo công thức SPEC 4.4 lúc Check-in" : "Không phát sinh phụ thu"}
                   </span>
                 </div>
-                <span className="font-extrabold text-sm text-amber-800">
+                <span style={{ fontWeight: 800, fontSize: "0.9375rem", color: "#92400e" }}>
                   +{formatCurrency(breakdown.extraChildrenFee)}
                 </span>
               </div>
 
               {/* 3. Phí dịch vụ */}
-              <div className="p-3 bg-blue-50/60 border border-blue-200 rounded-lg text-xs">
-                <div className="flex justify-between items-center mb-1.5">
+              <div style={{ padding: "0.75rem 1rem", background: "rgba(59, 130, 246, 0.06)", border: "1px solid rgba(59, 130, 246, 0.2)", borderRadius: "10px", fontSize: "0.8125rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
-                    <span className="font-bold text-blue-900">3. Phí dịch vụ phát sinh:</span>
-                    <span className="text-blue-700 block text-[11px]">
-                      {services.length} phiếu dịch vụ đã xuất
-                    </span>
+                    <span style={{ fontWeight: 700, color: "#1e40af" }}>3. Phí dịch vụ phát sinh:</span>
+                    <span style={{ fontSize: "0.75rem", color: "#2563eb", display: "block" }}>{services.length} phiếu dịch vụ đã xuất</span>
                   </div>
-                  <span className="font-extrabold text-sm text-blue-800">
+                  <span style={{ fontWeight: 800, fontSize: "0.9375rem", color: "#1e40af" }}>
                     +{formatCurrency(breakdown.totalServiceFee)}
                   </span>
                 </div>
 
                 {services.length > 0 && (
-                  <div className="mt-2 pt-2 border-t border-blue-200/60 space-y-1">
+                  <div style={{ marginTop: "0.5rem", paddingTop: "0.5rem", borderTop: "1px solid rgba(59, 130, 246, 0.15)", display: "flex", flexDirection: "column", gap: "0.25rem" }}>
                     {services.map((s) => (
-                      <div key={s.ticketId} className="flex justify-between text-[11px] text-blue-900">
+                      <div key={s.ticketId} style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem", color: "#1e40af" }}>
                         <span>
                           • {s.serviceName} ({s.quantity} {s.unit}) - Phòng {s.roomId} [{s.ticketId}]
+                          {s.isPaid && (
+                            <span style={{ marginLeft: "6px", padding: "1px 5px", borderRadius: "4px", background: "rgba(16, 185, 129, 0.2)", color: "#065f46", fontWeight: 700, fontSize: "0.7rem" }}>
+                              Đã trừ ví
+                            </span>
+                          )}
                         </span>
-                        <span className="font-semibold">{formatCurrency(s.totalPrice)}</span>
+                        <span style={{ fontWeight: 700 }}>{formatCurrency(s.totalPrice)}</span>
                       </div>
                     ))}
                   </div>
@@ -215,69 +327,114 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
             </div>
 
             {/* Box Tổng kết & Số tiền phải thu */}
-            <div className="bg-slate-900 text-white rounded-xl p-4.5 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-300">
+            <div
+              style={{
+                background: "linear-gradient(135deg, #0f172a 0%, #1e293b 100%)",
+                color: "#ffffff",
+                borderRadius: "14px",
+                padding: "1.25rem",
+                display: "flex",
+                flexDirection: "column",
+                gap: "0.5rem",
+                fontSize: "0.8125rem",
+              }}
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#94a3b8" }}>
                 <span>Tổng giá trị đơn & dịch vụ (Total Invoice):</span>
-                <span className="font-bold text-sm text-white">
+                <span style={{ fontWeight: 700, color: "#ffffff", fontSize: "0.9375rem" }}>
                   {formatCurrency(breakdown.totalInvoiceAmount)}
                 </span>
               </div>
-              <div className="flex justify-between text-emerald-400">
-                <span>Khấu trừ số tiền khách đã trả trước (Prepaid):</span>
-                <span className="font-bold text-sm">
+
+              <div style={{ display: "flex", justifyContent: "space-between", color: "#34d399" }}>
+                <span>Khấu trừ số tiền khách đã trả trước (Online Prepaid):</span>
+                <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>
                   -{formatCurrency(breakdown.prepaidBookingValue)}
                 </span>
               </div>
+
               {breakdown.walletPaidAmount > 0 && (
-                <div className="flex justify-between text-cyan-400">
+                <div style={{ display: "flex", justifyContent: "space-between", color: "#38bdf8" }}>
                   <span>Khấu trừ phí dịch vụ đã thanh toán qua Ví (Auto-Debit):</span>
-                  <span className="font-bold text-sm">
+                  <span style={{ fontWeight: 700, fontSize: "0.9375rem" }}>
                     -{formatCurrency(breakdown.walletPaidAmount)}
                   </span>
                 </div>
               )}
-              <div className="pt-2 border-t border-slate-700 flex justify-between items-center">
-                <span className="font-bold text-sm text-amber-300 uppercase">
+
+              <div style={{ paddingTop: "0.6rem", borderTop: "1px solid #334155", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <span style={{ fontWeight: 800, fontSize: "0.875rem", color: "#fef08a", textTransform: "uppercase" }}>
                   SỐ TIỀN CÒN LẠI CẦN THU TẠI QUẦY:
                 </span>
-                <span className="font-black text-xl text-amber-300">
+                <span style={{ fontWeight: 900, fontSize: "1.35rem", color: "#fef08a", letterSpacing: "-0.01em" }}>
                   {formatCurrency(breakdown.remainingPayable)}
                 </span>
               </div>
             </div>
 
-            <div className="p-3 bg-amber-50 border border-amber-200 rounded-lg text-xs text-amber-800 flex items-start space-x-2">
-              <ShieldAlert className="w-4 h-4 flex-shrink-0 mt-0.5 text-amber-600" />
+            <div
+              style={{
+                padding: "0.75rem 1rem",
+                borderRadius: "10px",
+                background: "rgba(245, 158, 11, 0.08)",
+                border: "1px solid rgba(245, 158, 11, 0.25)",
+                fontSize: "0.775rem",
+                color: "#92400e",
+                display: "flex",
+                alignItems: "flex-start",
+                gap: "0.5rem",
+              }}
+            >
+              <ShieldAlert size={16} style={{ flexShrink: 0, marginTop: "2px" }} />
               <span>
-                <strong>Lưu ý:</strong> Sau khi xác nhận Check-out, đơn đặt phòng sẽ chuyển sang{" "}
-                <strong>CHECKED_OUT</strong>, tất cả phòng vật lý sẽ tự động chuyển về{" "}
-                <strong>AVAILABLE</strong> và hệ thống sẽ mở giao diện in hóa đơn chuẩn HTML.
+                <strong>Lưu ý:</strong> Sau khi xác nhận Check-out, đơn đặt phòng sẽ chuyển sang <strong>CHECKED_OUT</strong>, tất cả phòng vật lý sẽ tự động chuyển về <strong>AVAILABLE</strong> và hệ thống sẽ mở giao diện in hóa đơn chuẩn A4.
               </span>
             </div>
 
             {/* Actions */}
-            <div className="pt-2 flex items-center justify-end space-x-3">
+            <div style={{ display: "flex", justifyContent: "flex-end", gap: "0.75rem", marginTop: "0.25rem" }}>
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2.5 border border-slate-300 text-slate-700 hover:bg-slate-100 text-sm font-medium rounded-lg transition"
+                disabled={submitting}
+                className="btn btn-secondary"
+                style={{ padding: "0.7rem 1.25rem", fontSize: "0.875rem" }}
               >
                 Hủy bỏ
               </button>
+
               <button
                 type="button"
                 onClick={handleConfirmCheckout}
                 disabled={submitting}
-                className="px-5 py-2.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-300 text-white text-sm font-bold rounded-lg flex items-center space-x-2 shadow transition"
+                className="btn btn-primary"
+                style={{
+                  padding: "0.7rem 1.5rem",
+                  fontSize: "0.875rem",
+                  background: "linear-gradient(135deg, #d97706 0%, #b45309 100%)",
+                  boxShadow: "0 4px 14px rgba(217, 119, 6, 0.4)",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
               >
                 {submitting ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+                    <div
+                      style={{
+                        width: "16px",
+                        height: "16px",
+                        border: "2px solid #ffffff",
+                        borderTopColor: "transparent",
+                        borderRadius: "50%",
+                        animation: "spin 1s linear infinite",
+                      }}
+                    />
                     <span>Đang quyết toán...</span>
                   </>
                 ) : (
                   <>
-                    <CheckCircle className="w-4 h-4" />
+                    <CheckCircle size={16} />
                     <span>Xác Nhận Quyết Toán & Check-out</span>
                   </>
                 )}
@@ -289,4 +446,3 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
     </div>
   );
 }
-

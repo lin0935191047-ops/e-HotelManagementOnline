@@ -1,5 +1,20 @@
 import React, { useEffect } from "react";
-import { Printer, X, CheckCircle, FileText, Building2, Phone, Mail, User, Bed, Calendar, Tag, DollarSign } from "lucide-react";
+import {
+  Printer,
+  X,
+  FileText,
+  Building2,
+  Phone,
+  Mail,
+  User,
+  Bed,
+  Calendar,
+  CreditCard,
+  ShieldCheck,
+  Tag,
+  DollarSign,
+  Wallet,
+} from "lucide-react";
 import { formatDateShort, formatDateTimeDisplay } from "../../utils/date.js";
 
 const formatCurrency = (amount) => {
@@ -51,23 +66,41 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black bg-opacity-60 flex items-center justify-center p-4">
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        zIndex: 9999,
+        backgroundColor: "rgba(15, 23, 42, 0.7)",
+        backdropFilter: "blur(8px)",
+        WebkitBackdropFilter: "blur(8px)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "1rem",
+        overflowY: "auto",
+        animation: "fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
       {/* CSS chuyên dụng in ấn khổ A4 */}
       <style>{`
         @media print {
           body * {
-            visibility: hidden;
+            visibility: hidden !important;
           }
           #printable-invoice, #printable-invoice * {
-            visibility: visible;
+            visibility: visible !important;
           }
           #printable-invoice {
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 100%;
-            margin: 0;
-            padding: 24px;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            margin: 0 !important;
+            padding: 24px !important;
             box-shadow: none !important;
             border: none !important;
             background: white !important;
@@ -79,193 +112,486 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
         }
       `}</style>
 
-      <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[94vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <div
+        className="glass-card"
+        style={{
+          width: "100%",
+          maxWidth: "780px",
+          maxHeight: "94vh",
+          background: "#ffffff",
+          borderRadius: "20px",
+          border: "1px solid var(--border-color)",
+          boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header Modal (Không in) */}
-        <div className="no-print bg-slate-900 text-white px-6 py-4 flex items-center justify-between border-b border-slate-800">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-emerald-600 rounded-lg">
-              <FileText className="w-5 h-5 text-white" />
+        <div
+          className="no-print"
+          style={{
+            background: "linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #064e3b 100%)",
+            color: "#ffffff",
+            padding: "1.15rem 1.75rem",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "relative",
+            overflow: "hidden",
+          }}
+        >
+          {/* Ambient glow */}
+          <div
+            style={{
+              position: "absolute",
+              right: "-10px",
+              top: "-10px",
+              width: "100px",
+              height: "100px",
+              borderRadius: "50%",
+              background: "radial-gradient(circle, rgba(16, 185, 129, 0.2) 0%, transparent 70%)",
+              pointerEvents: "none",
+            }}
+          />
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", position: "relative", zIndex: 1 }}>
+            <div
+              style={{
+                width: "44px",
+                height: "44px",
+                borderRadius: "12px",
+                background: "rgba(16, 185, 129, 0.25)",
+                backdropFilter: "blur(6px)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#6ee7b7",
+                border: "1px solid rgba(16, 185, 129, 0.35)",
+              }}
+            >
+              <FileText size={22} />
             </div>
             <div>
-              <h3 className="font-bold text-lg">Hóa Đơn Quyết Toán Check-out</h3>
-              <p className="text-xs text-slate-400">Xem trước & xuất bản in hóa đơn chuẩn A4</p>
+              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0, letterSpacing: "-0.01em" }}>
+                  Hóa Đơn Quyết Toán Check-out
+                </h3>
+                <span
+                  style={{
+                    fontSize: "0.65rem",
+                    padding: "0.15rem 0.5rem",
+                    borderRadius: "6px",
+                    background: "rgba(16, 185, 129, 0.2)",
+                    color: "#a7f3d0",
+                    border: "1px solid rgba(16, 185, 129, 0.4)",
+                    fontWeight: 700,
+                  }}
+                >
+                  A4 FOLIO
+                </span>
+              </div>
+              <p style={{ fontSize: "0.8rem", color: "rgba(255, 255, 255, 0.75)", margin: "0.2rem 0 0 0" }}>
+                Xem trước & xuất bản in hóa đơn chuẩn A4 cho khách lưu trú
+              </p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
+
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", position: "relative", zIndex: 1 }}>
             <button
               onClick={handlePrint}
-              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold rounded-lg flex items-center space-x-2 shadow-sm transition"
+              style={{
+                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "10px",
+                padding: "0.5rem 1rem",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.45rem",
+                boxShadow: "0 4px 12px rgba(5, 150, 105, 0.35)",
+                transition: "all 0.15s ease",
+              }}
             >
-              <Printer className="w-4 h-4" />
+              <Printer size={16} />
               <span>In Hóa Đơn (Print)</span>
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition"
+              style={{
+                background: "rgba(255, 255, 255, 0.12)",
+                border: "none",
+                borderRadius: "10px",
+                padding: "0.5rem",
+                color: "#ffffff",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                transition: "background 0.15s ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.22)")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.12)")}
+              title="Đóng (Esc)"
             >
-              <X className="w-5 h-5" />
+              <X size={18} />
             </button>
           </div>
         </div>
 
         {/* Nội dung Hóa đơn - In ấn */}
-        <div className="p-6 overflow-y-auto flex-1 bg-slate-50 flex justify-center">
+        <div
+          style={{
+            padding: "1.5rem",
+            overflowY: "auto",
+            flex: 1,
+            backgroundColor: "#f8fafc",
+            display: "flex",
+            justifyContent: "center",
+          }}
+        >
           <div
             id="printable-invoice"
-            className="bg-white border border-slate-300 rounded-xl p-8 max-w-2xl w-full shadow-sm text-slate-900 print:border-none print:shadow-none"
+            style={{
+              backgroundColor: "#ffffff",
+              border: "1px solid #cbd5e1",
+              borderRadius: "12px",
+              padding: "2rem",
+              maxWidth: "700px",
+              width: "100%",
+              color: "#0f172a",
+              boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
+              fontSize: "0.85rem",
+            }}
           >
             {/* Header Khách Sạn */}
-            <div className="border-b-2 border-slate-900 pb-4 mb-6">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h1 className="text-2xl font-black tracking-tight text-slate-950 uppercase">
+            <div
+              style={{
+                borderBottom: "2px solid #0f172a",
+                paddingBottom: "1rem",
+                marginBottom: "1.25rem",
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+              }}
+            >
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                  <Building2 size={20} color="#047857" />
+                  <h1
+                    style={{
+                      fontSize: "1.3rem",
+                      fontWeight: 900,
+                      letterSpacing: "0.02em",
+                      color: "#0f172a",
+                      margin: 0,
+                      textTransform: "uppercase",
+                    }}
+                  >
                     e-Hotel Luxury Resort & Spa
                   </h1>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    Đẳng cấp nghỉ dưỡng & dịch vụ tiêu chuẩn 5 sao quốc tế
-                  </p>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Hotline: 1900 8888 | Email: accounting@ehotel.local | Web: ehotel.local
-                  </p>
                 </div>
-                <div className="text-right">
-                  <span className="inline-block px-3 py-1 bg-emerald-50 text-emerald-800 font-mono text-sm font-extrabold rounded border border-emerald-300">
-                    {invoiceId}
-                  </span>
-                  <p className="text-xs text-slate-500 mt-1">
-                    Ngày lập: {formatDateTime(issuedAt)}
-                  </p>
-                </div>
+                <p style={{ fontSize: "0.75rem", color: "#64748b", margin: "0.25rem 0 0 0" }}>
+                  ★★★★★ Đẳng cấp nghỉ dưỡng & dịch vụ tiêu chuẩn 5 sao quốc tế
+                </p>
+                <p style={{ fontSize: "0.72rem", color: "#94a3b8", margin: "0.2rem 0 0 0" }}>
+                  Hotline: 1900 8888 | Email: accounting@ehotel.local | Web: ehotel.local
+                </p>
+              </div>
+
+              <div style={{ textAlign: "right" }}>
+                <span
+                  style={{
+                    display: "inline-block",
+                    padding: "0.3rem 0.75rem",
+                    background: "#ecfdf5",
+                    color: "#065f46",
+                    fontFamily: "monospace",
+                    fontSize: "0.85rem",
+                    fontWeight: 800,
+                    borderRadius: "6px",
+                    border: "1px solid #a7f3d0",
+                  }}
+                >
+                  {invoiceId}
+                </span>
+                <p style={{ fontSize: "0.75rem", color: "#64748b", margin: "0.35rem 0 0 0" }}>
+                  Ngày lập: {formatDateTime(issuedAt)}
+                </p>
               </div>
             </div>
 
             {/* Tiêu đề Hóa Đơn */}
-            <div className="text-center my-5">
-              <h2 className="text-xl font-extrabold tracking-wide uppercase text-slate-900">
+            <div style={{ textAlign: "center", margin: "1.25rem 0" }}>
+              <h2
+                style={{
+                  fontSize: "1.25rem",
+                  fontWeight: 900,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  color: "#0f172a",
+                  margin: 0,
+                }}
+              >
                 HÓA ĐƠN QUYẾT TOÁN TRẢ PHÒNG
               </h2>
-              <p className="text-xs italic text-slate-500 mt-0.5">
+              <p style={{ fontSize: "0.75rem", fontStyle: "italic", color: "#64748b", margin: "0.2rem 0 0 0" }}>
                 (Guest Folio & Check-out Statement)
               </p>
             </div>
 
             {/* Thông tin Khách Hàng & Đơn Đặt Phòng */}
-            <div className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-6 grid grid-cols-2 gap-3 text-xs">
+            <div
+              style={{
+                backgroundColor: "#f8fafc",
+                border: "1px solid #e2e8f0",
+                borderRadius: "10px",
+                padding: "0.9rem 1.1rem",
+                marginBottom: "1.25rem",
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "0.65rem",
+                fontSize: "0.8rem",
+              }}
+            >
               <div>
-                <span className="text-slate-500 block">Khách hàng đại diện:</span>
-                <span className="font-bold text-sm text-slate-900">
-                  {booking.customerName}
+                <span style={{ color: "#64748b", display: "block", fontSize: "0.72rem" }}>Khách hàng đại diện:</span>
+                <span style={{ fontWeight: 800, color: "#0f172a", fontSize: "0.88rem" }}>
+                  {booking.customerName || "---"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block">Mã đơn đặt phòng:</span>
-                <span className="font-bold text-sm text-blue-700 font-mono">
-                  {booking.bookingNumber}
+                <span style={{ color: "#64748b", display: "block", fontSize: "0.72rem" }}>Mã đơn đặt phòng:</span>
+                <span style={{ fontWeight: 800, color: "#1d4ed8", fontFamily: "monospace", fontSize: "0.88rem" }}>
+                  {booking.bookingNumber || "---"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block">Số điện thoại:</span>
-                <span className="font-semibold text-slate-800 font-mono">
-                  {booking.customerPhone}
+                <span style={{ color: "#64748b", display: "block", fontSize: "0.72rem" }}>Số điện thoại:</span>
+                <span style={{ fontWeight: 600, color: "#334155", fontFamily: "monospace" }}>
+                  {booking.customerPhone || "---"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block">Số CCCD / CMND:</span>
-                <span className="font-semibold text-slate-800 font-mono">
-                  {booking.customerCccd}
+                <span style={{ color: "#64748b", display: "block", fontSize: "0.72rem" }}>Số CCCD / CMND:</span>
+                <span style={{ fontWeight: 600, color: "#334155", fontFamily: "monospace" }}>
+                  {booking.customerCccd || "---"}
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block">Thời gian lưu trú:</span>
-                <span className="font-semibold text-slate-800">
+                <span style={{ color: "#64748b", display: "block", fontSize: "0.72rem" }}>Thời gian lưu trú:</span>
+                <span style={{ fontWeight: 600, color: "#334155" }}>
                   {formatDate(booking.fromDate)} → {formatDate(booking.toDate)} ({booking.nights} đêm)
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block">Phòng vật lý đã ở:</span>
-                <span className="font-bold text-slate-900">
+                <span style={{ color: "#64748b", display: "block", fontSize: "0.72rem" }}>Phòng vật lý đã ở:</span>
+                <span style={{ fontWeight: 800, color: "#0f172a" }}>
                   {rooms.map((r) => `Phòng ${r.roomId}`).join(", ") || "---"}
                 </span>
               </div>
             </div>
 
             {/* Danh mục chi tiết quyết toán */}
-            <div className="space-y-4 mb-6">
+            <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "1.25rem" }}>
               {/* 1. Tiền phòng */}
               <div>
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                  <span>1. Chi Phí Tiền Phòng</span>
-                  <span className="font-mono text-emerald-700">{formatCurrency(totalRoomFee)}</span>
-                </h4>
-                <div className="bg-slate-50 border border-slate-200 rounded p-2.5 text-xs">
-                  <div className="flex justify-between items-center">
-                    <span>
-                      Tiền phòng lưu trú ({booking.nights} đêm)
-                      {booking.promotion && (
-                        <span className="text-amber-600 text-[11px] ml-1.5">
-                          (Đã áp dụng mã KM: {booking.promotion.code})
-                        </span>
-                      )}
-                    </span>
-                    <span className="font-bold">{formatCurrency(totalRoomFee)}</span>
-                  </div>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "0.35rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.78rem",
+                      fontWeight: 800,
+                      color: "#1e293b",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.03em",
+                    }}
+                  >
+                    1. Chi Phí Tiền Phòng Lưu Trú
+                  </span>
+                  <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#047857" }}>
+                    {formatCurrency(totalRoomFee)}
+                  </span>
+                </div>
+                <div
+                  style={{
+                    backgroundColor: "#f8fafc",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "6px",
+                    padding: "0.6rem 0.85rem",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    fontSize: "0.8rem",
+                  }}
+                >
+                  <span>
+                    Tiền phòng lưu trú ({booking.nights} đêm)
+                    {booking.promotion && (
+                      <span style={{ color: "#b45309", fontSize: "0.75rem", marginLeft: "0.4rem" }}>
+                        (Áp dụng KM: {booking.promotion.code})
+                      </span>
+                    )}
+                  </span>
+                  <span style={{ fontWeight: 700 }}>{formatCurrency(totalRoomFee)}</span>
                 </div>
               </div>
 
               {/* 2. Phụ thu trẻ em nếu có */}
               {extraChildrenFee > 0 && (
                 <div>
-                  <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                    <span>2. Phụ Thu Trẻ Em Vượt Tiêu Chuẩn (SPEC 4.4)</span>
-                    <span className="font-mono text-amber-700">+{formatCurrency(extraChildrenFee)}</span>
-                  </h4>
-                  <div className="bg-amber-50/60 border border-amber-200 rounded p-2.5 text-xs text-amber-900">
-                    <div className="flex justify-between items-center">
-                      <span>Phụ thu số lượng trẻ em vượt định mức phòng</span>
-                      <span className="font-bold">+{formatCurrency(extraChildrenFee)}</span>
-                    </div>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      marginBottom: "0.35rem",
+                    }}
+                  >
+                    <span
+                      style={{
+                        fontSize: "0.78rem",
+                        fontWeight: 800,
+                        color: "#b45309",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.03em",
+                      }}
+                    >
+                      2. Phụ Thu Trẻ Em Vượt Tiêu Chuẩn (SPEC 4.4)
+                    </span>
+                    <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#b45309" }}>
+                      +{formatCurrency(extraChildrenFee)}
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      backgroundColor: "#fffbeb",
+                      border: "1px solid #fde68a",
+                      borderRadius: "6px",
+                      padding: "0.6rem 0.85rem",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      fontSize: "0.8rem",
+                      color: "#92400e",
+                    }}
+                  >
+                    <span>Phụ thu số lượng trẻ em vượt định mức theo quy chế phòng</span>
+                    <span style={{ fontWeight: 700 }}>+{formatCurrency(extraChildrenFee)}</span>
                   </div>
                 </div>
               )}
 
               {/* 3. Dịch vụ phát sinh */}
               <div>
-                <h4 className="text-xs font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center justify-between">
-                  <span>3. Dịch Vụ Khách Sạn Đã Sử Dụng ({services.length} phiếu)</span>
-                  <span className="font-mono text-blue-700">+{formatCurrency(totalServiceFee)}</span>
-                </h4>
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "0.35rem",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "0.78rem",
+                      fontWeight: 800,
+                      color: "#1e293b",
+                      textTransform: "uppercase",
+                      letterSpacing: "0.03em",
+                    }}
+                  >
+                    {extraChildrenFee > 0 ? "3." : "2."} Dịch Vụ Khách Sạn Đã Sử Dụng ({services.length} phiếu)
+                  </span>
+                  <span style={{ fontFamily: "monospace", fontWeight: 700, color: "#2563eb" }}>
+                    +{formatCurrency(totalServiceFee)}
+                  </span>
+                </div>
                 {services.length === 0 ? (
-                  <div className="bg-slate-50 border border-slate-200 rounded p-2.5 text-xs text-slate-500 italic">
+                  <div
+                    style={{
+                      backgroundColor: "#f8fafc",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "6px",
+                      padding: "0.6rem 0.85rem",
+                      fontSize: "0.78rem",
+                      color: "#64748b",
+                      fontStyle: "italic",
+                    }}
+                  >
                     Không phát sinh dịch vụ phòng trong kỳ lưu trú.
                   </div>
                 ) : (
-                  <table className="w-full text-left border-collapse text-xs border border-slate-200 rounded">
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      fontSize: "0.78rem",
+                      border: "1px solid #e2e8f0",
+                      borderRadius: "6px",
+                      overflow: "hidden",
+                    }}
+                  >
                     <thead>
-                      <tr className="bg-slate-100 text-slate-700 border-b border-slate-200">
-                        <th className="py-1.5 px-2.5 font-bold">Mã phiếu</th>
-                        <th className="py-1.5 px-2.5 font-bold">Tên dịch vụ</th>
-                        <th className="py-1.5 px-2.5 font-bold text-center">Phòng</th>
-                        <th className="py-1.5 px-2.5 font-bold text-center">SL</th>
-                        <th className="py-1.5 px-2.5 font-bold text-right">Đơn giá</th>
-                        <th className="py-1.5 px-2.5 font-bold text-right">Thành tiền</th>
+                      <tr style={{ backgroundColor: "#f1f5f9", color: "#334155", borderBottom: "1px solid #cbd5e1" }}>
+                        <th style={{ padding: "0.5rem 0.6rem", textAlign: "left", fontWeight: 700 }}>Mã phiếu</th>
+                        <th style={{ padding: "0.5rem 0.6rem", textAlign: "left", fontWeight: 700 }}>Tên dịch vụ</th>
+                        <th style={{ padding: "0.5rem 0.6rem", textAlign: "center", fontWeight: 700 }}>Phòng</th>
+                        <th style={{ padding: "0.5rem 0.6rem", textAlign: "center", fontWeight: 700 }}>SL</th>
+                        <th style={{ padding: "0.5rem 0.6rem", textAlign: "right", fontWeight: 700 }}>Đơn giá</th>
+                        <th style={{ padding: "0.5rem 0.6rem", textAlign: "right", fontWeight: 700 }}>Thành tiền</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {services.map((s) => (
-                        <tr key={s.ticketId}>
-                          <td className="py-2 px-2.5 font-mono text-[11px] text-slate-600">{s.ticketId}</td>
-                          <td className="py-2 px-2.5 font-medium">
+                    <tbody>
+                      {services.map((s, idx) => (
+                        <tr
+                          key={s.ticketId || idx}
+                          style={{
+                            borderBottom: "1px solid #e2e8f0",
+                            backgroundColor: idx % 2 === 1 ? "#fafafa" : "#ffffff",
+                          }}
+                        >
+                          <td style={{ padding: "0.45rem 0.6rem", fontFamily: "monospace", color: "#64748b" }}>
+                            {s.ticketId}
+                          </td>
+                          <td style={{ padding: "0.45rem 0.6rem", fontWeight: 600 }}>
                             {s.serviceName}
                             {s.isPaid && (
-                              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded font-bold">
+                              <span
+                                style={{
+                                  marginLeft: "0.4rem",
+                                  padding: "0.1rem 0.35rem",
+                                  fontSize: "0.65rem",
+                                  backgroundColor: "#eff6ff",
+                                  color: "#1d4ed8",
+                                  borderRadius: "4px",
+                                  fontWeight: 700,
+                                  border: "1px solid #bfdbfe",
+                                }}
+                              >
                                 Ví đã thanh toán
                               </span>
                             )}
                           </td>
-                          <td className="py-2 px-2.5 text-center">{s.roomId}</td>
-                          <td className="py-2 px-2.5 text-center font-bold">{s.quantity} {s.unit}</td>
-                          <td className="py-2 px-2.5 text-right">{formatCurrency(s.unitPrice)}</td>
-                          <td className="py-2 px-2.5 text-right font-bold text-blue-700">
+                          <td style={{ padding: "0.45rem 0.6rem", textAlign: "center" }}>{s.roomId}</td>
+                          <td style={{ padding: "0.45rem 0.6rem", textAlign: "center", fontWeight: 700 }}>
+                            {s.quantity} {s.unit}
+                          </td>
+                          <td style={{ padding: "0.45rem 0.6rem", textAlign: "right" }}>
+                            {formatCurrency(s.unitPrice)}
+                          </td>
+                          <td style={{ padding: "0.45rem 0.6rem", textAlign: "right", fontWeight: 700, color: "#1d4ed8" }}>
                             {formatCurrency(s.totalPrice)}
                           </td>
                         </tr>
@@ -277,41 +603,83 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
             </div>
 
             {/* Bảng Tổng Kết Quyết Toán Tài Chính */}
-            <div className="border-t-2 border-slate-900 pt-4 mb-6">
-              <div className="space-y-1.5 text-xs">
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-600">Tổng tiền phòng sau chiết khấu:</span>
-                  <span className="font-semibold">{formatCurrency(totalRoomFee)}</span>
+            <div
+              style={{
+                borderTop: "2px solid #0f172a",
+                paddingTop: "0.85rem",
+                marginBottom: "1.25rem",
+              }}
+            >
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem", fontSize: "0.82rem" }}>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>Tổng tiền phòng sau chiết khấu:</span>
+                  <span style={{ fontWeight: 600 }}>{formatCurrency(totalRoomFee)}</span>
                 </div>
                 {extraChildrenFee > 0 && (
-                  <div className="flex justify-between py-1">
-                    <span className="text-slate-600">Phụ thu trẻ em vượt định mức:</span>
-                    <span className="font-semibold text-amber-700">+{formatCurrency(extraChildrenFee)}</span>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <span style={{ color: "#64748b" }}>Phụ thu trẻ em vượt định mức:</span>
+                    <span style={{ fontWeight: 600, color: "#b45309" }}>+{formatCurrency(extraChildrenFee)}</span>
                   </div>
                 )}
-                <div className="flex justify-between py-1">
-                  <span className="text-slate-600">Tổng phí dịch vụ phát sinh:</span>
-                  <span className="font-semibold text-blue-700">+{formatCurrency(totalServiceFee)}</span>
+                <div style={{ display: "flex", justifyContent: "space-between" }}>
+                  <span style={{ color: "#64748b" }}>Tổng phí dịch vụ phát sinh:</span>
+                  <span style={{ fontWeight: 600, color: "#2563eb" }}>+{formatCurrency(totalServiceFee)}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-t border-slate-200 font-bold text-sm">
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    paddingTop: "0.4rem",
+                    borderTop: "1px solid #cbd5e1",
+                    fontWeight: 800,
+                    fontSize: "0.92rem",
+                  }}
+                >
                   <span>TỔNG GIÁ TRỊ HÓA ĐƠN:</span>
-                  <span className="text-slate-900">{formatCurrency(totalInvoiceAmount)}</span>
+                  <span style={{ color: "#0f172a" }}>{formatCurrency(totalInvoiceAmount)}</span>
                 </div>
-                <div className="flex justify-between py-1 text-emerald-700 font-medium">
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    color: "#059669",
+                    fontWeight: 600,
+                  }}
+                >
                   <span>Đã thanh toán trước lúc đặt (Online Prepaid):</span>
                   <span>-{formatCurrency(prepaidBookingValue)}</span>
                 </div>
                 {walletPaidAmount > 0 && (
-                  <div className="flex justify-between py-1 text-blue-700 font-medium">
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      color: "#2563eb",
+                      fontWeight: 600,
+                    }}
+                  >
                     <span>Đã trừ tiền ví tự động (Auto-Debit Wallet):</span>
                     <span>-{formatCurrency(walletPaidAmount)}</span>
                   </div>
                 )}
-                <div className="flex justify-between items-center py-2.5 border-t-2 border-slate-900 mt-2 bg-slate-100 px-3 rounded-lg">
-                  <span className="font-extrabold text-sm uppercase text-slate-900">
+
+                {/* Highlight SỐ TIỀN CÒN LẠI PHẢI THU */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "0.75rem 1rem",
+                    border: "2px solid #059669",
+                    backgroundColor: "#ecfdf5",
+                    borderRadius: "8px",
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  <span style={{ fontWeight: 900, fontSize: "0.88rem", textTransform: "uppercase", color: "#065f46" }}>
                     SỐ TIỀN CÒN LẠI PHẢI THU TẠI QUẦY:
                   </span>
-                  <span className="font-black text-lg text-emerald-800">
+                  <span style={{ fontWeight: 900, fontSize: "1.25rem", color: "#047857", fontFamily: "monospace" }}>
                     {formatCurrency(remainingPayable)}
                   </span>
                 </div>
@@ -319,53 +687,117 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
             </div>
 
             {/* Ghi chú & Chữ ký xác nhận */}
-            <div className="text-xs text-slate-500 mb-6 italic text-center">
+            <div
+              style={{
+                fontSize: "0.72rem",
+                color: "#64748b",
+                marginBottom: "1.25rem",
+                fontStyle: "italic",
+                textAlign: "center",
+              }}
+            >
               Quý khách vui lòng kiểm tra kỹ các khoản mục trên hóa đơn trước khi rời khách sạn.
             </div>
 
-            <div className="grid grid-cols-2 gap-8 text-center text-xs pt-4 border-t border-slate-200">
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "2rem",
+                textAlign: "center",
+                fontSize: "0.78rem",
+                paddingTop: "0.75rem",
+                borderTop: "1px solid #e2e8f0",
+              }}
+            >
               <div>
-                <p className="font-bold text-slate-800">Khách hàng xác nhận thanh toán</p>
-                <p className="text-[11px] text-slate-400 italic">(Ký và ghi rõ họ tên)</p>
-                <div className="h-16"></div>
-                <p className="font-semibold text-slate-700">
+                <p style={{ fontWeight: 700, color: "#1e293b", margin: 0 }}>Khách hàng xác nhận thanh toán</p>
+                <p style={{ fontSize: "0.68rem", color: "#94a3b8", fontStyle: "italic", margin: "0.15rem 0 0 0" }}>
+                  (Ký và ghi rõ họ tên)
+                </p>
+                <div style={{ height: "55px" }}></div>
+                <p style={{ fontWeight: 600, color: "#475569", margin: 0 }}>
                   {booking.customerName || "........................................"}
                 </p>
               </div>
               <div>
-                <p className="font-bold text-slate-800">Đại diện Lễ tân / Kế toán</p>
-                <p className="text-[11px] text-slate-400 italic">(Ký và đóng dấu)</p>
-                <div className="h-16"></div>
-                <p className="font-semibold text-slate-700">
+                <p style={{ fontWeight: 700, color: "#1e293b", margin: 0 }}>Đại diện Lễ tân / Kế toán</p>
+                <p style={{ fontSize: "0.68rem", color: "#94a3b8", fontStyle: "italic", margin: "0.15rem 0 0 0" }}>
+                  (Ký và đóng dấu)
+                </p>
+                <div style={{ height: "55px" }}></div>
+                <p style={{ fontWeight: 600, color: "#475569", margin: 0 }}>
                   ........................................
                 </p>
               </div>
             </div>
 
             {/* Footer bản in */}
-            <div className="mt-8 pt-3 border-t border-dashed border-slate-300 text-center text-[10px] text-slate-400">
+            <div
+              style={{
+                marginTop: "1.5rem",
+                paddingTop: "0.65rem",
+                borderTop: "1px dashed #cbd5e1",
+                textAlign: "center",
+                fontSize: "0.68rem",
+                color: "#94a3b8",
+              }}
+            >
               e-Hotel Online Management System — Kính chúc Quý khách một chuyến đi vui vẻ & hẹn gặp lại!
             </div>
           </div>
         </div>
 
         {/* Footer Modal (Không in) */}
-        <div className="no-print bg-slate-100 px-6 py-3 border-t border-slate-200 flex items-center justify-between">
-          <span className="text-xs text-slate-500">
+        <div
+          className="no-print"
+          style={{
+            backgroundColor: "#f1f5f9",
+            padding: "0.85rem 1.75rem",
+            borderTop: "1px solid #e2e8f0",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          <span style={{ fontSize: "0.75rem", color: "#64748b" }}>
             Khuyến nghị: Chọn máy in hoặc Lưu dưới dạng PDF (Save as PDF) với khổ giấy A4
           </span>
-          <div className="flex space-x-2">
+          <div style={{ display: "flex", gap: "0.5rem" }}>
             <button
               onClick={onClose}
-              className="px-4 py-2 border border-slate-300 text-slate-700 hover:bg-slate-200 text-sm font-medium rounded-lg transition"
+              style={{
+                padding: "0.5rem 1rem",
+                border: "1px solid #cbd5e1",
+                backgroundColor: "#ffffff",
+                color: "#334155",
+                fontSize: "0.85rem",
+                fontWeight: 600,
+                borderRadius: "8px",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
             >
               Đóng
             </button>
             <button
               onClick={handlePrint}
-              className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg flex items-center space-x-2 shadow transition"
+              style={{
+                padding: "0.5rem 1.25rem",
+                background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                color: "#ffffff",
+                border: "none",
+                fontSize: "0.85rem",
+                fontWeight: 700,
+                borderRadius: "8px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "0.4rem",
+                boxShadow: "0 2px 6px rgba(5, 150, 105, 0.3)",
+              }}
             >
-              <Printer className="w-4 h-4" />
+              <Printer size={16} />
               <span>In Hóa Đơn</span>
             </button>
           </div>
@@ -374,4 +806,3 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
     </div>
   );
 }
-
