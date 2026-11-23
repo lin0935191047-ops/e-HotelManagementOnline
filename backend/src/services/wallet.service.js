@@ -15,6 +15,18 @@ export class WalletService {
   }
 
   /**
+   * Sinh mã giao dịch ví theo định dạng WTX-YYYYMMDD-XXXX
+   */
+  static generateTransactionNo() {
+    const now = new Date();
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+    return `WTX-${yyyy}${mm}${dd}-${randomSuffix}`;
+  }
+
+  /**
    * Đảm bảo khách hàng luôn có ví nội bộ (Tạo mới nếu chưa có)
    * Đồng thời khởi tạo cài đặt Auto-Debit ở trạng thái NOT_ENABLED
    */
@@ -179,6 +191,129 @@ export class WalletService {
         createdAt: tx.createdAt,
       })),
     };
+  }
+
+  /**
+   * FEAT-13.2: Nạp tiền giả lập vào Ví nội bộ (Mock Top-up)
+   * Bọc trong Prisma Transaction với Pessimistic Locking (SELECT ... FOR UPDATE)
+   */
+  static async mockTopUp({ userId, amount, paymentMethod = "MOCK_TOP_UP", note = "" }) {
+    if (!userId) {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Vui lòng cung cấp mã người dùng (userId).",
+        400,
+      );
+    }
+
+    const cleanAmount = Math.round(Number(amount));
+    if (isNaN(cleanAmount) || cleanAmount < 10000) {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Số tiền nạp tối thiểu là 10.000 VND và phải là số nguyên hợp lệ.",
+        400,
+      );
+    }
+
+    if (cleanAmount > 500000000) {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Số tiền nạp tối đa mỗi lần là 500.000.000 VND.",
+        400,
+      );
+    }
+
+    // Đảm bảo ví tồn tại trước khi bắt đầu transaction
+    const initialWallet = await this.getOrCreateWallet(userId);
+
+    if (initialWallet.status === "LOCKED") {
+      throw new AppError(
+        ErrorCodes.WALLET_LOCKED,
+        "Ví nội bộ của bạn hiện đang bị KHÓA, không thể thực hiện nạp tiền. Vui lòng liên hệ quản trị viên.",
+        400,
+      );
+    }
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Khóa bi quan bản ghi ví bằng SELECT ... FOR UPDATE
+      const lockedWallets = await tx.$queryRaw`
+        SELECT id, wallet_number, balance, status, currency, user_id
+        FROM wallets
+        WHERE id = ${initialWallet.id}
+        FOR UPDATE;
+      `;
+
+      if (!lockedWallets || lockedWallets.length === 0) {
+        throw new AppError(
+          ErrorCodes.WALLET_NOT_FOUND,
+          "Không tìm thấy ví nội bộ.",
+          404,
+        );
+      }
+
+      const lockedWallet = lockedWallets[0];
+
+      if (lockedWallet.status === "LOCKED") {
+        throw new AppError(
+          ErrorCodes.WALLET_LOCKED,
+          "Ví nội bộ của bạn hiện đang bị KHÓA, không thể thực hiện nạp tiền.",
+          400,
+        );
+      }
+
+      const balanceBefore = Number(lockedWallet.balance);
+      const balanceAfter = balanceBefore + cleanAmount;
+      const transactionNo = this.generateTransactionNo();
+
+      // 2. Cập nhật số dư ví
+      await tx.$executeRaw`
+        UPDATE wallets
+        SET balance = ${balanceAfter}, updated_at = NOW()
+        WHERE id = ${lockedWallet.id};
+      `;
+
+      // 3. Tạo bản ghi giao dịch WalletTransaction
+      const transaction = await tx.walletTransaction.create({
+        data: {
+          transactionNo,
+          walletId: lockedWallet.id,
+          type: "TOP_UP_MOCK",
+          amount: cleanAmount,
+          balanceBefore,
+          balanceAfter,
+          status: "SUCCESS",
+          description: `Nạp tiền giả lập vào ví (+${new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(cleanAmount)})`,
+          metadata: {
+            mock: true,
+            simulatedAt: new Date().toISOString(),
+            paymentMethod: String(paymentMethod || "MOCK_TOP_UP").trim(),
+            note: note ? String(note).trim() : "Mock Top-up",
+          },
+        },
+      });
+
+      return {
+        wallet: {
+          id: lockedWallet.id,
+          walletNumber: lockedWallet.wallet_number,
+          currency: lockedWallet.currency,
+          balanceBefore,
+          balanceAfter,
+          amountAdded: cleanAmount,
+        },
+        transaction: {
+          id: transaction.id,
+          transactionNo: transaction.transactionNo,
+          type: transaction.type,
+          amount: Number(transaction.amount),
+          balanceBefore: Number(transaction.balanceBefore),
+          balanceAfter: Number(transaction.balanceAfter),
+          status: transaction.status,
+          description: transaction.description,
+          createdAt: transaction.createdAt,
+        },
+      };
+    });
   }
 
   /**

@@ -18,6 +18,29 @@ export class WalletController {
   }
 
   /**
+   * Khách hàng: Nạp tiền giả lập vào ví (Mock Top-up)
+   * POST /api/wallet/top-up
+   */
+  static async topUp(req, res, next) {
+    try {
+      const { amount, paymentMethod, note } = req.body || {};
+      const data = await WalletService.mockTopUp({
+        userId: req.user.id,
+        amount,
+        paymentMethod,
+        note,
+      });
+      return res.status(200).json({
+        success: true,
+        message: "Nạp tiền giả lập vào ví thành công.",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Khách hàng: Xem lịch sử giao dịch ví của mình
    * GET /api/wallet/transactions
    */

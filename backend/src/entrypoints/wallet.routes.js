@@ -9,6 +9,7 @@ router.use(authenticateToken);
 
 // Customer endpoints
 router.get("/my-wallet", requireRole("CUSTOMER"), WalletController.getMyWallet);
+router.post("/top-up", requireRole("CUSTOMER"), WalletController.topUp);
 router.get("/transactions", requireRole("CUSTOMER"), WalletController.getMyTransactions);
 
 // Admin endpoints
