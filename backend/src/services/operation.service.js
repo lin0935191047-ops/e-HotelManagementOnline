@@ -1310,6 +1310,8 @@ export class OperationService {
         unitPrice: Number(s.unitPrice),
         quantity: s.quantity,
         totalPrice: Number(s.totalPrice),
+        isPaid: Boolean(s.isPaid),
+        status: s.status,
         createdAt: s.createdAt,
       })),
     };
@@ -1698,6 +1700,8 @@ export class OperationService {
         unitPrice: Number(s.unitPrice),
         quantity: s.quantity,
         totalPrice: Number(s.totalPrice),
+        isPaid: Boolean(s.isPaid),
+        status: s.status,
         createdAt: s.createdAt,
       })),
     };

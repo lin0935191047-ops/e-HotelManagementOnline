@@ -24,7 +24,8 @@ export class AutoDebitController {
    */
   static async submitConsent(req, res, next) {
     try {
-      const { agreed, termsVersion } = req.body || {};
+      const agreed = req.body?.agreed !== undefined ? req.body.agreed : req.body?.consent;
+      const termsVersion = req.body?.termsVersion || req.body?.agreedTermsVersion;
       const ipAddress = req.ip || req.headers["x-forwarded-for"] || null;
       const userAgent = req.headers["user-agent"] || null;
 
@@ -91,7 +92,7 @@ export class AutoDebitController {
   static async adminUpdateStatus(req, res, next) {
     try {
       const { userId } = req.params;
-      const { status } = req.body || {};
+      const status = req.body?.status || (req.body?.isActive ? "ACTIVE" : undefined);
       const data = await AutoDebitService.adminUpdateStatus({
         userId,
         status,

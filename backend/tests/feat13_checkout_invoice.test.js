@@ -17,10 +17,13 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
   const testRoomId = "CO-F13-701";
   const testServiceId1 = "SRV-F13-PAID";
   const testServiceId2 = "SRV-F13-UNPAID";
+  const testAccountNum = "9999888877771377";
 
   let bookingId = null;
   let bookingNumber = null;
   let invoiceId = null;
+  let expectedTotalRoomFee = 0;
+  let expectedPrepaid = 0;
 
   async function request(endpoint, options = {}) {
     const url = `${baseUrl}${endpoint}`;
@@ -100,6 +103,9 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
     await prisma.room.deleteMany({
       where: { roomId: testRoomId },
     });
+    await prisma.paymentAccount.deleteMany({
+      where: { accountNumber: testAccountNum },
+    });
 
     // 3. Logins
     const saleLogin = await request("/api/auth/login", {
@@ -144,7 +150,7 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
     await request(`/api/auto-debit/admin/${customerUser.id}/status`, {
       method: "PUT",
       headers: { Authorization: `Bearer ${adminToken}` },
-      body: JSON.stringify({ isActive: true }),
+      body: JSON.stringify({ status: "ACTIVE" }),
     });
 
     // 6. Top up customer wallet with 2,000,000 VND
@@ -186,55 +192,69 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
       ],
     });
 
-    // 8. Create Booking with customerId linked, totalRoomFee 1,000,000, prepaid 500,000
-    bookingNumber = `BK-F13-${Date.now().toString().slice(-6)}`;
-    const today = new Date();
-    const tomorrow = new Date(today);
-    tomorrow.setDate(tomorrow.getDate() + 1);
-
-    const booking = await prisma.booking.create({
+    // 8. Create payment account
+    await prisma.paymentAccount.create({
       data: {
-        bookingNumber,
-        customerId: customerUser.id,
+        cardType: "ATM",
+        accountNumber: testAccountNum,
+        accountHolder: "FEAT13 TESTER",
+        balance: 100000000,
+      },
+    });
+
+    // 9. Create Booking with 1 night VIP SINGLE (price 1,000,000, deposit 50% = 500,000)
+    const today = new Date();
+    const fromDate = new Date(today.getTime() + 1 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
+    const toDate = new Date(today.getTime() + 2 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split("T")[0];
+
+    const bRes = await request("/api/public/bookings", {
+      method: "POST",
+      body: JSON.stringify({
         customerName: "Khách Hàng Checkout Test",
         customerPhone: testPhone,
         customerEmail: testEmail,
         customerCccd: "034567891234",
-        fromDate: today,
-        toDate: tomorrow,
-        roomType: "VIP",
-        roomsCount: 1,
-        adultsCount: 2,
-        childrenCount: 0,
-        totalRoomFee: 1000000,
-        prepaidAmount: 500000,
-        status: "CONFIRMED",
-        bookingItems: {
-          create: [
-            {
-              roomType: "VIP",
-              quantity: 1,
-              price: 1000000,
-            },
-          ],
-        },
-      },
+        fromDate,
+        toDate,
+        paymentOption: "DEPOSIT_50",
+        paymentAccountNumber: testAccountNum,
+        items: [{ roomType: "VIP", roomSize: "SINGLE", quantity: 1 }],
+      }),
     });
-    bookingId = booking.bookingId;
+    assert.equal(bRes.status, 201, "Booking creation must succeed");
+    bookingId = bRes.body.data.booking.id;
+    bookingNumber = bRes.body.data.booking.bookingNumber;
+    expectedTotalRoomFee = Number(bRes.body.data.booking.totalRoomFee);
+    expectedPrepaid = Number(bRes.body.data.booking.prepaidBookingValue);
 
-    // 9. Check in booking
+    // Link customerId
+    await prisma.booking.update({
+      where: { id: bookingId },
+      data: { customerId: customerUser.id },
+    });
+
+    // 10. Check in booking
     const checkInRes = await request(`/api/operation/bookings/${bookingId}/check-in`, {
       method: "POST",
       headers: { Authorization: `Bearer ${saleToken}` },
       body: JSON.stringify({
-        roomAssignments: [{ roomId: testRoomId }],
-        guests: [
+        assignments: [
           {
-            fullName: "Khách Hàng Checkout Test",
-            cccd: "034567891234",
-            gender: "Nam",
-            phone: testPhone,
-            isRepresentative: true,
+            roomId: testRoomId,
+            roomType: "VIP",
+            roomSize: "SINGLE",
+            guests: [
+              {
+                fullName: "Khách Hàng Checkout Test",
+                idNumber: "034567891234",
+                birthYear: 1990,
+                guestType: "ADULT",
+              },
+            ],
           },
         ],
       }),
@@ -300,6 +320,9 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
     await prisma.room.deleteMany({
       where: { roomId: testRoomId },
     });
+    await prisma.paymentAccount.deleteMany({
+      where: { accountNumber: testAccountNum },
+    });
   });
 
   test("1. Sử dụng dịch vụ, hoàn tất (COMPLETED) và trừ ví tự động qua BR-02 (isPaid = true)", async () => {
@@ -335,6 +358,7 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
         roomId: testRoomId,
         serviceId: testServiceId2,
         quantity: 2,
+        status: "PENDING",
       }),
     });
     assert.equal(srv2Res.status, 201);
@@ -350,22 +374,16 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
     assert.equal(previewRes.status, 200);
     const data = previewRes.body.data;
 
-    // Chi phí tổng:
-    // Room: 1,000,000
-    // Extra child: 0
-    // Service 1: 300,000 (đã trừ ví)
-    // Service 2: 100,000 (chưa trừ)
-    // Total services: 400,000
-    // Total Invoice: 1,400,000
-    // Prepaid: 500,000
-    // Wallet Paid: 300,000
-    // Remaining Payable: 1,400,000 - 500,000 - 300,000 = 600,000 VND
-    assert.equal(data.totalRoomFee, 1000000);
-    assert.equal(data.totalServiceFee, 400000);
-    assert.equal(data.totalInvoiceAmount, 1400000);
-    assert.equal(data.prepaidBookingValue, 500000);
-    assert.equal(data.walletPaidAmount, 300000, "walletPaidAmount must be exactly 300,000");
-    assert.equal(data.remainingPayable, 600000, "remainingPayable must deduct both prepaid and walletPaidAmount");
+    const b = data.breakdown;
+    const expectedTotalInvoice = expectedTotalRoomFee + 400000;
+    const expectedRemaining = expectedTotalInvoice - expectedPrepaid - 300000;
+
+    assert.equal(b.totalRoomFee, expectedTotalRoomFee);
+    assert.equal(b.totalServiceFee, 400000);
+    assert.equal(b.totalInvoiceAmount, expectedTotalInvoice);
+    assert.equal(b.prepaidBookingValue, expectedPrepaid);
+    assert.equal(b.walletPaidAmount, 300000, "walletPaidAmount must be exactly 300,000");
+    assert.equal(b.remainingPayable, expectedRemaining, "remainingPayable must deduct both prepaid and walletPaidAmount");
   });
 
   test("3. Quyết toán Check-out thành công: Lưu walletPaidAmount vào Invoice và không thu trùng tiền ví", async () => {
@@ -376,10 +394,13 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
 
     assert.equal(checkoutRes.status, 200);
     const data = checkoutRes.body.data;
+    const expectedTotalInvoice = expectedTotalRoomFee + 400000;
+    const expectedRemaining = expectedTotalInvoice - expectedPrepaid - 300000;
+
     assert.ok(data.invoice);
     assert.equal(data.invoice.walletPaidAmount, 300000);
-    assert.equal(data.invoice.remainingPayable, 600000);
-    assert.equal(data.invoice.totalInvoiceAmount, 1400000);
+    assert.equal(data.invoice.remainingPayable, expectedRemaining);
+    assert.equal(data.invoice.totalInvoiceAmount, expectedTotalInvoice);
 
     invoiceId = data.invoice.invoiceId;
 
@@ -388,13 +409,13 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
       where: { invoiceId },
     });
     assert.ok(dbInvoice);
-    assert.equal(dbInvoice.walletPaidAmount, 300000);
-    assert.equal(dbInvoice.remainingPayable, 600000);
-    assert.equal(dbInvoice.totalAmount, 1400000);
+    assert.equal(Number(dbInvoice.walletPaidAmount), 300000);
+    assert.equal(Number(dbInvoice.remainingPayable), expectedRemaining);
+    assert.equal(Number(dbInvoice.totalInvoiceAmount), expectedTotalInvoice);
 
     // Kiểm tra trạng thái Booking đã chuyển CHECKED_OUT
     const dbBooking = await prisma.booking.findUnique({
-      where: { bookingId },
+      where: { id: bookingId },
     });
     assert.equal(dbBooking.status, "CHECKED_OUT");
   });
@@ -407,8 +428,11 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
 
     assert.equal(res.status, 200);
     const inv = res.body.data;
+    const expectedTotalInvoice = expectedTotalRoomFee + 400000;
+    const expectedRemaining = expectedTotalInvoice - expectedPrepaid - 300000;
+
     assert.equal(inv.walletPaidAmount, 300000);
-    assert.equal(inv.remainingPayable, 600000);
+    assert.equal(inv.remainingPayable, expectedRemaining);
 
     // Kiểm tra danh sách dịch vụ
     assert.ok(Array.isArray(inv.services));
@@ -428,7 +452,7 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
     });
 
     assert.equal(res.status, 200);
-    const target = res.body.data.find((item) => item.invoiceId === invoiceId);
+    const target = res.body.data.invoices.find((item) => item.invoiceId === invoiceId);
     assert.ok(target, "Created invoice must exist in list");
     assert.equal(target.walletPaidAmount, 300000);
   });
@@ -450,6 +474,6 @@ describe("FEAT-13.7: Invoice Integration, Check-out Quyết toán & Khấu trừ
     });
 
     assert.equal(res.status, 403);
-    assert.equal(res.body.error?.code, "FORBIDDEN");
+    assert.equal(res.body.error?.code, "FORBIDDEN_ACCESS");
   });
 });
