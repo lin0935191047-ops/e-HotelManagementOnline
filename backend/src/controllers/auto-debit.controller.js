@@ -1,4 +1,5 @@
 import { AutoDebitService } from "../services/auto-debit.service.js";
+import { DebtService } from "../services/debt.service.js";
 
 export class AutoDebitController {
   /**
@@ -100,6 +101,132 @@ export class AutoDebitController {
       return res.json({
         success: true,
         message: `Cập nhật trạng thái Auto-Debit cho khách hàng ${userId} thành công: ${status}`,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==========================================
+  // FEAT-13.4: Quản lý Công nợ & Auto-Debit BR-01
+  // ==========================================
+
+  /**
+   * Admin / Manager / Sale: Tạo khoản công nợ mới
+   * POST /api/auto-debit/debts
+   */
+  static async createDebt(req, res, next) {
+    try {
+      const data = await DebtService.createDebt(req.body);
+      return res.status(201).json({
+        success: true,
+        message: `Tạo công nợ ${data.debtCode} thành công.`,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Khách hàng: Xem danh sách công nợ của chính mình
+   * GET /api/auto-debit/debts/my-debts
+   */
+  static async getMyDebts(req, res, next) {
+    try {
+      const { status, page, limit } = req.query;
+      const data = await DebtService.listDebtsForCustomer({
+        userId: req.user.id,
+        status,
+        page,
+        limit,
+      });
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Chi tiết khoản nợ
+   * GET /api/auto-debit/debts/:debtId
+   */
+  static async getDebtDetails(req, res, next) {
+    try {
+      const { debtId } = req.params;
+      const data = await DebtService.getDebtById(debtId);
+
+      // Nếu là CUSTOMER thì chỉ được xem nợ của chính mình
+      if (req.user.role === "CUSTOMER" && data.userId !== req.user.id) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: "FORBIDDEN_ACCESS",
+            message: "Bạn không có quyền truy cập khoản công nợ này.",
+          },
+        });
+      }
+
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Admin / Manager / Sale: Xem danh sách công nợ toàn hệ thống
+   * GET /api/auto-debit/debts/all
+   */
+  static async adminListDebts(req, res, next) {
+    try {
+      const data = await DebtService.listAllDebts(req.query);
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * FEAT-13.4: Thực thi Auto-Debit BR-01 cho 1 khoản nợ
+   * POST /api/auto-debit/debts/:debtId/process
+   */
+  static async processDebtBR01(req, res, next) {
+    try {
+      const { debtId } = req.params;
+      const isAdmin = req.user.role === "ADMIN";
+
+      const data = await DebtService.processAutoDebitBR01({
+        debtId,
+        triggeredByUserId: req.user.id,
+        isAdmin,
+      });
+
+      return res.status(200).json(data);
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Admin: Quét & tự động khấu trừ công nợ đến hạn hàng loạt (Batch Process BR-01)
+   * POST /api/auto-debit/debts/batch-process
+   */
+  static async batchProcessDueDebts(req, res, next) {
+    try {
+      const data = await DebtService.batchProcessDueDebts();
+      return res.status(200).json({
+        success: true,
+        message: "Quá trình quét và tự động khấu trừ công nợ đến hạn (BR-01) hoàn tất.",
         data,
       });
     } catch (error) {

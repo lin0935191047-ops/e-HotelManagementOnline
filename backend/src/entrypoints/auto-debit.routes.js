@@ -5,37 +5,94 @@ import { AutoDebitController } from "../controllers/auto-debit.controller.js";
 
 const router = Router();
 
-// Public endpoint - Cho phép người dùng/khách hàng xem trước điều khoản Auto-Debit
+// ==========================================
+// 1. PUBLIC ROUTES
+// ==========================================
+// Cho phép người dùng/khách hàng xem trước điều khoản Auto-Debit
 router.get("/terms", AutoDebitController.getTerms);
 
-// Customer endpoints - Yêu cầu xác thực tài khoản CUSTOMER
+// Yêu cầu xác thực Token cho toàn bộ các route bên dưới
+router.use(authenticateToken);
+
+// ==========================================
+// 2. CUSTOMER ROUTES (Xác thực CUSTOMER)
+// ==========================================
+// Ký đồng thuận điều khoản
 router.post(
   "/consent",
-  authenticateToken,
   requireRole("CUSTOMER"),
   AutoDebitController.submitConsent,
 );
 
+// Xem trạng thái Auto-Debit của tôi
 router.get(
   "/my-status",
-  authenticateToken,
   requireRole("CUSTOMER"),
   AutoDebitController.getMyStatus,
 );
 
-// Admin endpoints - Yêu cầu xác thực tài khoản ADMIN
+// Khách hàng xem danh sách công nợ của mình
+router.get(
+  "/debts/my-debts",
+  requireRole("CUSTOMER"),
+  AutoDebitController.getMyDebts,
+);
+
+// ==========================================
+// 3. AUTO-DEBIT BR-01 EXECUTION (CUSTOMER / ADMIN)
+// ==========================================
+// Thực thi Auto-Debit BR-01 cho một khoản nợ (Khách hàng tự thanh toán hoặc Admin kích hoạt)
+router.post(
+  "/debts/:debtId/process",
+  requireRole("CUSTOMER", "ADMIN"),
+  AutoDebitController.processDebtBR01,
+);
+
+// Xem chi tiết một khoản nợ
+router.get(
+  "/debts/:debtId",
+  requireRole("CUSTOMER", "ADMIN", "MANAGER", "SALE"),
+  AutoDebitController.getDebtDetails,
+);
+
+// ==========================================
+// 4. MANAGEMENT & ADMIN DEBT ROUTES (ADMIN / MANAGER / SALE)
+// ==========================================
+// Tạo khoản công nợ mới
+router.post(
+  "/debts",
+  requireRole("ADMIN", "MANAGER", "SALE"),
+  AutoDebitController.createDebt,
+);
+
+// Danh sách công nợ toàn hệ thống
+router.get(
+  "/debts/all",
+  requireRole("ADMIN", "MANAGER", "SALE"),
+  AutoDebitController.adminListDebts,
+);
+
+// ==========================================
+// 5. ADMIN EXCLUSIVE ROUTES (ADMIN)
+// ==========================================
+// Quản lý yêu cầu & cấu hình Auto-Debit khách hàng
 router.get(
   "/admin/list",
-  authenticateToken,
   requireRole("ADMIN"),
   AutoDebitController.adminListRequests,
 );
 
 router.put(
   "/admin/:userId/status",
-  authenticateToken,
   requireRole("ADMIN"),
   AutoDebitController.adminUpdateStatus,
+);
+
+// Quét & tự động khấu trừ công nợ đến hạn hàng loạt
+router.post(
+  "/debts/batch-process",
+  requireRole("ADMIN"),
+  AutoDebitController.batchProcessDueDebts,
 );
 
 export default router;
