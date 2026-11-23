@@ -10,6 +10,7 @@ import adminRoutes from "./entrypoints/admin.routes.js";
 import setupRoutes from "./entrypoints/setup.routes.js";
 import operationRoutes from "./entrypoints/operation.routes.js";
 import walletRoutes from "./entrypoints/wallet.routes.js";
+import autoDebitRoutes from "./entrypoints/auto-debit.routes.js";
 
 export const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/setup", setupRoutes);
 app.use("/api/operation", operationRoutes);
 app.use("/api/wallet", walletRoutes);
+app.use("/api/auto-debit", autoDebitRoutes);
 
 // Global Error Handler
 app.use(errorHandler);
