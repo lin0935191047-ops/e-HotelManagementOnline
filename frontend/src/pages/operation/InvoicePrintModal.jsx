@@ -39,6 +39,7 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
     totalServiceFee,
     totalInvoiceAmount,
     prepaidBookingValue,
+    walletPaidAmount = 0,
     remainingPayable,
     booking = {},
     rooms = [],
@@ -253,7 +254,14 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
                       {services.map((s) => (
                         <tr key={s.ticketId}>
                           <td className="py-2 px-2.5 font-mono text-[11px] text-slate-600">{s.ticketId}</td>
-                          <td className="py-2 px-2.5 font-medium">{s.serviceName}</td>
+                          <td className="py-2 px-2.5 font-medium">
+                            {s.serviceName}
+                            {s.isPaid && (
+                              <span className="ml-1.5 px-1.5 py-0.5 text-[10px] bg-blue-100 text-blue-800 rounded font-bold">
+                                Ví đã thanh toán
+                              </span>
+                            )}
+                          </td>
                           <td className="py-2 px-2.5 text-center">{s.roomId}</td>
                           <td className="py-2 px-2.5 text-center font-bold">{s.quantity} {s.unit}</td>
                           <td className="py-2 px-2.5 text-right">{formatCurrency(s.unitPrice)}</td>
@@ -293,6 +301,12 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
                   <span>Đã thanh toán trước lúc đặt (Online Prepaid):</span>
                   <span>-{formatCurrency(prepaidBookingValue)}</span>
                 </div>
+                {walletPaidAmount > 0 && (
+                  <div className="flex justify-between py-1 text-blue-700 font-medium">
+                    <span>Đã trừ tiền ví tự động (Auto-Debit Wallet):</span>
+                    <span>-{formatCurrency(walletPaidAmount)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center py-2.5 border-t-2 border-slate-900 mt-2 bg-slate-100 px-3 rounded-lg">
                   <span className="font-extrabold text-sm uppercase text-slate-900">
                     SỐ TIỀN CÒN LẠI PHẢI THU TẠI QUẦY:

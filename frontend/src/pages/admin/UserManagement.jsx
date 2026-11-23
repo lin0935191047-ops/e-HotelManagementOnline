@@ -204,7 +204,7 @@ export default function UserManagement({ currentLoggedUser }) {
 
         <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
           <span style={{ fontSize: "0.8125rem", color: "var(--text-dim)", fontWeight: 600 }}>Lọc vai trò:</span>
-          {["", "ADMIN", "MANAGER", "SALE"].map((r) => (
+          {["", "ADMIN", "MANAGER", "SALE", "CUSTOMER"].map((r) => (
             <button
               key={r}
               className={`btn btn-secondary ${roleFilter === r ? "btn-primary" : ""}`}
@@ -346,6 +346,7 @@ export default function UserManagement({ currentLoggedUser }) {
                   <option value="SALE">SALE (Lễ tân, Đặt phòng, Bán hàng, Check-in/out)</option>
                   <option value="MANAGER">MANAGER (Quản lý thiết lập Phòng, Dịch vụ, Khuyến mãi)</option>
                   <option value="ADMIN">ADMIN (Quản trị viên hệ thống & người dùng)</option>
+                  <option value="CUSTOMER">CUSTOMER (Khách hàng, Ví nội bộ & Auto-Debit)</option>
                 </select>
               </div>
 

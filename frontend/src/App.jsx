@@ -18,6 +18,7 @@ import ManagerSetup from "./pages/manager/ManagerSetup.jsx";
 import RoomCatalog from "./pages/customer/RoomCatalog.jsx";
 import BookingLookupModal from "./pages/customer/BookingLookupModal.jsx";
 import SaleOperation from "./pages/operation/SaleOperation.jsx";
+import CustomerWalletPortal from "./pages/customer/CustomerWalletPortal.jsx";
 
 export default function App() {
   const [user, setUser] = useState(getCurrentUser());
@@ -45,6 +46,7 @@ export default function App() {
     if (loggedInUser.role === "ADMIN") setActiveTab("users");
     else if (loggedInUser.role === "MANAGER") setActiveTab("setup");
     else if (loggedInUser.role === "SALE") setActiveTab("operation");
+    else if (loggedInUser.role === "CUSTOMER") setActiveTab("wallet");
   };
 
   // Kiểm tra phiên đăng nhập tự động mỗi 2 phút
@@ -126,7 +128,7 @@ export default function App() {
                 style={{ fontSize: "0.8125rem", padding: "0.5rem 1rem" }}
               >
                 <LayoutDashboard size={16} />
-                <span>Bảng Quản Trị</span>
+                <span>{user.role === "CUSTOMER" ? "Ví Của Tôi" : "Bảng Quản Trị"}</span>
               </button>
 
               <div style={{ display: "flex", alignItems: "center", gap: "0.6rem" }}>
@@ -200,8 +202,10 @@ export default function App() {
           <UserManagement currentLoggedUser={user} />
         ) : user.role === "MANAGER" ? (
           <ManagerSetup />
-        ) : (
+        ) : user.role === "SALE" ? (
           <SaleOperation />
+        ) : (
+          <CustomerWalletPortal currentLoggedUser={user} />
         )}
       </main>
 

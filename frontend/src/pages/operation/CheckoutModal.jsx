@@ -228,6 +228,14 @@ export default function CheckoutModal({ booking, onClose, onCheckoutSuccess }) {
                   -{formatCurrency(breakdown.prepaidBookingValue)}
                 </span>
               </div>
+              {breakdown.walletPaidAmount > 0 && (
+                <div className="flex justify-between text-cyan-400">
+                  <span>Khấu trừ phí dịch vụ đã thanh toán qua Ví (Auto-Debit):</span>
+                  <span className="font-bold text-sm">
+                    -{formatCurrency(breakdown.walletPaidAmount)}
+                  </span>
+                </div>
+              )}
               <div className="pt-2 border-t border-slate-700 flex justify-between items-center">
                 <span className="font-bold text-sm text-amber-300 uppercase">
                   SỐ TIỀN CÒN LẠI CẦN THU TẠI QUẦY:

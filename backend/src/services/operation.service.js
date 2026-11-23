@@ -1254,7 +1254,15 @@ export class OperationService {
     );
     const totalInvoiceAmount = netRoomFee + extraChildrenFee + totalServiceFee;
     const prepaidBookingValue = Number(booking.prepaidBookingValue);
-    const remainingPayable = totalInvoiceAmount - prepaidBookingValue;
+
+    // FEAT-13.7: Khấu trừ số tiền dịch vụ đã thanh toán qua ví nội bộ (Auto-Debit BR-02)
+    const walletPaidAmount = booking.serviceUsages
+      .filter((s) => s.isPaid)
+      .reduce((sum, s) => sum + Number(s.totalPrice), 0);
+    const remainingPayable = Math.max(
+      0,
+      totalInvoiceAmount - prepaidBookingValue - walletPaidAmount,
+    );
 
     return {
       booking: {
@@ -1278,6 +1286,7 @@ export class OperationService {
         totalServiceFee,
         totalInvoiceAmount,
         prepaidBookingValue,
+        walletPaidAmount,
         remainingPayable,
       },
       rooms: booking.assignments.map((a) => ({
@@ -1388,12 +1397,20 @@ export class OperationService {
         0,
       );
 
-      // 5. Tính toán tài chính theo công thức SPEC 4.5
+      // 5. Tính toán tài chính theo công thức SPEC 4.5 tích hợp FEAT-13.7
       const totalRoomFee = Number(lockedBooking.net_room_fee);
       const extraChildrenFee = Number(lockedBooking.extra_children_fee);
       const totalInvoiceAmount = totalRoomFee + extraChildrenFee + totalServiceFee;
       const prepaidBookingValue = Number(lockedBooking.prepaid_booking_value);
-      const remainingPayable = totalInvoiceAmount - prepaidBookingValue;
+
+      // FEAT-13.7: Khấu trừ số tiền dịch vụ đã thanh toán qua ví nội bộ (Auto-Debit BR-02)
+      const walletPaidAmount = serviceUsages
+        .filter((s) => s.isPaid)
+        .reduce((sum, s) => sum + Number(s.totalPrice), 0);
+      const remainingPayable = Math.max(
+        0,
+        totalInvoiceAmount - prepaidBookingValue - walletPaidAmount,
+      );
 
       // 6. Sinh mã Invoice: INV-YYYYMMDD-XXXX
       const now = new Date();
@@ -1413,6 +1430,7 @@ export class OperationService {
           totalServiceFee,
           totalInvoiceAmount,
           prepaidBookingValue,
+          walletPaidAmount,
           remainingPayable,
           issuedAt: now,
         },
@@ -1482,6 +1500,7 @@ export class OperationService {
           totalServiceFee: Number(createdInvoice.totalServiceFee),
           totalInvoiceAmount: Number(createdInvoice.totalInvoiceAmount),
           prepaidBookingValue: Number(createdInvoice.prepaidBookingValue),
+          walletPaidAmount: Number(createdInvoice.walletPaidAmount),
           remainingPayable: Number(createdInvoice.remainingPayable),
         },
         booking: {
@@ -1631,6 +1650,7 @@ export class OperationService {
       totalServiceFee: Number(invoice.totalServiceFee),
       totalInvoiceAmount: Number(invoice.totalInvoiceAmount),
       prepaidBookingValue: Number(invoice.prepaidBookingValue),
+      walletPaidAmount: Number(invoice.walletPaidAmount || 0),
       remainingPayable: Number(invoice.remainingPayable),
       booking: {
         id: b.id,
@@ -1749,6 +1769,7 @@ export class OperationService {
         customerPhone: inv.booking?.customerPhone,
         totalInvoiceAmount: Number(inv.totalInvoiceAmount),
         prepaidBookingValue: Number(inv.prepaidBookingValue),
+        walletPaidAmount: Number(inv.walletPaidAmount || 0),
         remainingPayable: Number(inv.remainingPayable),
         issuedAt: inv.issuedAt,
       })),
