@@ -1,4 +1,5 @@
 import { WalletService } from "../services/wallet.service.js";
+import { RefundService } from "../services/refund.service.js";
 
 export class WalletController {
   /**
@@ -95,6 +96,94 @@ export class WalletController {
       return res.json({
         success: true,
         message: `Cập nhật trạng thái ví thành công: ${status}`,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  // ==========================================
+  // FEAT-13.6: Quản lý Hoàn tiền (Refund Management)
+  // ==========================================
+
+  /**
+   * Admin: Thực hiện hoàn tiền vào ví nội bộ
+   * POST /api/wallet/refund
+   */
+  static async processRefund(req, res, next) {
+    try {
+      const { originalTxId, amount, reason } = req.body || {};
+      const data = await RefundService.processRefund({
+        originalTxId,
+        amount,
+        reason,
+        adminUsername: req.user.username,
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: `Hoàn tiền thành công ${Number(data.amount).toLocaleString()} VND vào ví của khách hàng.`,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Tra cứu số tiền tối đa còn lại có thể hoàn cho giao dịch gốc
+   * GET /api/wallet/transactions/:txId/refundable
+   */
+  static async getRefundableDetails(req, res, next) {
+    try {
+      const { txId } = req.params;
+      const data = await RefundService.getRefundableAmount(txId);
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Admin: Xem lịch sử hoàn tiền toàn hệ thống
+   * GET /api/wallet/refunds/history
+   */
+  static async listRefundHistory(req, res, next) {
+    try {
+      const { page, limit, walletId, keyword } = req.query;
+      const data = await RefundService.listRefundHistory({
+        page,
+        limit,
+        walletId,
+        keyword,
+      });
+      return res.json({
+        success: true,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
+   * Khách hàng: Xem danh sách các khoản hoàn tiền vào ví của mình
+   * GET /api/wallet/refunds/my-refunds
+   */
+  static async getMyRefunds(req, res, next) {
+    try {
+      const { page, limit } = req.query;
+      const data = await RefundService.listMyRefunds({
+        userId: req.user.id,
+        page,
+        limit,
+      });
+      return res.json({
+        success: true,
         data,
       });
     } catch (error) {
