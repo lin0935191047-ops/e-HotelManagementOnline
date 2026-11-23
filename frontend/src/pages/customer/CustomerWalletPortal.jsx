@@ -832,47 +832,148 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
 
       {/* MODAL: Mock Top-Up */}
       {isTopUpOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <CreditCard className="w-5 h-5 text-emerald-400" />
-                <h3 className="font-bold text-base">Nạp Tiền Giả Lập Vào Ví</h3>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            overflowY: "auto",
+            animation: "fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !topUpLoading) setIsTopUpOpen(false);
+          }}
+        >
+          <div
+            className="glass-card"
+            style={{
+              width: "100%",
+              maxWidth: "500px",
+              background: "#ffffff",
+              borderRadius: "20px",
+              border: "1px solid var(--border-color)",
+              boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+              overflow: "hidden",
+              animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Modal Header */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, #064e3b 0%, #047857 50%, #059669 100%)",
+                color: "#ffffff",
+                padding: "1.25rem 1.75rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", position: "relative", zIndex: 1 }}>
+                <div
+                  style={{
+                    width: "42px",
+                    height: "42px",
+                    borderRadius: "12px",
+                    background: "rgba(255, 255, 255, 0.2)",
+                    backdropFilter: "blur(4px)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#ffffff",
+                  }}
+                >
+                  <CreditCard size={22} />
+                </div>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0 }}>Nạp Tiền Giả Lập Vào Ví</h3>
+                    <span
+                      style={{
+                        fontSize: "0.65rem",
+                        padding: "0.15rem 0.5rem",
+                        borderRadius: "6px",
+                        background: "rgba(255, 255, 255, 0.2)",
+                        color: "#ffffff",
+                        fontWeight: 700,
+                      }}
+                    >
+                      MOCK SANDBOX
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.8)", margin: "0.15rem 0 0 0" }}>
+                    Nạp thử nghiệm số dư vào ví nội bộ tức thì
+                  </p>
+                </div>
               </div>
               <button
+                type="button"
                 onClick={() => setIsTopUpOpen(false)}
-                className="text-slate-400 hover:text-white"
+                disabled={topUpLoading}
+                style={{
+                  background: "rgba(255, 255, 255, 0.15)",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "0.45rem",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 0.15s ease",
+                }}
               >
-                <X className="w-5 h-5" />
+                <X size={18} />
               </button>
             </div>
 
-            <form onSubmit={handleTopUpSubmit} className="p-6">
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Chọn mức nạp nhanh
+            {/* Modal Form */}
+            <form onSubmit={handleTopUpSubmit} style={{ padding: "1.5rem" }}>
+              <div style={{ marginBottom: "1.25rem" }}>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", marginBottom: "0.5rem" }}>
+                  1. Chọn mức nạp nhanh
                 </label>
-                <div className="grid grid-cols-3 gap-2">
-                  {[500000, 1000000, 2000000, 5000000, 10000000, 20000000].map((amt) => (
-                    <button
-                      key={amt}
-                      type="button"
-                      onClick={() => setTopUpAmount(amt)}
-                      className={`py-2 text-xs font-bold rounded-lg border transition ${
-                        topUpAmount === amt
-                          ? "bg-emerald-50 border-emerald-500 text-emerald-700"
-                          : "border-slate-200 hover:bg-slate-50 text-slate-700"
-                      }`}
-                    >
-                      {formatCurrency(amt)}
-                    </button>
-                  ))}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "0.5rem" }}>
+                  {[500000, 1000000, 2000000, 5000000, 10000000, 20000000].map((amt) => {
+                    const isSelected = topUpAmount === amt;
+                    return (
+                      <button
+                        key={amt}
+                        type="button"
+                        onClick={() => setTopUpAmount(amt)}
+                        style={{
+                          padding: "0.6rem 0.25rem",
+                          fontSize: "0.78rem",
+                          fontWeight: 700,
+                          borderRadius: "10px",
+                          border: isSelected ? "2px solid #059669" : "1px solid #cbd5e1",
+                          background: isSelected ? "#ecfdf5" : "#ffffff",
+                          color: isSelected ? "#065f46" : "#334155",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                      >
+                        {formatCurrency(amt)}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Số tiền nạp tùy chỉnh (VND)
+              <div style={{ marginBottom: "1.25rem" }}>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", marginBottom: "0.4rem" }}>
+                  2. Số tiền nạp tùy chỉnh (VND) *
                 </label>
                 <input
                   type="number"
@@ -882,54 +983,76 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                   required
                   value={topUpAmount}
                   onChange={(e) => setTopUpAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm font-bold text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="form-input"
+                  style={{
+                    fontSize: "1.1rem",
+                    fontWeight: 800,
+                    color: "#065f46",
+                    background: "#f8fafc",
+                    borderColor: "#a7f3d0",
+                  }}
                 />
               </div>
 
-              <div className="mb-4">
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Cổng ngân hàng giả lập
+              <div style={{ marginBottom: "1.25rem" }}>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", marginBottom: "0.4rem" }}>
+                  3. Cổng ngân hàng giả lập
                 </label>
                 <select
                   value={topUpBank}
                   onChange={(e) => setTopUpBank(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="form-select"
+                  style={{ fontWeight: 600 }}
                 >
-                  <option value="NCB">Ngân hàng Quốc Dân (NCB)</option>
-                  <option value="VCB">Vietcombank (VCB)</option>
-                  <option value="MB">MBBank (MB)</option>
-                  <option value="TCB">Techcombank (TCB)</option>
-                  <option value="ACB">ACB</option>
+                  <option value="NCB">Ngân hàng Quốc Dân (NCB Sandbox)</option>
+                  <option value="VCB">Vietcombank (VCB Sandbox)</option>
+                  <option value="MB">MBBank (MB Sandbox)</option>
+                  <option value="TCB">Techcombank (TCB Sandbox)</option>
+                  <option value="ACB">ACB Sandbox</option>
                 </select>
               </div>
 
-              <div className="mb-6">
-                <label className="block text-xs font-bold text-slate-700 uppercase mb-1">
-                  Ghi chú nạp tiền
+              <div style={{ marginBottom: "1.5rem" }}>
+                <label style={{ display: "block", fontSize: "0.75rem", fontWeight: 800, color: "#475569", textTransform: "uppercase", marginBottom: "0.4rem" }}>
+                  4. Ghi chú giao dịch
                 </label>
                 <input
                   type="text"
                   placeholder="VD: Nạp ví thanh toán dịch vụ nghỉ dưỡng..."
                   value={topUpNote}
                   onChange={(e) => setTopUpNote(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="form-input"
                 />
               </div>
 
-              <div className="flex space-x-2">
+              <div style={{ display: "flex", gap: "0.75rem" }}>
                 <button
                   type="button"
                   onClick={() => setIsTopUpOpen(false)}
-                  className="w-1/2 py-2.5 border border-slate-300 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-100 transition"
+                  disabled={topUpLoading}
+                  className="btn btn-secondary"
+                  style={{ flex: 1, padding: "0.75rem", fontWeight: 700 }}
                 >
-                  Hủy
+                  Hủy Bỏ
                 </button>
                 <button
                   type="submit"
                   disabled={topUpLoading}
-                  className="w-1/2 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-lg transition shadow"
+                  className="btn btn-primary"
+                  style={{
+                    flex: 1,
+                    padding: "0.75rem",
+                    background: "linear-gradient(135deg, #059669 0%, #047857 100%)",
+                    fontWeight: 800,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "0.5rem",
+                    boxShadow: "0 4px 12px rgba(5, 150, 105, 0.35)",
+                  }}
                 >
-                  {topUpLoading ? "Đang xử lý..." : "Xác Nhận Nạp"}
+                  <CreditCard size={18} />
+                  <span>{topUpLoading ? "Đang nạp tiền..." : "Xác Nhận Nạp"}</span>
                 </button>
               </div>
             </form>
@@ -939,49 +1062,193 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
 
       {/* MODAL: Auto-Debit Terms Reader & Consent */}
       {isTermsOpen && (
-        <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <ShieldCheck className="w-5 h-5 text-indigo-400" />
-                <h3 className="font-bold text-base">Điều Khoản Dịch Vụ Auto-Debit ({termsData?.termsVersion || "v1.0"})</h3>
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 9999,
+            backgroundColor: "rgba(15, 23, 42, 0.65)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "1rem",
+            overflowY: "auto",
+            animation: "fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsTermsOpen(false);
+          }}
+        >
+          <div
+            className="glass-card"
+            style={{
+              width: "100%",
+              maxWidth: "720px",
+              maxHeight: "90vh",
+              background: "#ffffff",
+              borderRadius: "20px",
+              border: "1px solid var(--border-color)",
+              boxShadow: "0 25px 60px -15px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.05)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              animation: "slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header Modal */}
+            <div
+              style={{
+                background: "linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)",
+                color: "#ffffff",
+                padding: "1.25rem 1.75rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                position: "relative",
+                overflow: "hidden",
+              }}
+            >
+              <div style={{ display: "flex", alignItems: "center", gap: "0.85rem", position: "relative", zIndex: 1 }}>
+                <div
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "12px",
+                    background: "rgba(255, 255, 255, 0.15)",
+                    backdropFilter: "blur(6px)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#ffffff",
+                    boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                  }}
+                >
+                  <ShieldCheck size={24} />
+                </div>
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                    <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0 }}>
+                      Điều Khoản Dịch Vụ Auto-Debit ({termsData?.termsVersion || "v1.0"})
+                    </h3>
+                    <span
+                      style={{
+                        fontSize: "0.65rem",
+                        padding: "0.15rem 0.5rem",
+                        borderRadius: "6px",
+                        background: "rgba(245, 158, 11, 0.2)",
+                        color: "#fef3c7",
+                        border: "1px solid rgba(245, 158, 11, 0.35)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      THỎA THUẬN PHÁP LÝ
+                    </span>
+                  </div>
+                  <p style={{ fontSize: "0.78rem", color: "rgba(255, 255, 255, 0.75)", margin: "0.15rem 0 0 0" }}>
+                    Quy định trừ ví tự động & bảo toàn số dư theo SRS e-Hotel
+                  </p>
+                </div>
               </div>
+
               <button
+                type="button"
                 onClick={() => setIsTermsOpen(false)}
-                className="text-slate-400 hover:text-white"
+                style={{
+                  background: "rgba(255, 255, 255, 0.12)",
+                  border: "none",
+                  borderRadius: "10px",
+                  padding: "0.5rem",
+                  color: "#ffffff",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  transition: "background 0.15s ease",
+                }}
+                onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.22)")}
+                onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255, 255, 255, 0.12)")}
+                title="Đóng (Esc)"
               >
-                <X className="w-5 h-5" />
+                <X size={18} />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto flex-1 text-sm text-slate-800 leading-relaxed bg-slate-50">
+            {/* Content Điều Khoản */}
+            <div
+              style={{
+                padding: "1.5rem",
+                overflowY: "auto",
+                flex: 1,
+                backgroundColor: "#f8fafc",
+              }}
+            >
               {termsLoading ? (
-                <div className="py-8 text-center text-slate-500">Đang tải điều khoản...</div>
+                <div style={{ padding: "3rem 0", textAlign: "center", color: "#64748b" }}>
+                  Đang tải nội dung điều khoản...
+                </div>
               ) : (
-                <div className="whitespace-pre-line bg-white p-6 rounded-xl border border-slate-200 font-sans shadow-sm">
+                <div
+                  style={{
+                    backgroundColor: "#ffffff",
+                    border: "1px solid #e2e8f0",
+                    borderRadius: "12px",
+                    padding: "1.5rem",
+                    color: "#334155",
+                    fontSize: "0.875rem",
+                    lineHeight: "1.75",
+                    whiteSpace: "pre-line",
+                    boxShadow: "0 2px 8px rgba(0, 0, 0, 0.04)",
+                  }}
+                >
                   {termsData?.termsText}
                 </div>
               )}
             </div>
 
-            <div className="p-4 bg-white border-t border-slate-200 flex items-center justify-between">
-              <span className="text-xs text-slate-500">
+            {/* Footer Modal */}
+            <div
+              style={{
+                backgroundColor: "#ffffff",
+                borderTop: "1px solid #e2e8f0",
+                padding: "1rem 1.75rem",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "1rem",
+              }}
+            >
+              <span style={{ fontSize: "0.78rem", color: "#64748b", lineHeight: 1.4 }}>
                 Bằng việc bấm xác nhận, bạn chấp thuận quy chế trừ ví tự động của e-Hotel.
               </span>
-              <div className="flex space-x-2">
+              <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
                 <button
                   type="button"
                   onClick={() => setIsTermsOpen(false)}
-                  className="px-4 py-2 border border-slate-300 text-slate-700 text-sm font-bold rounded-lg hover:bg-slate-100"
+                  className="btn btn-secondary"
+                  style={{ padding: "0.55rem 1rem", fontWeight: 600, fontSize: "0.875rem" }}
                 >
                   Đóng
                 </button>
                 <button
                   type="button"
                   onClick={() => handleConsentSubmit(true)}
-                  className="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-bold rounded-lg shadow"
+                  className="btn btn-primary"
+                  style={{
+                    padding: "0.55rem 1.25rem",
+                    background: "linear-gradient(135deg, #4338ca 0%, #312e81 100%)",
+                    fontWeight: 700,
+                    fontSize: "0.875rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.45rem",
+                    boxShadow: "0 4px 12px rgba(67, 56, 202, 0.35)",
+                  }}
                 >
-                  Tôi Đồng Ý Ký Chấp Thuận
+                  <ShieldCheck size={18} />
+                  <span>Tôi Đồng Ý Ký Chấp Thuận</span>
                 </button>
               </div>
             </div>
