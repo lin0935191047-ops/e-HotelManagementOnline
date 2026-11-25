@@ -459,3 +459,17 @@ body {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 0.8; }
 }
+
+/* Global Print Optimization */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 10mm 12mm;
+  }
+  .no-print,
+  .navbar,
+  footer,
+  .toast {
+    display: none !important;
+  }
+}

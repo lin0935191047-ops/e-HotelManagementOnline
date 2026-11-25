@@ -14,6 +14,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { formatDateTimeDisplay } from "../../utils/date.js";
+import { printHtmlElement } from "../../utils/print.js";
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -28,23 +29,24 @@ const formatDateTime = (dateStr) => {
 };
 
 export default function ServiceTicketPrintModal({ ticket, onClose, autoPrint = false }) {
+  const handlePrint = () => {
+    printHtmlElement("printable-ticket", `Phiếu Dịch Vụ - ${ticket?.ticketId || ""}`);
+  };
+
   useEffect(() => {
     if (autoPrint) {
       const timer = setTimeout(() => {
-        window.print();
-      }, 400);
+        handlePrint();
+      }, 350);
       return () => clearTimeout(timer);
     }
   }, [autoPrint]);
 
   if (!ticket) return null;
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div
+      className="ticket-print-modal-overlay"
       style={{
         position: "fixed",
         inset: 0,
@@ -66,32 +68,78 @@ export default function ServiceTicketPrintModal({ ticket, onClose, autoPrint = f
       {/* CSS chuyên dụng in ấn khổ A4/A5 */}
       <style>{`
         @media print {
+          @page {
+            size: A4 portrait;
+            margin: 10mm 12mm;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+          }
           body * {
             visibility: hidden !important;
           }
-          #printable-ticket, #printable-ticket * {
+          .ticket-print-modal-overlay,
+          .ticket-print-modal-card,
+          .ticket-print-modal-scroll {
+            position: static !important;
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            min-height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            animation: none !important;
+            transform: none !important;
+            overflow: visible !important;
+          }
+          .no-print,
+          .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          #printable-ticket,
+          #printable-ticket * {
             visibility: visible !important;
           }
           #printable-ticket {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
+            right: 0 !important;
             width: 100% !important;
-            margin: 0 !important;
-            padding: 24px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
             box-shadow: none !important;
             border: none !important;
-            background: white !important;
-            color: black !important;
-          }
-          .no-print {
-            display: none !important;
+            border-radius: 0 !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
 
       <div
-        className="glass-card"
+        className="glass-card ticket-print-modal-card"
         style={{
           width: "100%",
           maxWidth: "680px",
@@ -200,7 +248,7 @@ export default function ServiceTicketPrintModal({ ticket, onClose, autoPrint = f
         </div>
 
         {/* Nội dung Phiếu Dịch Vụ - Có thể in */}
-        <div style={{ padding: "1.5rem", overflowY: "auto", flex: 1, background: "#f8fafc", display: "flex", justifyContent: "center" }}>
+        <div className="ticket-print-modal-scroll" style={{ padding: "1.5rem", overflowY: "auto", flex: 1, background: "#f8fafc", display: "flex", justifyContent: "center" }}>
           <div
             id="printable-ticket"
             style={{
@@ -212,7 +260,7 @@ export default function ServiceTicketPrintModal({ ticket, onClose, autoPrint = f
               width: "100%",
               boxShadow: "0 4px 20px rgba(0, 0, 0, 0.05)",
               color: "#0f172a",
-              fontFamily: "var(--font-family)",
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             {/* Header thương hiệu Khách Sạn */}

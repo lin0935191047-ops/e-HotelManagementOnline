@@ -16,6 +16,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { formatDateShort, formatDateTimeDisplay } from "../../utils/date.js";
+import { printHtmlElement } from "../../utils/print.js";
 
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat("vi-VN", {
@@ -35,11 +36,15 @@ const formatDate = (dateStr) => {
 };
 
 export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = false }) {
+  const handlePrint = () => {
+    printHtmlElement("printable-invoice", `Hóa Đơn Quyết Toán - ${invoiceData?.invoiceId || ""}`);
+  };
+
   useEffect(() => {
     if (autoPrint) {
       const timer = setTimeout(() => {
-        window.print();
-      }, 400);
+        handlePrint();
+      }, 350);
       return () => clearTimeout(timer);
     }
   }, [autoPrint]);
@@ -61,12 +66,9 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
     services = [],
   } = invoiceData;
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   return (
     <div
+      className="invoice-print-modal-overlay"
       style={{
         position: "fixed",
         inset: 0,
@@ -88,32 +90,78 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
       {/* CSS chuyên dụng in ấn khổ A4 */}
       <style>{`
         @media print {
+          @page {
+            size: A4 portrait;
+            margin: 10mm 12mm;
+          }
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            min-height: auto !important;
+            overflow: visible !important;
+            background: #ffffff !important;
+          }
           body * {
             visibility: hidden !important;
           }
-          #printable-invoice, #printable-invoice * {
+          .invoice-print-modal-overlay,
+          .invoice-print-modal-card,
+          .invoice-print-modal-scroll {
+            position: static !important;
+            display: block !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            height: auto !important;
+            max-height: none !important;
+            min-height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: none !important;
+            box-shadow: none !important;
+            border-radius: 0 !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            animation: none !important;
+            transform: none !important;
+            overflow: visible !important;
+          }
+          .no-print,
+          .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+          }
+          #printable-invoice,
+          #printable-invoice * {
             visibility: visible !important;
           }
           #printable-invoice {
             position: absolute !important;
             left: 0 !important;
             top: 0 !important;
+            right: 0 !important;
             width: 100% !important;
-            margin: 0 !important;
-            padding: 24px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            padding: 0 !important;
             box-shadow: none !important;
             border: none !important;
-            background: white !important;
-            color: black !important;
-          }
-          .no-print {
-            display: none !important;
+            border-radius: 0 !important;
+            background: #ffffff !important;
+            color: #0f172a !important;
+            overflow: visible !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
         }
       `}</style>
 
       <div
-        className="glass-card"
+        className="glass-card invoice-print-modal-card"
         style={{
           width: "100%",
           maxWidth: "780px",
@@ -246,6 +294,7 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
 
         {/* Nội dung Hóa đơn - In ấn */}
         <div
+          className="invoice-print-modal-scroll"
           style={{
             padding: "1.5rem",
             overflowY: "auto",
@@ -267,6 +316,7 @@ export default function InvoicePrintModal({ invoiceData, onClose, autoPrint = fa
               color: "#0f172a",
               boxShadow: "0 4px 12px rgba(0, 0, 0, 0.05)",
               fontSize: "0.85rem",
+              fontFamily: "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif",
             }}
           >
             {/* Header Khách Sạn */}
