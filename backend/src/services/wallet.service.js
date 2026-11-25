@@ -175,21 +175,27 @@ export class WalletService {
       0,
     );
 
+    const mappedTransactions = recentTransactions.map((tx) => ({
+      id: tx.id,
+      txId: tx.transactionNo,
+      transactionNo: tx.transactionNo,
+      type: tx.type,
+      amount: Number(tx.amount),
+      balanceBefore: Number(tx.balanceBefore),
+      balanceAfter: Number(tx.balanceAfter),
+      status: tx.status,
+      description: tx.description,
+      createdAt: tx.createdAt,
+    }));
+
     return {
       ...wallet,
+      walletId: wallet.walletNumber,
+      walletNumber: wallet.walletNumber,
       totalUnpaidDebt,
       unpaidDebtsCount: activeDebts.length,
-      recentTransactions: recentTransactions.map((tx) => ({
-        id: tx.id,
-        transactionNo: tx.transactionNo,
-        type: tx.type,
-        amount: Number(tx.amount),
-        balanceBefore: Number(tx.balanceBefore),
-        balanceAfter: Number(tx.balanceAfter),
-        status: tx.status,
-        description: tx.description,
-        createdAt: tx.createdAt,
-      })),
+      recentTransactions: mappedTransactions,
+      transactions: mappedTransactions,
     };
   }
 

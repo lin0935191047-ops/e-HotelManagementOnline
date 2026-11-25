@@ -21,6 +21,7 @@ import {
   AlertTriangle,
   Receipt,
   RotateCcw,
+  Filter,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 import { formatDateTimeDisplay, formatDateShort } from "../../utils/date.js";
@@ -35,9 +36,11 @@ const formatCurrency = (amount) => {
 export default function CustomerWalletPortal({ currentLoggedUser }) {
   const [activeTab, setActiveTab] = useState("wallet"); // 'wallet' | 'autodebit' | 'debts' | 'refunds'
   const [wallet, setWallet] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [autoDebitStatus, setAutoDebitStatus] = useState(null);
   const [debts, setDebts] = useState([]);
   const [refunds, setRefunds] = useState([]);
+  const [debtFilter, setDebtFilter] = useState("ALL"); // 'ALL' | 'UNPAID' | 'OVERDUE' | 'PAID'
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
@@ -64,11 +67,12 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
       setError(null);
 
       // Batch load customer data
-      const [walletRes, autoDebitRes, debtsRes, refundsRes] = await Promise.all([
+      const [walletRes, autoDebitRes, debtsRes, refundsRes, txRes] = await Promise.all([
         apiRequest("/api/wallet/my-wallet").catch(() => null),
         apiRequest("/api/auto-debit/my-status").catch(() => null),
-        apiRequest("/api/auto-debit/debts/my-debts").catch(() => ({ data: [] })),
-        apiRequest("/api/wallet/refunds/my-refunds").catch(() => ({ data: [] })),
+        apiRequest("/api/auto-debit/debts/my-debts").catch(() => ({ data: { debts: [] } })),
+        apiRequest("/api/wallet/refunds/my-refunds").catch(() => ({ data: { refunds: [] } })),
+        apiRequest("/api/wallet/transactions").catch(() => ({ data: { transactions: [] } })),
       ]);
 
       if (walletRes && walletRes.data) {
@@ -78,10 +82,24 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
         setAutoDebitStatus(autoDebitRes.data);
       }
       if (debtsRes && debtsRes.data) {
-        setDebts(debtsRes.data);
+        const debtsList = Array.isArray(debtsRes.data)
+          ? debtsRes.data
+          : debtsRes.data.debts || [];
+        setDebts(debtsList);
       }
       if (refundsRes && refundsRes.data) {
-        setRefunds(refundsRes.data);
+        const refundsList = Array.isArray(refundsRes.data)
+          ? refundsRes.data
+          : refundsRes.data.refunds || [];
+        setRefunds(refundsList);
+      }
+      if (txRes && txRes.data) {
+        const txList = Array.isArray(txRes.data)
+          ? txRes.data
+          : txRes.data.transactions || [];
+        setTransactions(txList);
+      } else if (walletRes?.data?.recentTransactions) {
+        setTransactions(walletRes.data.recentTransactions);
       }
     } catch (err) {
       setError(err.message);
@@ -100,11 +118,11 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
     try {
       setTopUpLoading(true);
       setError(null);
-      const res = await apiRequest("/api/wallet/top-up", {
+      await apiRequest("/api/wallet/top-up", {
         method: "POST",
         body: JSON.stringify({
           amount: Number(topUpAmount),
-          bankCode: topUpBank,
+          paymentMethod: topUpBank,
           note: topUpNote || `Nạp tiền qua ngân hàng giả lập ${topUpBank}`,
         }),
       });
@@ -161,15 +179,15 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
   };
 
   // Process Debt Payment via BR-01
-  const handlePayDebt = async (debtId) => {
+  const handlePayDebt = async (debtIdentifier) => {
     try {
-      setProcessingDebtId(debtId);
+      setProcessingDebtId(debtIdentifier);
       setError(null);
-      await apiRequest(`/api/auto-debit/debts/${debtId}/process`, {
+      const res = await apiRequest(`/api/auto-debit/debts/${debtIdentifier}/process`, {
         method: "POST",
       });
 
-      setSuccessMsg(`Đã thanh toán thành công công nợ ${debtId} từ số dư ví!`);
+      setSuccessMsg(res?.message || `Đã thanh toán thành công công nợ ${debtIdentifier} từ số dư ví!`);
       fetchData();
       setTimeout(() => setSuccessMsg(null), 5000);
     } catch (err) {
@@ -179,7 +197,10 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
     }
   };
 
-  const transactions = wallet?.transactions || [];
+  const displayTransactions =
+    transactions.length > 0
+      ? transactions
+      : wallet?.transactions || wallet?.recentTransactions || [];
 
   // Derived Auto-Debit states (compatible with all API response shapes)
   const isAutoDebitActive =
@@ -215,6 +236,27 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
     autoDebitStatus?.consent?.consentedAt ||
     autoDebitStatus?.consent?.agreedAt ||
     null;
+
+  // Debts statistics
+  const unpaidDebts = debts.filter(
+    (d) => d.status === "UNPAID" || d.status === "OVERDUE" || d.status === "PENDING"
+  );
+  const unpaidDebtsCount = unpaidDebts.length;
+  const totalUnpaidAmount = unpaidDebts.reduce(
+    (sum, d) => sum + (Number(d.amount) - Number(d.paidAmount || 0)),
+    0
+  );
+
+  const filteredDebts = debts.filter((d) => {
+    if (debtFilter === "ALL") return true;
+    if (debtFilter === "UNPAID") return d.status === "UNPAID" || d.status === "PENDING";
+    if (debtFilter === "OVERDUE") return d.status === "OVERDUE";
+    if (debtFilter === "PAID") return d.status === "PAID";
+    return true;
+  });
+
+  // Refunds statistics
+  const totalRefundAmount = refunds.reduce((sum, r) => sum + Number(r.amount || 0), 0);
 
   return (
     <div style={{ maxWidth: "1200px", margin: "2rem auto", padding: "0 1.5rem" }}>
@@ -324,9 +366,25 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 </h1>
                 <p style={{ fontSize: "0.8125rem", color: "rgba(255, 255, 255, 0.7)", margin: 0 }}>
                   Chủ tài khoản: <strong>{currentLoggedUser?.fullName}</strong> ({currentLoggedUser?.username}) • Mã ví:{" "}
-                  <code style={{ background: "rgba(0,0,0,0.25)", padding: "2px 6px", borderRadius: "4px" }}>
-                    {wallet?.walletId || "WAL-LOADING"}
+                  <code style={{ background: "rgba(0,0,0,0.35)", padding: "2px 8px", borderRadius: "6px", fontWeight: 700, color: "#a5b4fc" }}>
+                    {wallet?.walletNumber || wallet?.walletId || "WAL-20261123-XDFP"}
                   </code>
+                  {totalUnpaidAmount > 0 && (
+                    <span
+                      style={{
+                        marginLeft: "0.75rem",
+                        padding: "2px 8px",
+                        borderRadius: "12px",
+                        background: "rgba(239, 68, 68, 0.25)",
+                        border: "1px solid rgba(239, 68, 68, 0.4)",
+                        color: "#fca5a5",
+                        fontSize: "0.75rem",
+                        fontWeight: 700,
+                      }}
+                    >
+                      Dư nợ cần trả: {formatCurrency(totalUnpaidAmount)}
+                    </span>
+                  )}
                 </p>
               </div>
             </div>
@@ -336,7 +394,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 Số Dư Khả Dụng Hiện Tại
               </div>
               <div style={{ fontSize: "2.4rem", fontWeight: 900, color: "#ffffff", letterSpacing: "-0.02em", marginTop: "0.2rem" }}>
-                {wallet ? formatCurrency(wallet.balance) : "---"}
+                {wallet ? formatCurrency(wallet.balance) : "0 ₫"}
               </div>
             </div>
           </div>
@@ -515,7 +573,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
           style={{ display: "flex", alignItems: "center", gap: "0.5rem", borderRadius: "10px 10px 0 0" }}
         >
           <History size={16} />
-          <span>Lịch Sử Giao Dịch Ví ({transactions.length})</span>
+          <span>Lịch Sử Giao Dịch Ví ({displayTransactions.length})</span>
         </button>
 
         <button
@@ -533,7 +591,9 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
           style={{ display: "flex", alignItems: "center", gap: "0.5rem", borderRadius: "10px 10px 0 0" }}
         >
           <Receipt size={16} />
-          <span>Quản Lý Công Nợ ({debts.length})</span>
+          <span>
+            Quản Lý Công Nợ ({unpaidDebtsCount > 0 ? unpaidDebtsCount : debts.length})
+          </span>
         </button>
 
         <button
@@ -558,7 +618,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
             </div>
           </div>
 
-          {transactions.length === 0 ? (
+          {displayTransactions.length === 0 ? (
             <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
               <History size={40} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
               <p>Chưa có giao dịch nào được ghi nhận trên ví này.</p>
@@ -572,42 +632,58 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                     <th>Thời Gian</th>
                     <th>Loại GD</th>
                     <th>Nội Dung Chi Tiết</th>
-                    <th>Mã Tham Chiếu</th>
                     <th style={{ textAlign: "right" }}>Biến Động</th>
                     <th style={{ textAlign: "right" }}>Số Dư Sau GD</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {transactions.map((tx) => {
-                    const isPlus = tx.type === "TOP_UP" || tx.type === "REFUND";
+                  {displayTransactions.map((tx) => {
+                    const isPlus =
+                      tx.type === "TOP_UP" ||
+                      tx.type === "TOP_UP_MOCK" ||
+                      tx.type === "REFUND";
                     return (
-                      <tr key={tx.id}>
+                      <tr key={tx.id || tx.transactionNo}>
                         <td style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "0.8125rem" }}>
-                          {tx.txId}
+                          {tx.transactionNo || tx.txId || `WTX-${tx.id}`}
                         </td>
                         <td style={{ fontSize: "0.8125rem", color: "var(--text-dim)" }}>
                           {formatDateTimeDisplay(tx.createdAt)}
                         </td>
                         <td>
-                          {tx.type === "TOP_UP" && (
+                          {(tx.type === "TOP_UP" || tx.type === "TOP_UP_MOCK") && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.25rem 0.5rem", borderRadius: "6px", background: "rgba(16, 185, 129, 0.12)", color: "#059669", fontWeight: 700, fontSize: "0.75rem" }}>
                               <ArrowUpRight size={14} /> NẠP TIỀN
                             </span>
                           )}
-                          {tx.type === "AUTO_DEBIT" && (
+                          {tx.type === "AUTO_DEBIT_SERVICE" && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.25rem 0.5rem", borderRadius: "6px", background: "rgba(59, 130, 246, 0.12)", color: "#2563eb", fontWeight: 700, fontSize: "0.75rem" }}>
-                              <ArrowDownLeft size={14} /> AUTO-DEBIT
+                              <ArrowDownLeft size={14} /> TRỪ DỊCH VỤ (BR-02)
+                            </span>
+                          )}
+                          {(tx.type === "AUTO_DEBIT_DEBT" || tx.type === "AUTO_DEBIT") && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.25rem 0.5rem", borderRadius: "6px", background: "rgba(99, 102, 241, 0.12)", color: "#4f46e5", fontWeight: 700, fontSize: "0.75rem" }}>
+                              <ArrowDownLeft size={14} /> TRẢ CÔNG NỢ (BR-01)
                             </span>
                           )}
                           {tx.type === "REFUND" && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.25rem 0.5rem", borderRadius: "6px", background: "rgba(147, 51, 234, 0.12)", color: "#7e22ce", fontWeight: 700, fontSize: "0.75rem" }}>
-                              <RotateCcw size={14} /> HOÀN TIỀN
+                              <RotateCcw size={14} /> HOÀN TIỀN VÀO VÍ
+                            </span>
+                          )}
+                          {!["TOP_UP", "TOP_UP_MOCK", "AUTO_DEBIT_SERVICE", "AUTO_DEBIT_DEBT", "AUTO_DEBIT", "REFUND"].includes(tx.type) && (
+                            <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", padding: "0.25rem 0.5rem", borderRadius: "6px", background: "rgba(100, 116, 139, 0.12)", color: "#475569", fontWeight: 700, fontSize: "0.75rem" }}>
+                              {tx.type}
                             </span>
                           )}
                         </td>
-                        <td style={{ fontSize: "0.875rem" }}>{tx.description}</td>
-                        <td style={{ fontFamily: "monospace", fontSize: "0.8125rem", color: "var(--text-dim)" }}>
-                          {tx.referenceId || "---"}
+                        <td style={{ fontSize: "0.875rem" }}>
+                          {tx.description}
+                          {tx.referenceId && (
+                            <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", fontFamily: "monospace", marginTop: "2px" }}>
+                              Ref: {tx.referenceId}
+                            </div>
+                          )}
                         </td>
                         <td style={{ textAlign: "right", fontWeight: 800, fontSize: "0.9375rem", color: isPlus ? "#059669" : "#dc2626" }}>
                           {isPlus ? `+${formatCurrency(tx.amount)}` : `-${formatCurrency(tx.amount)}`}
@@ -753,19 +829,82 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
       {/* TAB 3: Debts Management */}
       {activeTab === "debts" && (
         <div className="glass-card" style={{ padding: "1.5rem", borderRadius: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+          {/* Header & Quick Stats */}
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
             <div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>Danh Sách Công Nợ (Debt Folios)</h3>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0 }}>Quản Lý Công Nợ Khách Hàng (FEAT-13.4)</h3>
               <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: "0.25rem 0 0 0" }}>
-                Theo dõi các khoản công nợ cần thanh toán. Hệ thống tự động khấu trừ qua Auto-Debit (BR-01) hoặc bạn có thể bấm thanh toán ngay bằng ví.
+                Theo dõi và quyết toán các khoản nợ lưu trú hoặc dịch vụ phòng. Bạn có thể thanh toán chủ động bất cứ lúc nào qua ví nội bộ hoặc chờ hệ thống tự động khấu trừ qua Auto-Debit (BR-01).
               </p>
+            </div>
+
+            {/* Quick Stats Pill */}
+            <div style={{ display: "flex", gap: "1rem" }}>
+              <div
+                style={{
+                  padding: "0.6rem 1rem",
+                  borderRadius: "12px",
+                  background: totalUnpaidAmount > 0 ? "rgba(239, 68, 68, 0.08)" : "rgba(16, 185, 129, 0.08)",
+                  border: `1px solid ${totalUnpaidAmount > 0 ? "rgba(239, 68, 68, 0.25)" : "rgba(16, 185, 129, 0.25)"}`,
+                }}
+              >
+                <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 700 }}>
+                  Tổng Công Nợ Chưa Trả
+                </div>
+                <div style={{ fontSize: "1.2rem", fontWeight: 800, color: totalUnpaidAmount > 0 ? "#dc2626" : "#059669" }}>
+                  {formatCurrency(totalUnpaidAmount)}
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "0.6rem 1rem",
+                  borderRadius: "12px",
+                  background: "rgba(79, 70, 229, 0.08)",
+                  border: "1px solid rgba(79, 70, 229, 0.25)",
+                }}
+              >
+                <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 700 }}>
+                  Khoản Chờ Quyết Toán
+                </div>
+                <div style={{ fontSize: "1.2rem", fontWeight: 800, color: "#4f46e5" }}>
+                  {unpaidDebtsCount} khoản
+                </div>
+              </div>
             </div>
           </div>
 
-          {debts.length === 0 ? (
+          {/* Filter Bar */}
+          <div style={{ display: "flex", gap: "0.5rem", marginBottom: "1.25rem", flexWrap: "wrap", alignItems: "center" }}>
+            <span style={{ fontSize: "0.8125rem", color: "var(--text-dim)", fontWeight: 600, marginRight: "0.25rem" }}>
+              Lọc theo trạng thái:
+            </span>
+            {[
+              { id: "ALL", label: `Tất cả (${debts.length})` },
+              { id: "UNPAID", label: `Chờ thanh toán (${debts.filter((d) => d.status === "UNPAID" || d.status === "PENDING").length})` },
+              { id: "OVERDUE", label: `Quá hạn (${debts.filter((d) => d.status === "OVERDUE").length})` },
+              { id: "PAID", label: `Đã thanh toán (${debts.filter((d) => d.status === "PAID").length})` },
+            ].map((f) => (
+              <button
+                key={f.id}
+                type="button"
+                className={`btn btn-secondary ${debtFilter === f.id ? "btn-primary" : ""}`}
+                onClick={() => setDebtFilter(f.id)}
+                style={{ fontSize: "0.78rem", padding: "0.35rem 0.75rem", borderRadius: "8px" }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          {filteredDebts.length === 0 ? (
             <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
-              <CheckCircle2 size={40} style={{ margin: "0 auto 1rem", opacity: 0.3, color: "#10b981" }} />
-              <p>Tuyệt vời! Bạn không có khoản nợ nào cần thanh toán.</p>
+              <CheckCircle2 size={42} style={{ margin: "0 auto 1rem", opacity: 0.35, color: "#10b981" }} />
+              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                {debtFilter === "ALL"
+                  ? "Tuyệt vời! Bạn không có khoản công nợ nào trên hệ thống."
+                  : "Không có khoản công nợ nào trong bộ lọc này."}
+              </p>
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
@@ -773,71 +912,157 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 <thead>
                   <tr>
                     <th>Mã Công Nợ</th>
-                    <th>Lý Do Phát Sinh</th>
-                    <th>Hạn Thanh Toán</th>
+                    <th>Nội Dung & Lý Do</th>
+                    <th>Loại Nợ</th>
+                    <th>Hạn Quyết Toán</th>
                     <th style={{ textAlign: "right" }}>Số Tiền Nợ</th>
                     <th style={{ textAlign: "center" }}>Trạng Thái</th>
-                    <th style={{ textAlign: "right" }}>Thao Tác</th>
+                    <th style={{ textAlign: "right" }}>Quyết Toán (BR-01)</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {debts.map((d) => (
-                    <tr key={d.id}>
-                      <td style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "0.8125rem" }}>
-                        {d.debtId}
-                      </td>
-                      <td style={{ fontSize: "0.875rem" }}>
-                        {d.reason}
-                        {d.bookingId && (
-                          <div style={{ fontSize: "0.75rem", color: "var(--text-dim)", marginTop: "2px" }}>
-                            Liên kết Booking #{d.bookingId}
+                  {filteredDebts.map((d) => {
+                    const isDueOrPending =
+                      d.status === "UNPAID" || d.status === "OVERDUE" || d.status === "PENDING";
+                    const isOverdue = d.status === "OVERDUE" || (isDueOrPending && new Date(d.dueDate) < new Date());
+                    const remainingAmount = Number(d.amount) - (Number(d.paidAmount) || 0);
+                    const canAfford = wallet && Number(wallet.balance) >= remainingAmount;
+                    const debtIdKey = d.debtCode || d.debtId || d.id;
+
+                    return (
+                      <tr key={debtIdKey}>
+                        <td style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "0.8125rem" }}>
+                          {d.debtCode || `DBT-${d.debtId || d.id}`}
+                        </td>
+                        <td style={{ fontSize: "0.875rem" }}>
+                          <div style={{ fontWeight: 600, color: "var(--text-main)" }}>
+                            {d.note ||
+                              (d.type === "BOOKING_BALANCE"
+                                ? "Quyết toán tiền phòng còn lại"
+                                : "Chi phí dịch vụ phòng")}
                           </div>
-                        )}
-                      </td>
-                      <td style={{ fontSize: "0.8125rem" }}>
-                        {formatDateTimeDisplay(d.dueDate)}
-                      </td>
-                      <td style={{ textAlign: "right", fontWeight: 800, color: "#dc2626", fontSize: "0.9375rem" }}>
-                        {formatCurrency(d.amount)}
-                      </td>
-                      <td style={{ textAlign: "center" }}>
-                        {d.status === "PAID" && (
-                          <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(16, 185, 129, 0.12)", color: "#059669", fontWeight: 700, fontSize: "0.75rem" }}>
-                            ĐÃ THANH TOÁN
-                          </span>
-                        )}
-                        {d.status === "PENDING" && (
-                          <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(245, 158, 11, 0.12)", color: "#d97706", fontWeight: 700, fontSize: "0.75rem" }}>
-                            CHỜ THANH TOÁN
-                          </span>
-                        )}
-                        {d.status === "OVERDUE" && (
-                          <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(239, 68, 68, 0.12)", color: "#dc2626", fontWeight: 700, fontSize: "0.75rem" }}>
-                            QUÁ HẠN (OVERDUE)
-                          </span>
-                        )}
-                        {d.status === "CANCELLED" && (
-                          <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(100, 116, 139, 0.12)", color: "#64748b", fontWeight: 700, fontSize: "0.75rem" }}>
-                            ĐÃ HỦY
-                          </span>
-                        )}
-                      </td>
-                      <td style={{ textAlign: "right" }}>
-                        {(d.status === "PENDING" || d.status === "OVERDUE") && (
-                          <button
-                            type="button"
-                            className="btn btn-primary"
-                            disabled={processingDebtId === d.debtId || (wallet && wallet.balance < d.amount)}
-                            onClick={() => handlePayDebt(d.debtId)}
-                            style={{ fontSize: "0.75rem", padding: "0.4rem 0.8rem" }}
-                            title={wallet && wallet.balance < d.amount ? "Số dư ví không đủ, vui lòng nạp thêm tiền" : "Thanh toán ngay"}
-                          >
-                            {processingDebtId === d.debtId ? "Đang xử lý..." : "Trả qua Ví (BR-01)"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                          <div style={{ display: "flex", gap: "0.5rem", marginTop: "4px" }}>
+                            {d.bookingId && (
+                              <span style={{ fontSize: "0.72rem", padding: "1px 6px", borderRadius: "4px", background: "rgba(79, 70, 229, 0.1)", color: "#4f46e5" }}>
+                                Booking #{d.bookingId}
+                              </span>
+                            )}
+                            {d.ticketId && (
+                              <span style={{ fontSize: "0.72rem", padding: "1px 6px", borderRadius: "4px", background: "rgba(16, 185, 129, 0.1)", color: "#059669" }}>
+                                Phiếu DV: {d.ticketId}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td>
+                          {d.type === "BOOKING_BALANCE" ? (
+                            <span style={{ padding: "0.2rem 0.5rem", borderRadius: "6px", background: "rgba(59, 130, 246, 0.12)", color: "#2563eb", fontWeight: 700, fontSize: "0.75rem" }}>
+                              TIỀN PHÒNG
+                            </span>
+                          ) : (
+                            <span style={{ padding: "0.2rem 0.5rem", borderRadius: "6px", background: "rgba(245, 158, 11, 0.12)", color: "#d97706", fontWeight: 700, fontSize: "0.75rem" }}>
+                              DỊCH VỤ PHÒNG
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ fontSize: "0.8125rem" }}>
+                          <div>{formatDateTimeDisplay(d.dueDate)}</div>
+                          {isDueOrPending && (
+                            <span
+                              style={{
+                                fontSize: "0.7rem",
+                                fontWeight: 700,
+                                color: isOverdue ? "#dc2626" : "#d97706",
+                              }}
+                            >
+                              {isOverdue ? "⚠ Đã quá hạn" : "⏱ Đang chờ thu"}
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          <div style={{ fontWeight: 800, color: "#dc2626", fontSize: "0.9375rem" }}>
+                            {formatCurrency(d.amount)}
+                          </div>
+                          {d.paidAmount > 0 && (
+                            <div style={{ fontSize: "0.72rem", color: "#059669", fontWeight: 600 }}>
+                              Đã trả: {formatCurrency(d.paidAmount)}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ textAlign: "center" }}>
+                          {d.status === "PAID" && (
+                            <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(16, 185, 129, 0.12)", color: "#059669", fontWeight: 700, fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                              <CheckCircle2 size={13} /> ĐÃ THANH TOÁN
+                            </span>
+                          )}
+                          {(d.status === "UNPAID" || d.status === "PENDING") && !isOverdue && (
+                            <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(245, 158, 11, 0.12)", color: "#d97706", fontWeight: 700, fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                              <Clock size={13} /> CHỜ THANH TOÁN
+                            </span>
+                          )}
+                          {isOverdue && d.status !== "PAID" && d.status !== "CANCELLED" && (
+                            <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(239, 68, 68, 0.12)", color: "#dc2626", fontWeight: 700, fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                              <AlertTriangle size={13} /> QUÁ HẠN (OVERDUE)
+                            </span>
+                          )}
+                          {d.status === "CANCELLED" && (
+                            <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(100, 116, 139, 0.12)", color: "#64748b", fontWeight: 700, fontSize: "0.75rem" }}>
+                              ĐÃ HỦY
+                            </span>
+                          )}
+                        </td>
+                        <td style={{ textAlign: "right" }}>
+                          {isDueOrPending ? (
+                            canAfford ? (
+                              <button
+                                type="button"
+                                className="btn btn-primary"
+                                disabled={processingDebtId === debtIdKey}
+                                onClick={() => handlePayDebt(debtIdKey)}
+                                style={{
+                                  fontSize: "0.75rem",
+                                  padding: "0.45rem 0.85rem",
+                                  background: "linear-gradient(135deg, #4f46e5 0%, #4338ca 100%)",
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {processingDebtId === debtIdKey ? "Đang xử lý..." : "Trả qua Ví (BR-01)"}
+                              </button>
+                            ) : (
+                              <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "0.2rem" }}>
+                                <button
+                                  type="button"
+                                  className="btn btn-secondary"
+                                  onClick={() => {
+                                    setTopUpAmount(Math.max(500000, remainingAmount - Number(wallet?.balance || 0)));
+                                    setIsTopUpOpen(true);
+                                  }}
+                                  style={{
+                                    fontSize: "0.72rem",
+                                    padding: "0.3rem 0.65rem",
+                                    color: "#dc2626",
+                                    borderColor: "rgba(239, 68, 68, 0.35)",
+                                    background: "rgba(239, 68, 68, 0.05)",
+                                    fontWeight: 700,
+                                  }}
+                                  title="Số dư ví không đủ để tự động khấu trừ theo nguyên tắc All-or-Nothing"
+                                >
+                                  + Nạp thiếu {formatCurrency(remainingAmount - Number(wallet?.balance || 0))}
+                                </button>
+                                <span style={{ fontSize: "0.68rem", color: "#dc2626", fontStyle: "italic" }}>
+                                  Thiếu số dư ví
+                                </span>
+                              </div>
+                            )
+                          ) : (
+                            <span style={{ fontSize: "0.75rem", color: "#059669", fontWeight: 600 }}>
+                              ✓ Đã quyết toán
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
@@ -848,19 +1073,42 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
       {/* TAB 4: Refunds */}
       {activeTab === "refunds" && (
         <div className="glass-card" style={{ padding: "1.5rem", borderRadius: "16px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.25rem" }}>
+          {/* Header & Stats Banner */}
+          <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", alignItems: "center", gap: "1rem", marginBottom: "1.5rem" }}>
             <div>
-              <h3 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0 }}>Lịch Sử Tiền Hoàn Trả (Refund Records)</h3>
+              <h3 style={{ fontSize: "1.15rem", fontWeight: 800, margin: 0 }}>Lịch Sử Tiền Hoàn Trả (Refund Records FEAT-13.6)</h3>
               <p style={{ fontSize: "0.8125rem", color: "var(--text-muted)", margin: "0.25rem 0 0 0" }}>
-                Tiền hoàn trả từ các đơn hủy phòng hoặc điều chỉnh dịch vụ được cộng trực tiếp vào ví nội bộ 100%.
+                Chính sách bảo đảm: Tiền hoàn trả từ các đơn hủy phòng hoặc điều chỉnh dịch vụ được cộng trực tiếp vào ví nội bộ 100%, bảo toàn số dư và có thể sử dụng ngay lập tức.
               </p>
+            </div>
+
+            {/* Refund Total Summary Badge */}
+            <div
+              style={{
+                padding: "0.6rem 1.25rem",
+                borderRadius: "12px",
+                background: "rgba(147, 51, 234, 0.08)",
+                border: "1px solid rgba(147, 51, 234, 0.25)",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-end",
+              }}
+            >
+              <div style={{ fontSize: "0.7rem", color: "var(--text-dim)", textTransform: "uppercase", fontWeight: 700 }}>
+                Tổng Tiền Đã Hoàn Trả Vào Ví
+              </div>
+              <div style={{ fontSize: "1.25rem", fontWeight: 900, color: "#7e22ce" }}>
+                +{formatCurrency(totalRefundAmount)}
+              </div>
             </div>
           </div>
 
           {refunds.length === 0 ? (
             <div style={{ padding: "3rem", textAlign: "center", color: "var(--text-muted)" }}>
               <RotateCcw size={40} style={{ margin: "0 auto 1rem", opacity: 0.3 }} />
-              <p>Chưa có khoản tiền hoàn nào được ghi nhận.</p>
+              <p style={{ fontWeight: 600, fontSize: "0.95rem" }}>
+                Chưa có khoản tiền hoàn nào được ghi nhận trên ví của bạn.
+              </p>
             </div>
           ) : (
             <div style={{ overflowX: "auto" }}>
@@ -869,7 +1117,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                   <tr>
                     <th>Mã Hoàn Tiền</th>
                     <th>Thời Điểm Hoàn</th>
-                    <th>Lý Do Hoàn</th>
+                    <th>Lý Do Hoàn Tiền</th>
                     <th>Mã Giao Dịch Gốc</th>
                     <th style={{ textAlign: "right" }}>Số Tiền Hoàn</th>
                     <th style={{ textAlign: "center" }}>Trạng Thái</th>
@@ -877,23 +1125,30 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 </thead>
                 <tbody>
                   {refunds.map((r) => (
-                    <tr key={r.id}>
+                    <tr key={r.id || r.refundCode}>
                       <td style={{ fontWeight: 700, fontFamily: "monospace", fontSize: "0.8125rem" }}>
-                        {r.refundId}
+                        {r.refundCode || `RFD-${r.refundId || r.id}`}
                       </td>
                       <td style={{ fontSize: "0.8125rem", color: "var(--text-dim)" }}>
-                        {formatDateTimeDisplay(r.createdAt)}
+                        {formatDateTimeDisplay(r.processedAt || r.createdAt)}
                       </td>
-                      <td style={{ fontSize: "0.875rem" }}>{r.reason}</td>
+                      <td style={{ fontSize: "0.875rem" }}>
+                        <div style={{ fontWeight: 600, color: "var(--text-main)" }}>{r.reason}</div>
+                        {r.processedBy && (
+                          <div style={{ fontSize: "0.72rem", color: "var(--text-dim)", marginTop: "2px" }}>
+                            Xử lý bởi: {r.processedBy}
+                          </div>
+                        )}
+                      </td>
                       <td style={{ fontFamily: "monospace", fontSize: "0.8125rem", color: "var(--text-dim)" }}>
-                        {r.originalTransactionId}
+                        {r.originalTx?.transactionNo || r.originalTransactionId || "---"}
                       </td>
                       <td style={{ textAlign: "right", fontWeight: 800, color: "#7e22ce", fontSize: "0.9375rem" }}>
                         +{formatCurrency(r.amount)}
                       </td>
                       <td style={{ textAlign: "center" }}>
-                        <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(147, 51, 234, 0.12)", color: "#7e22ce", fontWeight: 700, fontSize: "0.75rem" }}>
-                          {r.status}
+                        <span style={{ padding: "0.25rem 0.6rem", borderRadius: "6px", background: "rgba(147, 51, 234, 0.12)", color: "#7e22ce", fontWeight: 700, fontSize: "0.75rem", display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
+                          <CheckCircle2 size={13} /> {r.status === "COMPLETED" ? "HOÀN TẤT VÀO VÍ" : r.status}
                         </span>
                       </td>
                     </tr>
