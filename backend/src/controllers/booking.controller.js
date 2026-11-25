@@ -44,7 +44,8 @@ export class BookingController {
    */
   static async createBooking(req, res, next) {
     try {
-      const data = await BookingService.createBooking(req.body);
+      const customerId = req.user?.id || req.body?.customerId;
+      const data = await BookingService.createBooking({ ...req.body, customerId });
       return res.status(201).json({
         success: true,
         data,

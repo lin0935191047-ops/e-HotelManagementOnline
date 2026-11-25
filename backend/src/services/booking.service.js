@@ -239,6 +239,7 @@ export class BookingService {
     promotionCode,
     paymentOption = "FULL_100",
     paymentAccountNumber,
+    customerId,
   }) {
     // 1. Kiểm tra tính hợp lệ của thông tin khách hàng
     if (!customerName || typeof customerName !== "string" || customerName.trim().length < 2) {
@@ -473,10 +474,26 @@ export class BookingService {
       const randomSuffix = Math.floor(1000 + Math.random() * 9000);
       const bookingNumber = `BK-${datePart}-${randomSuffix}`;
 
-      // 2.7. Lưu đơn đặt phòng Booking kèm các BookingItem
+      // 2.7. Tự động liên kết customerId nếu khách hàng là thành viên đã đăng ký
+      let resolvedCustomerId = customerId ? parseInt(customerId, 10) : null;
+      if (!resolvedCustomerId && customerName) {
+        const matched = await tx.user.findFirst({
+          where: {
+            role: "CUSTOMER",
+            OR: [
+              { fullName: { equals: customerName.trim(), mode: "insensitive" } },
+              { username: { equals: customerName.trim(), mode: "insensitive" } },
+            ],
+          },
+        });
+        if (matched) resolvedCustomerId = matched.id;
+      }
+
+      // Lưu đơn đặt phòng Booking kèm các BookingItem
       const booking = await tx.booking.create({
         data: {
           bookingNumber,
+          customerId: resolvedCustomerId || null,
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim(),
           customerEmail: customerEmail.trim().toLowerCase(),

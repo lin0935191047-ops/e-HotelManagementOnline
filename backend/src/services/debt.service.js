@@ -142,8 +142,12 @@ export class DebtService {
    * Xem chi tiết khoản nợ theo ID
    */
   static async getDebtById(debtId) {
-    const cleanDebtId = parseInt(debtId, 10);
-    if (isNaN(cleanDebtId)) {
+    let whereCondition = null;
+    if (typeof debtId === "number" || (/^\d+$/.test(String(debtId).trim()))) {
+      whereCondition = { id: parseInt(debtId, 10) };
+    } else if (typeof debtId === "string" && debtId.trim().length > 0) {
+      whereCondition = { debtCode: debtId.trim() };
+    } else {
       throw new AppError(
         ErrorCodes.VALIDATION_FAILED,
         "Mã công nợ không hợp lệ.",
@@ -151,8 +155,8 @@ export class DebtService {
       );
     }
 
-    const debt = await prisma.debt.findUnique({
-      where: { id: cleanDebtId },
+    const debt = await prisma.debt.findFirst({
+      where: whereCondition,
       include: {
         user: {
           select: {
@@ -381,8 +385,12 @@ export class DebtService {
     triggeredByUserId = null,
     isAdmin = false,
   }) {
-    const cleanDebtId = parseInt(debtId, 10);
-    if (isNaN(cleanDebtId)) {
+    let whereCondition = null;
+    if (typeof debtId === "number" || (/^\d+$/.test(String(debtId).trim()))) {
+      whereCondition = { id: parseInt(debtId, 10) };
+    } else if (typeof debtId === "string" && debtId.trim().length > 0) {
+      whereCondition = { debtCode: debtId.trim() };
+    } else {
       throw new AppError(
         ErrorCodes.VALIDATION_FAILED,
         "Mã công nợ không hợp lệ.",
@@ -390,8 +398,8 @@ export class DebtService {
       );
     }
 
-    const debt = await prisma.debt.findUnique({
-      where: { id: cleanDebtId },
+    const debt = await prisma.debt.findFirst({
+      where: whereCondition,
       include: {
         user: {
           include: {

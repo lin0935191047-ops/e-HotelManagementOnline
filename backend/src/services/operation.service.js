@@ -680,11 +680,28 @@ export class OperationService {
       }
 
       // Cập nhật Booking: status = 'CHECKED_IN', extraChildrenFee = totalExtraChildrenFee
+      let customerIdToLink = lockedBooking.customerId;
+      if (!customerIdToLink && lockedBooking.customerName) {
+        const matchedCustomer = await tx.user.findFirst({
+          where: {
+            role: "CUSTOMER",
+            OR: [
+              { fullName: { equals: lockedBooking.customerName.trim(), mode: "insensitive" } },
+              { username: { equals: lockedBooking.customerName.trim(), mode: "insensitive" } },
+            ],
+          },
+        });
+        if (matchedCustomer) {
+          customerIdToLink = matchedCustomer.id;
+        }
+      }
+
       const updatedBooking = await tx.booking.update({
         where: { id: lockedBooking.id },
         data: {
           status: "CHECKED_IN",
           extraChildrenFee: totalExtraChildrenFee,
+          ...(customerIdToLink ? { customerId: customerIdToLink } : {}),
         },
         include: {
           items: true,

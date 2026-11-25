@@ -453,7 +453,34 @@ export class AutoDebitService {
       };
     }
 
-    const customer = ticket.booking?.customer;
+    let customer = ticket.booking?.customer;
+
+    // Tự động liên kết tài khoản thành viên nếu booking chưa gắn customerId
+    if (!customer && ticket.booking) {
+      if (ticket.booking.customerId) {
+        customer = await prisma.user.findUnique({
+          where: { id: ticket.booking.customerId },
+          include: { wallet: true, autoDebitSetting: true },
+        });
+      } else if (ticket.booking.customerName) {
+        customer = await prisma.user.findFirst({
+          where: {
+            role: "CUSTOMER",
+            OR: [
+              { fullName: { equals: ticket.booking.customerName.trim(), mode: "insensitive" } },
+              { username: { equals: ticket.booking.customerName.trim(), mode: "insensitive" } },
+            ],
+          },
+          include: { wallet: true, autoDebitSetting: true },
+        });
+        if (customer) {
+          await prisma.booking.update({
+            where: { id: ticket.booking.id },
+            data: { customerId: customer.id },
+          }).catch(() => {});
+        }
+      }
+    }
 
     // Trường hợp 1: Booking không gắn tài khoản thành viên (khách vãng lai)
     if (!customer) {
