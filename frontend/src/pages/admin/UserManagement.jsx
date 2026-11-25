@@ -12,11 +12,27 @@ import {
   AlertTriangle,
   Clock,
   X,
+  CreditCard,
+  ShieldCheck,
+  PauseCircle,
+  PlayCircle,
+  Ban,
+  RefreshCw,
+  Wallet,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 import { formatDateTimeDisplay } from "../../utils/date.js";
 
+const formatCurrency = (amount) => {
+  return new Intl.NumberFormat("vi-VN", {
+    style: "currency",
+    currency: "VND",
+  }).format(amount || 0);
+};
+
 export default function UserManagement({ currentLoggedUser }) {
+  const [adminTab, setAdminTab] = useState("users"); // "users" | "autoDebit"
+
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -40,6 +56,12 @@ export default function UserManagement({ currentLoggedUser }) {
   // Delete Confirm Modal
   const [userToDelete, setUserToDelete] = useState(null);
 
+  // Auto-Debit Admin State
+  const [autoDebitList, setAutoDebitList] = useState([]);
+  const [autoDebitLoading, setAutoDebitLoading] = useState(false);
+  const [autoDebitStatusFilter, setAutoDebitStatusFilter] = useState("");
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+
   // Fetch users
   const fetchUsers = async () => {
     try {
@@ -58,9 +80,51 @@ export default function UserManagement({ currentLoggedUser }) {
     }
   };
 
+  // Fetch Auto-Debit requests
+  const fetchAutoDebitList = async () => {
+    try {
+      setAutoDebitLoading(true);
+      setError(null);
+      const params = new URLSearchParams();
+      if (autoDebitStatusFilter) params.append("status", autoDebitStatusFilter);
+      const res = await apiRequest(`/api/auto-debit/admin/list?${params.toString()}`);
+      if (res.success && res.data) {
+        setAutoDebitList(res.data.requests || []);
+      }
+    } catch (err) {
+      setError(err.message || "Không thể tải danh sách Auto-Debit.");
+    } finally {
+      setAutoDebitLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchUsers();
-  }, [roleFilter]);
+    if (adminTab === "users") {
+      fetchUsers();
+    } else {
+      fetchAutoDebitList();
+    }
+  }, [adminTab, roleFilter, autoDebitStatusFilter]);
+
+  const handleUpdateAutoDebitStatus = async (userId, targetStatus) => {
+    try {
+      setActionLoadingId(userId);
+      setError(null);
+      setSuccessMsg(null);
+      const res = await apiRequest(`/api/auto-debit/admin/${userId}/status`, {
+        method: "PUT",
+        body: JSON.stringify({ status: targetStatus }),
+      });
+      if (res.success) {
+        setSuccessMsg(res.message || `Cập nhật trạng thái Auto-Debit thành ${targetStatus} thành công.`);
+        fetchAutoDebitList();
+      }
+    } catch (err) {
+      setError(err.message || "Lỗi cập nhật Auto-Debit.");
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();

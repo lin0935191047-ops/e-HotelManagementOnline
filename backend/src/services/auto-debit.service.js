@@ -164,6 +164,25 @@ export class AutoDebitService {
             isActive: latestConsent.isActive,
           }
         : null,
+      // Compatibility aliases for frontend components
+      setting: {
+        status: setting ? setting.status : "NOT_ENABLED",
+        isActive: setting?.status === "ACTIVE",
+        activatedAt: setting?.activatedAt || null,
+        pausedAt: setting?.pausedAt || null,
+        disabledAt: setting?.disabledAt || null,
+      },
+      consent: latestConsent
+        ? {
+            id: latestConsent.id,
+            status: latestConsent.isActive ? "CONSENTED" : "REVOKED",
+            isActive: latestConsent.isActive,
+            agreedTermsVersion: latestConsent.termsVersion,
+            termsVersion: latestConsent.termsVersion,
+            consentedAt: latestConsent.agreedAt,
+            agreedAt: latestConsent.agreedAt,
+          }
+        : null,
     };
   }
 

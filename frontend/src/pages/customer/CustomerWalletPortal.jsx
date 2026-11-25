@@ -181,6 +181,41 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
 
   const transactions = wallet?.transactions || [];
 
+  // Derived Auto-Debit states (compatible with all API response shapes)
+  const isAutoDebitActive =
+    autoDebitStatus?.autoDebitStatus === "ACTIVE" ||
+    autoDebitStatus?.setting?.isActive === true ||
+    autoDebitStatus?.setting?.status === "ACTIVE";
+
+  const isAutoDebitPending =
+    autoDebitStatus?.autoDebitStatus === "PENDING_ADMIN" ||
+    autoDebitStatus?.setting?.status === "PENDING_ADMIN";
+
+  const isAutoDebitPaused =
+    autoDebitStatus?.autoDebitStatus === "PAUSED" ||
+    autoDebitStatus?.setting?.status === "PAUSED";
+
+  const isAutoDebitDisabled =
+    autoDebitStatus?.autoDebitStatus === "DISABLED" ||
+    autoDebitStatus?.setting?.status === "DISABLED";
+
+  const isConsented =
+    autoDebitStatus?.latestConsent?.isActive === true ||
+    autoDebitStatus?.consent?.status === "CONSENTED" ||
+    autoDebitStatus?.consent?.isActive === true;
+
+  const consentVersion =
+    autoDebitStatus?.latestConsent?.termsVersion ||
+    autoDebitStatus?.consent?.agreedTermsVersion ||
+    autoDebitStatus?.consent?.termsVersion ||
+    null;
+
+  const consentedAt =
+    autoDebitStatus?.latestConsent?.agreedAt ||
+    autoDebitStatus?.consent?.consentedAt ||
+    autoDebitStatus?.consent?.agreedAt ||
+    null;
+
   return (
     <div style={{ maxWidth: "1200px", margin: "2rem auto", padding: "0 1.5rem" }}>
       {/* Toast Alerts */}
@@ -344,7 +379,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 </span>
               )}
 
-              {autoDebitStatus?.setting?.isActive ? (
+              {isAutoDebitActive ? (
                 <span
                   style={{
                     display: "inline-flex",
@@ -352,16 +387,33 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                     gap: "0.35rem",
                     padding: "0.35rem 0.75rem",
                     borderRadius: "20px",
-                    background: "rgba(59, 130, 246, 0.2)",
-                    border: "1px solid rgba(59, 130, 246, 0.4)",
-                    color: "#93c5fd",
+                    background: "rgba(16, 185, 129, 0.2)",
+                    border: "1px solid rgba(16, 185, 129, 0.4)",
+                    color: "#6ee7b7",
                     fontSize: "0.75rem",
                     fontWeight: 700,
                   }}
                 >
                   <ShieldCheck size={14} /> AUTO-DEBIT: BẬT
                 </span>
-              ) : (
+              ) : isAutoDebitPending ? (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                    padding: "0.35rem 0.75rem",
+                    borderRadius: "20px",
+                    background: "rgba(245, 158, 11, 0.2)",
+                    border: "1px solid rgba(245, 158, 11, 0.4)",
+                    color: "#fcd34d",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  <Clock size={14} /> AUTO-DEBIT: CHỜ ADMIN DUYỆT
+                </span>
+              ) : isAutoDebitPaused ? (
                 <span
                   style={{
                     display: "inline-flex",
@@ -372,6 +424,23 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                     background: "rgba(148, 163, 184, 0.2)",
                     border: "1px solid rgba(148, 163, 184, 0.4)",
                     color: "#cbd5e1",
+                    fontSize: "0.75rem",
+                    fontWeight: 700,
+                  }}
+                >
+                  AUTO-DEBIT: TẠM DỪNG
+                </span>
+              ) : (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.35rem",
+                    padding: "0.35rem 0.75rem",
+                    borderRadius: "20px",
+                    background: "rgba(239, 68, 68, 0.2)",
+                    border: "1px solid rgba(239, 68, 68, 0.4)",
+                    color: "#fca5a5",
                     fontSize: "0.75rem",
                     fontWeight: 700,
                   }}
@@ -571,7 +640,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
             <div style={{ background: "var(--bg-secondary)", borderRadius: "12px", padding: "1.25rem", marginBottom: "1.25rem" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: "0.75rem", borderBottom: "1px solid var(--border-color)" }}>
                 <span style={{ fontSize: "0.875rem", color: "var(--text-dim)" }}>Ký thỏa thuận khách hàng:</span>
-                {autoDebitStatus?.consent?.status === "CONSENTED" ? (
+                {isConsented ? (
                   <span style={{ color: "#059669", fontWeight: 700, display: "flex", alignItems: "center", gap: "0.35rem" }}>
                     <CheckCircle2 size={16} /> ĐÃ KÝ CHẤP THUẬN
                   </span>
@@ -584,22 +653,28 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid var(--border-color)" }}>
                 <span style={{ fontSize: "0.875rem", color: "var(--text-dim)" }}>Phiên bản điều khoản ký:</span>
-                <span style={{ fontWeight: 600 }}>{autoDebitStatus?.consent?.agreedTermsVersion || "Chưa có"}</span>
+                <span style={{ fontWeight: 600 }}>{consentVersion || "Chưa có"}</span>
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0.75rem 0", borderBottom: "1px solid var(--border-color)" }}>
                 <span style={{ fontSize: "0.875rem", color: "var(--text-dim)" }}>Thời điểm ký kết:</span>
                 <span style={{ fontWeight: 600 }}>
-                  {autoDebitStatus?.consent?.consentedAt ? formatDateTimeDisplay(autoDebitStatus.consent.consentedAt) : "---"}
+                  {consentedAt ? formatDateTimeDisplay(consentedAt) : "---"}
                 </span>
               </div>
 
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "0.75rem" }}>
                 <span style={{ fontSize: "0.875rem", color: "var(--text-dim)" }}>Kích hoạt hệ thống (Admin):</span>
-                {autoDebitStatus?.setting?.isActive ? (
-                  <span style={{ color: "#059669", fontWeight: 700 }}>ĐANG BẬT TỰ ĐỘNG TRỪ</span>
-                ) : (
+                {isAutoDebitActive ? (
+                  <span style={{ color: "#059669", fontWeight: 700 }}>ĐANG BẬT TỰ ĐỘNG TRỪ (ACTIVE)</span>
+                ) : isAutoDebitPending ? (
                   <span style={{ color: "#d97706", fontWeight: 700 }}>CHỜ ADMIN KÍCH HOẠT</span>
+                ) : isAutoDebitPaused ? (
+                  <span style={{ color: "#6b7280", fontWeight: 700 }}>TẠM DỪNG (PAUSED)</span>
+                ) : isAutoDebitDisabled ? (
+                  <span style={{ color: "#dc2626", fontWeight: 700 }}>ĐÃ TẮT (DISABLED)</span>
+                ) : (
+                  <span style={{ color: "#6b7280", fontWeight: 700 }}>CHƯA KÍCH HOẠT</span>
                 )}
               </div>
             </div>
@@ -615,7 +690,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 <span>Xem & Ký Điều Khoản Auto-Debit</span>
               </button>
 
-              {autoDebitStatus?.consent?.status === "CONSENTED" && (
+              {isConsented && (
                 <button
                   type="button"
                   className="btn btn-secondary"
