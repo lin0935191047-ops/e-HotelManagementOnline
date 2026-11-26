@@ -48,6 +48,23 @@ export class AutoDebitController {
   }
 
   /**
+   * Khách hàng: Tắt dịch vụ Auto-Debit / Thu hồi thỏa thuận
+   * POST /api/auto-debit/revoke
+   */
+  static async revokeConsent(req, res, next) {
+    try {
+      const data = await AutoDebitService.revokeConsent(req.user.id);
+      return res.status(200).json({
+        success: true,
+        message: data.message,
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  /**
    * Khách hàng: Xem trạng thái kích hoạt Auto-Debit của chính mình
    * GET /api/auto-debit/my-status
    */

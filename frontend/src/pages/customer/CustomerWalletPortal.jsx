@@ -22,6 +22,7 @@ import {
   Receipt,
   RotateCcw,
   Filter,
+  Ban,
 } from "lucide-react";
 import { apiRequest } from "../../api/client.js";
 import { formatDateTimeDisplay, formatDateShort } from "../../utils/date.js";
@@ -59,6 +60,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
 
   // Process Debt Loading
   const [processingDebtId, setProcessingDebtId] = useState(null);
+  const [disableLoading, setDisableLoading] = useState(false);
 
   // Fetch full customer data
   const fetchData = async () => {
@@ -153,8 +155,32 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
     }
   };
 
+  // Disable / Revoke Auto-Debit
+  const handleDisableAutoDebit = async () => {
+    try {
+      setDisableLoading(true);
+      setError(null);
+      const res = await apiRequest("/api/auto-debit/revoke", {
+        method: "POST",
+      });
+      setSuccessMsg(
+        res?.message || "Đã tắt dịch vụ Auto-Debit và thu hồi thỏa thuận thành công."
+      );
+      setIsTermsOpen(false);
+      fetchData();
+      setTimeout(() => setSuccessMsg(null), 5000);
+    } catch (err) {
+      setError(err.message || "Lỗi khi tắt Auto-Debit.");
+    } finally {
+      setDisableLoading(false);
+    }
+  };
+
   // Submit Consent
   const handleConsentSubmit = async (agreed) => {
+    if (!agreed) {
+      return handleDisableAutoDebit();
+    }
     try {
       setError(null);
       await apiRequest("/api/auto-debit/consent", {
@@ -165,11 +191,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
         }),
       });
 
-      setSuccessMsg(
-        agreed
-          ? "Bạn đã đồng ý và ký thỏa thuận dịch vụ Auto-Debit thành công!"
-          : "Đã thu hồi thỏa thuận dịch vụ Auto-Debit thành công."
-      );
+      setSuccessMsg("Bạn đã đồng ý và ký thỏa thuận dịch vụ Auto-Debit thành công!");
       setIsTermsOpen(false);
       fetchData();
       setTimeout(() => setSuccessMsg(null), 5000);
@@ -438,22 +460,46 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
               )}
 
               {isAutoDebitActive ? (
-                <span
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: "0.35rem",
-                    padding: "0.35rem 0.75rem",
-                    borderRadius: "20px",
-                    background: "rgba(16, 185, 129, 0.2)",
-                    border: "1px solid rgba(16, 185, 129, 0.4)",
-                    color: "#6ee7b7",
-                    fontSize: "0.75rem",
-                    fontWeight: 700,
-                  }}
-                >
-                  <ShieldCheck size={14} /> AUTO-DEBIT: BẬT
-                </span>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "0.5rem" }}>
+                  <span
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                      padding: "0.35rem 0.75rem",
+                      borderRadius: "20px",
+                      background: "rgba(16, 185, 129, 0.2)",
+                      border: "1px solid rgba(16, 185, 129, 0.4)",
+                      color: "#6ee7b7",
+                      fontSize: "0.75rem",
+                      fontWeight: 700,
+                    }}
+                  >
+                    <ShieldCheck size={14} /> AUTO-DEBIT: BẬT
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDisableAutoDebit}
+                    disabled={disableLoading}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "0.25rem",
+                      padding: "0.32rem 0.65rem",
+                      borderRadius: "20px",
+                      background: "rgba(239, 68, 68, 0.25)",
+                      border: "1px solid rgba(239, 68, 68, 0.5)",
+                      color: "#fca5a5",
+                      fontSize: "0.72rem",
+                      fontWeight: 700,
+                      cursor: disableLoading ? "not-allowed" : "pointer",
+                      transition: "all 0.2s",
+                    }}
+                    title="Tắt dịch vụ Auto-Debit ngay"
+                  >
+                    <Ban size={12} /> {disableLoading ? "Đang tắt..." : "TẮT"}
+                  </button>
+                </div>
               ) : isAutoDebitPending ? (
                 <span
                   style={{
@@ -755,7 +801,7 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
               </div>
             </div>
 
-            <div style={{ display: "flex", gap: "0.75rem" }}>
+            <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap" }}>
               <button
                 type="button"
                 className="btn btn-primary"
@@ -766,14 +812,27 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 <span>Xem & Ký Điều Khoản Auto-Debit</span>
               </button>
 
-              {isConsented && (
+              {(isConsented || isAutoDebitActive || isAutoDebitPending) && (
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => handleConsentSubmit(false)}
-                  style={{ color: "#dc2626", borderColor: "rgba(239, 68, 68, 0.3)" }}
+                  disabled={disableLoading}
+                  onClick={handleDisableAutoDebit}
+                  style={{
+                    color: "#dc2626",
+                    borderColor: "rgba(239, 68, 68, 0.4)",
+                    background: "rgba(239, 68, 68, 0.06)",
+                    padding: "0.75rem 1.25rem",
+                    fontWeight: 700,
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.45rem",
+                    cursor: disableLoading ? "not-allowed" : "pointer",
+                  }}
+                  title="Tắt tính năng Auto-Debit và thu hồi thỏa thuận"
                 >
-                  Thu Hồi Ký
+                  <Ban size={16} />
+                  <span>{disableLoading ? "Đang tắt..." : "Tắt Auto-Debit (Thu Hồi Ký)"}</span>
                 </button>
               )}
             </div>
@@ -1554,6 +1613,27 @@ export default function CustomerWalletPortal({ currentLoggedUser }) {
                 Bằng việc bấm xác nhận, bạn chấp thuận quy chế trừ ví tự động của e-Hotel.
               </span>
               <div style={{ display: "flex", gap: "0.5rem", flexShrink: 0 }}>
+                {isConsented && (
+                  <button
+                    type="button"
+                    onClick={handleDisableAutoDebit}
+                    disabled={disableLoading}
+                    className="btn btn-secondary"
+                    style={{
+                      padding: "0.55rem 1rem",
+                      fontWeight: 600,
+                      fontSize: "0.875rem",
+                      color: "#dc2626",
+                      borderColor: "rgba(239, 68, 68, 0.4)",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.35rem",
+                    }}
+                  >
+                    <Ban size={16} />
+                    <span>{disableLoading ? "Đang tắt..." : "Thu Hồi Ký"}</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setIsTermsOpen(false)}

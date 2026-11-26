@@ -24,6 +24,19 @@ router.post(
   AutoDebitController.submitConsent,
 );
 
+// Khách hàng chủ động tắt / thu hồi thỏa thuận Auto-Debit
+router.post(
+  "/revoke",
+  requireRole("CUSTOMER"),
+  AutoDebitController.revokeConsent,
+);
+
+router.post(
+  "/disable",
+  requireRole("CUSTOMER"),
+  AutoDebitController.revokeConsent,
+);
+
 // Xem trạng thái Auto-Debit của tôi
 router.get(
   "/my-status",

@@ -123,6 +123,53 @@ export class AutoDebitService {
   }
 
   /**
+   * Khách hàng: Thu hồi thỏa thuận và tắt dịch vụ Auto-Debit
+   */
+  static async revokeConsent(userId) {
+    if (!userId) {
+      throw new AppError(
+        ErrorCodes.VALIDATION_FAILED,
+        "Vui lòng cung cấp mã người dùng (userId).",
+        400,
+      );
+    }
+
+    const cleanUserId = parseInt(userId, 10);
+    const now = new Date();
+
+    return await prisma.$transaction(async (tx) => {
+      // 1. Vô hiệu hóa toàn bộ bản ghi consent của người dùng
+      await tx.autoDebitConsent.updateMany({
+        where: { userId: cleanUserId, isActive: true },
+        data: { isActive: false },
+      });
+
+      // 2. Chuyển trạng thái Auto-Debit sang DISABLED
+      const updatedSetting = await tx.autoDebitSetting.upsert({
+        where: { userId: cleanUserId },
+        update: {
+          status: "DISABLED",
+          disabledAt: now,
+          updatedBy: "CUSTOMER",
+          updatedAt: now,
+        },
+        create: {
+          userId: cleanUserId,
+          status: "DISABLED",
+          disabledAt: now,
+          updatedBy: "CUSTOMER",
+        },
+      });
+
+      return {
+        userId: cleanUserId,
+        status: updatedSetting.status,
+        message: "Đã tắt dịch vụ Auto-Debit và thu hồi cam kết thành công.",
+      };
+    });
+  }
+
+  /**
    * Khách hàng: Lấy trạng thái Auto-Debit hiện tại của chính mình
    */
   static async getCustomerStatus(userId) {
